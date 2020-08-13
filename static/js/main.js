@@ -10,7 +10,6 @@ var CALC_NUMARGS = [
 ];
 
 $(document).ready(function () {
-    $("#block-container").sortable();
     $("button").button();
     $("#block-type").selectmenu({
         change: function (event, ui) {
@@ -22,6 +21,10 @@ $(document).ready(function () {
         }
     });
     $("#func-enter").hide();
+    $("#channels").selectableScroll({
+        scrollSnapX: 5,
+        scrollAmount: 25
+    });
 });
 
 var Calc = function(expr, infix) {
@@ -210,62 +213,72 @@ var func_math_field = MQ.MathField(func_span, {
     }
 });
 
-$("#new_block").on("click", function () {
+$("#new-block").on("click", function () {
     var block_type = $("#block-type").children("option:selected").val();
     create_block(block_type);
 });
 
 function create_block(block_type) {
-    var new_block_id = "block" + $(".block").length;
     var ymax = 1.2;
     var ymin = -1.2;
-    $("#block-container").append("<canvas class='block' id='" + new_block_id + "'></canvas>");
-    var canvas = $("#" + new_block_id)[0],
-        ctx = canvas.getContext("2d"),
-        width = canvas.width,
-        height = canvas.height,
-        plot = function plot(fn, range) {
-            var widthScale = (width / (range[1] - range[0])),
-                heightScale = (height / (range[3] - range[2])),
-                first = true;
-            ctx.beginPath();
-            for (var x = 0; x < width; x++) {
-                var xFnVal = (x / widthScale) - range[0],
-                    yGVal = (fn(xFnVal) - range[2]) * heightScale;
-                yGVal = height - yGVal;
-                if (first) {
-                    ctx.moveTo(x, yGVal);
-                    first = false;
-                } else {
-                    ctx.lineTo(x, yGVal);
+    $("#channel-container .ui-selected").each(function() {
+        var new_block_id = this.id + "block" + $(this).children().length;
+        $(this).append("<canvas class='block' id='" + new_block_id + "'></canvas>");
+        var canvas = $("#" + new_block_id)[0],
+            ctx = canvas.getContext("2d"),
+            width = canvas.width,
+            height = canvas.height,
+            plot = function plot(fn, range) {
+                var widthScale = (width / (range[1] - range[0])),
+                    heightScale = (height / (range[3] - range[2])),
+                    first = true;
+                ctx.beginPath();
+                for (var x = 0; x < width; x++) {
+                    var xFnVal = (x / widthScale) - range[0],
+                        yGVal = (fn(xFnVal) - range[2]) * heightScale;
+                    yGVal = height - yGVal;
+                    if (first) {
+                        ctx.moveTo(x, yGVal);
+                        first = false;
+                    } else {
+                        ctx.lineTo(x, yGVal);
+                    }
                 }
+                ctx.strokeStyle = "limegreen";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            };
+        plot (function (x) {
+            switch(block_type) {
+                case "sine":
+                    return Math.sin(2 * Math.PI * x);
+                    break;
+                case "saw":
+                    return 2 * (x - 0.5) - 2 * Math.floor(x - 0.5) - 1;
+                    break;
+                case "square":
+                    return Math.pow(-1, Math.floor(x));
+                    break;
+                case "tri":
+                    return -2 * Math.abs((x % 2) - 1) + 1;
+                    break;
+                case "pulse":
+                    return (0.4 < x && x < 0.6) ? 1: 0;
+                    break;
+                case "func":
+                    var res = calc.eval(x);
+                    return res ? res: 0;
+                    break;
+                default:
+                    return 0;
             }
-            ctx.strokeStyle = "limegreen";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        };
-    plot (function (x) {
-        switch(block_type) {
-            case "sine":
-                return Math.sin(2 * Math.PI * x);
-                break;
-            case "saw":
-                return 2 * (x - 0.5) - 2 * Math.floor(x - 0.5) - 1;
-                break;
-            case "square":
-                return Math.pow(-1, Math.floor(x));
-                break;
-            case "tri":
-                return Math.abs((x++ % 2) - 1);
-                break;
-            case "pulse":
-                return (0.4 < x && x < 0.6) ? 1: 0;
-                break;
-            case "func":
-                return calc.eval(x);
-                break;
-            default:
-                return 0;
-        }
-    }, [0, 4, ymin, ymax]);
+        }, [0, 4, ymin, ymax]);
+    });
 }
+
+$("#new-channel").on("click", function () {
+    var new_channel_id = "ch" + $(".channel").length;
+    $("#channel-container").append("<div class='channel' id='" + new_channel_id + "'></div>")
+    $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + ">" + new_channel_id + "</div>")
+});
+

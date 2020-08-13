@@ -70,9 +70,17 @@ p {
     margin-left: 10px;
 }
 .block {
-    background: black;
     width: 160px;
     height: 90px;
+}
+.channel {
+    height: 90px;
+    border-bottom: 1px solid dimgray;
+    overflow-x: scroll;
+}
+.channel-label {
+    height: 90px;
+    border-bottom: 1px solid black;
 }
 #block-container {
     margin-top: 20px;
@@ -82,4 +90,28 @@ p {
 }
 #func-enter {
     background: white;
+}
+#channel-container {
+    background: black;
+    min-height: 90px;
+}
+#channel-label-container {
+    min-height: 90px;
+}
+.channel.ui-selecting {
+    background: rgba(191, 239, 255, 0.3);
+}
+.channel.ui-selected {
+    background: rgba(191, 239, 255, 0.2);
+}
+#channels {
+    max-height: 270px;
+    overflow-y: scroll;
+    margin-top: 20px;
+    border: 2px solid black;
+}
+.channel-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

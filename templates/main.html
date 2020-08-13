@@ -1,17 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
     <h1>Viewer</h1><hr class="main">
-    <button id="new_block">New Block</button>
-    <label for="block-type">Block Type</label>
-    <select name="block-type" id="block-type">
-        <option value="sine" selected="selected">Sine</option>
-        <option value="saw">Saw</option>
-        <option value="square">Square</option>
-        <option value="pulse">Pulse</option>
-        <option value="tri">Triangle</option>
-        <option value="const">Constant</option>
-        <option value="func">Function</option>
-    </select>
-    <p id="func-enter"><span id="func"></span></p>
-    <div id="block-container"></div>
+    <div class="row" id="channel-options">
+        <button id="new-channel">New Channel</button>
+        <button id="new-block">New Block</button>
+        <label for="block-type">Block Type</label>
+        <select name="block-type" id="block-type">
+            <option value="sine" selected="selected">Sine</option>
+            <option value="saw">Saw</option>
+            <option value="square">Square</option>
+            <option value="pulse">Pulse</option>
+            <option value="tri">Triangle</option>
+            <option value="const">Constant</option>
+            <option value="func">Function</option>
+        </select>
+        <p id="func-enter"><span id="func"></span></p><br/>
+        <p>Selected channels: <span id="selected-channels"></span></p>
+    </div>
+    <div class="row" id="channels">
+        <div class="column" style="width: 10%;">
+            <div id="channel-label-container"></div>
+        </div>
+        <div class="column" style="width: 90%;">
+            <div id="channel-container"></div>
+        </div>
+    </div>
 {% endblock %}
