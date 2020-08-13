@@ -71,10 +71,12 @@ p {
 .block {
     width: 160px;
     height: 90px;
+    border-right: 1px solid dimgray;
 }
 .channel {
     height: 90px;
     border-bottom: 1px solid dimgray;
+    width: auto;
 }
 .channel-label {
     height: 90px;
