@@ -10,11 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/jquery-ui-ext.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/mathquill.css') }}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_comet.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_upload.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/mathquill.min.js') }}"></script>
     <script>{{ form_init_js|safe }}</script>
     <title>Seneca Viewer</title>
     <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>

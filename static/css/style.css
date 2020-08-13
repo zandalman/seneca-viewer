@@ -69,3 +69,17 @@ hr.main {
 p {
     margin-left: 10px;
 }
+.block {
+    background: black;
+    width: 160px;
+    height: 90px;
+}
+#block-container {
+    margin-top: 20px;
+}
+#block-type, #func-enter {
+    display: inline-block;
+}
+#func-enter {
+    background: white;
+}

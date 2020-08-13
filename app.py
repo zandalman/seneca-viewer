@@ -1,4 +1,5 @@
 from flask import Flask, render_template, g
+from sijax_handlers import SijaxHandlers
 import flask_sijax
 import os
 
@@ -26,10 +27,9 @@ def create_app():
             The rendered html template for the main page.
         """
         #form_init_js = g.sijax.register_upload_callback("add-routine-form", SijaxUploadHandlers(app).add_routine) # Register Sijax upload handlers
-        #if g.sijax.is_sijax_request:
-            #g.sijax.register_object(SijaxHandlers(app))  # Register Sijax handlers
-            #g.sijax.register_comet_object(SijaxCometHandlers(app))  # Register Sijax comet handlers
-            #return g.sijax.process_request()
+        if g.sijax.is_sijax_request:
+            g.sijax.register_object(SijaxHandlers(app))
+            return g.sijax.process_request()
         return render_template("main.html")  # Render template
     return app
 
