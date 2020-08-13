@@ -23,7 +23,17 @@ $(document).ready(function () {
     $("#func-enter").hide();
     $("#channels").selectableScroll({
         scrollSnapX: 5,
-        scrollAmount: 25
+        scrollAmount: 25,
+        stop: function(event, ui) {
+            if ($(".channel.ui-selected").length === 0) {
+                $("#selected-channels").html("None");
+            } else {
+                $("#selected-channels").html("");
+                $(".channel.ui-selected").each(function () {
+                    $("#selected-channels").append(this.id + " ");
+                });
+            }
+        }
     });
 });
 
@@ -199,6 +209,7 @@ Calc.prototype.latexToInfix = function(latex) {
     .replace(/([^(floor|ceil|(sin|cos|tan|sec|csc|cot)h?|\+|\-|\*|\/)])\(/g, "$1*(")
     .replace(/\)([\w])/g, ")*$1")
     .replace(/([0-9])([A-Za-z])/g, "$1*$2")
+    .replace(/\\cdot/g,"*")
   ;
   return infix;
 };
@@ -221,7 +232,7 @@ $("#new-block").on("click", function () {
 function create_block(block_type) {
     var ymax = 1.2;
     var ymin = -1.2;
-    $("#channel-container .ui-selected").each(function() {
+    $(".channel.ui-selected").each(function() {
         var new_block_id = this.id + "block" + $(this).children().length;
         $(this).append("<canvas class='block' id='" + new_block_id + "'></canvas>");
         var canvas = $("#" + new_block_id)[0],

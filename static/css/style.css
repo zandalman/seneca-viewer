@@ -7,7 +7,6 @@
 }
 body {
     background-color: #eaeaea;
-    overflow-x: hidden;
 }
 .button {
     cursor: pointer;
@@ -76,7 +75,6 @@ p {
 .channel {
     height: 90px;
     border-bottom: 1px solid dimgray;
-    overflow-x: scroll;
 }
 .channel-label {
     height: 90px;
@@ -94,6 +92,9 @@ p {
 #channel-container {
     background: black;
     min-height: 90px;
+    width: auto;
+    overflow-x: scroll;
+    white-space: nowrap;
 }
 #channel-label-container {
     min-height: 90px;
@@ -109,6 +110,7 @@ p {
     overflow-y: scroll;
     margin-top: 20px;
     border: 2px solid black;
+    background: lightgrey;
 }
 .channel-label {
     display: flex;
