@@ -1,0 +1,46 @@
+{
+    "devices": {
+        "kasli": "core",
+        "aom dds": "urukul2_ch0",
+        "aom dds cpld": "urukul2_cpld",
+        "digital 0": "ttl0"
+    },
+    "logic": [
+        "reset",
+        {
+            "delay": 10,
+            "units": "ms",
+            "vartype": "hardcoded"
+        },
+        {
+            "set_attenuation": "initial_atten",
+            "description": "",
+            "attenuation": 1.0,
+            "vartype": "hardcoded"
+        },
+        {
+            "DDS_on": "AOM DDS",
+            "description": "Turn AOM DDS off",
+            "device": "urukul2_ch0"
+        },
+        {
+            "DDS_freq": "AOM DDS output",
+            "description": "Write frequency and amp to DDS output",
+            "frequency": 80,
+            "freq_units": "Hz",
+            "amplitude": 1.0,
+            "device": "urukul2_ch0",
+            "vartype": "exp parameter"
+        },
+        {
+            "delay": 20,
+            "units": "ms",
+            "vartype": "hardcoded"
+        },
+        {
+            "DDS_off": "AOM DDS",
+            "description": "Turn AOM DDS off",
+            "device": "urukul2_ch0"
+        }
+    ]
+}

@@ -1,0 +1,88 @@
+{
+  " start": {
+    "seqType": "serial",
+    "subEvents": [
+      {
+        "eventType": "analogs",
+        "name": "aom_start",
+        "delay": "1",
+        "vartype": "hardcoded",
+        "units": "ms"
+      },
+      {
+        "eventType": "analogs",
+        "name": "load",
+        "delay": "10",
+        "vartype": "hardcoded",
+        "units": "s"
+      },
+      {
+        "eventType": "analogs",
+        "name": "slow_start",
+        "delay": "5",
+        "units": "s",
+        "vartype": "hardcoded"
+      },
+      {
+        "eventType": "analogs",
+        "name": "slow_start",
+        "delay": "5",
+        "units": "s",
+        "vartype": "hardcoded"
+      },
+      {
+        "eventType": "analogs",
+        "name": "slow_start",
+        "delay": "5",
+        "units": "s",
+        "vartype": "hardcoded"
+      }
+    ]
+  },
+  "signals": {
+    "seqType": "parallel",
+    "subEvents": [
+      {
+        "eventType": "signals-2",
+        "name": "sine",
+        "delay": "1",
+        "attenuation": "1",
+        "vartype": "hard"
+      },
+      {
+        "eventType": "signals-3",
+        "name": "square",
+        "delay": "2",
+        "frequency": "2",
+        "units": "ms"
+      },
+      {
+        "eventType": "signals-3",
+        "name": "triangle",
+        "delay": "20",
+        "frequency": "10",
+        "units": "s"
+      }
+    ]
+  },
+  " shutdown": {
+    "seqType": "serial",
+    "subEvents": [
+      {
+        "eventType": "signals-3",
+        "name": "stop_1",
+        "delay": "2",
+        "frequency": "3",
+        "units": "s"
+      },
+      {
+        "eventType": "signals-4",
+        "name": "aom_stop",
+        "delay": "12",
+        "amplitude": "",
+        "units": "ms",
+        "p5": ""
+      }
+    ]
+  }
+}

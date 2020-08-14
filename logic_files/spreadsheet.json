@@ -1,0 +1,31 @@
+{
+  "undefined": {
+    "seqType": "serial",
+    "subEvents": [
+      {
+        "eventType": "signals-3",
+        "name": "aom_off",
+        "delay": "0",
+        "units": "ms",
+        "p5": "1",
+        "p1": "1"
+      },
+      {
+        "eventType": "signals-3",
+        "name": "g_off",
+        "delay": "2",
+        "units": "s",
+        "p5": "1",
+        "p1": "3"
+      },
+      {
+        "eventType": "signals-3",
+        "name": "h_off",
+        "delay": "12",
+        "units": "ms",
+        "p5": "2",
+        "p1": "2"
+      }
+    ]
+  }
+}
