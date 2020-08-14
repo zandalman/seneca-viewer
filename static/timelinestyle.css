@@ -51,15 +51,17 @@ p{
     flex-direction: row;
 }
 
-.subEventLog.parallel{
+.subEventLog{
     width: 100%;
+}
+
+.subEventLog.parallel{
     height: 200px;
     display: flex;
     flex-direction: column;
 }
 
 .subEventLog.serial{
-    width: 100%;
     height: 100px;
     display: flex;
     flex-direction: row;
@@ -89,7 +91,6 @@ p{
 }
 
 .subEvent.parallel{
-    width: 100px;
     border: 1px solid black;
     background-color: white;
 }

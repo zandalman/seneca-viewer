@@ -9,10 +9,12 @@
     <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
     <script type="text/javascript">
         var configuration=JSON.parse({{config | tojson | safe}});
-
-
     </script>
+    <script type="text/javascript" src="/static/js/sijax/sijax.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='/spreadsheet.js') }}"></script>
+        <script type="text/javascript">
+            {{ g.sijax.get_js()|safe }}
+        </script>
 </head>
 <body>
 <div class="mainTabs">
@@ -66,7 +68,23 @@
         </div>
     </div>
 </div>
-<div class="mainTabContent" id="parameter" >placeholder content</div>
+<div class="mainTabContent" id="parameter" >
+    <div class="context">
+        <p> <button id="generate" onclick="generate()">Generate timeline</button></p>
+        <p> Current file path:</p>
+        <p> {{ file_folder }}</p>
+        <p>Select file</p>
+        <select id="jsonSelector" onchange="Sijax.request('get_json', [this.value]);">
+             {% for item in files %}
+            <option >{{ item }} </option>
+            {% endfor %}
+        </select>
+        <pre id="jsonDisplay"></pre>
+    </div>
+    <div class="inner-element" id="parameter_panel">
+        some placeholder
+    </div>
+</div>
 <div class="mainTabContent" id="visualizer">placeholder</div>
 </body>
 

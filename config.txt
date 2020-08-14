@@ -1,29 +1,104 @@
-{"analogs": {"eventType": "analogs",
-        "name": "startup",
-        "delay": "10",
-        "vartype": "hardcoded"},
-    
-"signals-2": {"eventType": "signals-2",
-        "name": "set_attenuation",
-        "delay": "1",
-        "attenuation": "1",
-        "vartype": "hardcoded"},
-     
-"trigs": {"eventType": "trig",
-        "name": "dds_freq",
-        "delay": "10",
-	"phase": "Pi",
-	"periods": "3",
-        "frequency": "2",
-	"amplitude": "2",
-	"type": "sine",
-        "units": "hz"},
-     
-"signals-4": {"eventType": "signals-4",
-    "name": "wave2",
-    "delay": "0",
-    "amplitude": "4",
-    "units": "ms",
-    "p5": "1",
-    "amplitude": "2"}
+{
+   "sine":{
+      "eventType":"sine",
+      "name":"sine_example",
+      "delay":"0",
+      "phase":"0",
+      "period":"0.2",
+      "amplitude":"1",
+      "cycles":"1",
+      "rectified":"false",
+      "offset":"0",
+      "channels":[
+         "ch0",
+         "ch1"
+      ]
+   },
+   "saw":{
+      "eventType":"saw",
+      "name":"saw_example",
+      "delay":"0",
+      "phase":"0",
+      "period":"0.2",
+      "amplitude":"1",
+      "cycles":"1",
+      "rectified":"false",
+      "offset":"0",
+      "channels":[
+         "ch0",
+         "ch2"
+      ]
+   },
+   "square":{
+      "eventType":"trig",
+      "name":"dds_freq",
+      "delay":"10",
+      "phase":"Pi",
+      "periods":"3",
+      "frequency":"2",
+      "amplitude":"2",
+      "type":"sine",
+      "units":"hz"
+   },
+   "triangle":{
+      "eventType":"signals-4",
+      "name":"wave2",
+      "delay":"0",
+      "amplitude":"4",
+      "units":"ms",
+      "p5":"1",
+      "amplitude":"2"
+   },
+   "pulse":{
+      "eventType":"pulse",
+      "name":"pulse_example",
+      "delay":"0",
+      "duty_cycles":"0.5",
+      "frequency":"5",
+      "amplitude":"1",
+      "cycles":"1",
+      "channels":[
+         "ch4"
+      ]
+   },
+   "constant":{
+      "eventType":"constant",
+      "name":"constant_example",
+      "delay":"0",
+      "amplitude":"0.5",
+      "channels":[
+         "ch1"
+      ]
+   },
+   "function":{
+      "eventType":"function",
+      "name":"function_example",
+      "delay":"0",
+      "latex":"\\frac{\\sin(x)^2}{2}",
+      "channels":[
+         "ch1"
+      ]
+   },
+   "points":{
+      "eventType":"points",
+      "name":"points_example",
+      "times":[
+         "0",
+         "1",
+         "2",
+         "3",
+         "4"
+      ],
+      "values":[
+         "0",
+         "1",
+         "0",
+         "0.5",
+         "0"
+      ],
+      "channels":[
+         "ch1",
+         "ch2"
+      ]
+   }
 }

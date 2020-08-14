@@ -7,6 +7,11 @@ body{
     font-family: Roboto;
 }
 
+p{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 .hidden{
     display:none;
 }
@@ -60,10 +65,11 @@ body{
 
 .context{
     width: 20%;
+    padding: 10px;
     height: 100%;
     margin-left: auto;
     margin-right: auto;
-    text-align: center;
+    align-items: center;
     background-color: #EEF9FD;
     display: flex;
     flex-direction: column;
@@ -97,6 +103,7 @@ td input[type="text"], textarea {
 .inner-element{
   position: relative;
   max-height: 100%;
+  width:100%;
   margin-right: 0px;
   margin-left: auto;
   text-align: center;
@@ -105,8 +112,6 @@ td input[type="text"], textarea {
   border-radius: 0px;
   background-color: #EEF9FD;
   display: inline-block;
-
-
 }
 
 #sort-container{
@@ -126,8 +131,9 @@ td input[type="text"], textarea {
    overflow: auto;
 }
 
-
-
+#parameter_panel{
+    background-color: white;
+}
 
 
 #sort-boxes{
