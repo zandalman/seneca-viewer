@@ -1,19 +1,49 @@
-html{
+body{
     width: 100%;
     height: 100%;
+    margin:0;
+    display: flex;
+    flex-direction: column;
+    font-family: Roboto;
 }
 
-body{
-    position: absolute;
-    top: 0px;
+.hidden{
+    display:none;
+}
+
+.mainTabs{
+    height: 40px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+}
+
+.mainTab{
+    height: 40px;
+    width: 100%;
+    background-color: white;
+    border: 1px solid gray;
+    margin-right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+
+}
+
+.mainTabContent{
+    top: 40px;
     left: 0px;
     right: 0px;
     bottom: 0px;
-    margin: 0;
+    position: absolute;
     justify-content: center;
-    font-family: Roboto;
-    display: flex;
+    display: none;
     flex-direction: row;
+}
+
+.mainTabContent.active{
+    display: flex;
 }
 
 .config-popup{

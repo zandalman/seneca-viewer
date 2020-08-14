@@ -1,46 +1,60 @@
 <head>
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.21/af-2.3.5/b-1.6.2/b-colvis-1.6.2/b-flash-1.6.2/b-html5-1.6.2/cr-1.5.2/fc-3.3.1/fh-3.1.7/kt-2.5.2/r-2.2.5/rg-1.1.2/rr-1.2.7/sc-2.0.2/sp-1.1.1/sl-1.3.1/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.21/af-2.3.5/b-1.6.2/b-colvis-1.6.2/b-flash-1.6.2/b-html5-1.6.2/cr-1.5.2/fc-3.3.1/fh-3.1.7/kt-2.5.2/r-2.2.5/rg-1.1.2/rr-1.2.7/sc-2.0.2/sp-1.1.1/sl-1.3.1/datatables.min.css"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='/spreadsheet.css') }}">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.21/af-2.3.5/b-1.6.2/b-colvis-1.6.2/b-flash-1.6.2/b-html5-1.6.2/cr-1.5.2/fc-3.3.1/fh-3.1.7/kt-2.5.2/r-2.2.5/rg-1.1.2/rr-1.2.7/sc-2.0.2/sp-1.1.1/sl-1.3.1/datatables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.21/af-2.3.5/b-1.6.2/b-colvis-1.6.2/b-flash-1.6.2/b-html5-1.6.2/cr-1.5.2/fc-3.3.1/fh-3.1.7/kt-2.5.2/r-2.2.5/rg-1.1.2/rr-1.2.7/sc-2.0.2/sp-1.1.1/sl-1.3.1/datatables.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
     <script type="text/javascript">
         var configuration=JSON.parse({{config | tojson | safe}});
+
+
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='/spreadsheet.js') }}"></script>
 </head>
+<body>
+<div class="mainTabs">
+    <div class="mainTab" data-tabID="spreadsheet">Define logic</div>
+    <div class="mainTab" data-tabID="parameter">Set parameters</div>
+    <div class="mainTab" data-tabID="visualizer">Visualize</div>
+</div>
+<div class="mainTabContent" id="spreadsheet">
+    <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span>
+        <ul id="sort"></ul>
+    </div>
+    <div class="inner-element" id="sort-container">
+        <div class="config-popup" style="display:none">
+            <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}
+            </div>
+            <div class="flex">
+                <button>edit file</button>
+                <button>choose new file</button>
+            </div>
+        </div>
 
-<div class="check"></div>
-<div class="sheet-box">
-  <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span><ul id="sort"></ul></div>
-  <div class="inner-element" id="sort-container">
-      <div class="config-popup" style="display:none">
-          <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
-          <div class="flex"> <button>edit file</button> <button>choose new file</button></div>
-      </div>
-
-      <button class="config" style="margin-bottom:10px;">configuration</button>
-      <div class="menu-bar">
-          <button class="upload" >upload</button>
-             <button class="all">toggle all</button>
+        <button class="config" style="margin-bottom:10px;">configuration</button>
+        <div class="menu-bar">
+            <button class="upload">upload</button>
+            <button class="all">toggle all</button>
             <button class="save">save JSON</button>
             <button class="addEvent">add event</button>
             <input id='upload-json' type='file' hidden/>
         </div>
-      <div class="save-alerts">
-             <input type="text" id="fileName" placeholder="file name">
+        <div class="save-alerts">
+            <input type="text" id="fileName" placeholder="file name">
 
-      </div>
-      <div id="sort-boxes"></div>
-  </div>
+        </div>
+        <div id="sort-boxes"></div>
+    </div>
     <div class="table-box">
         <div class="menu-bar">
             <button class="all-tabs">all tables</button>
-            <button class="search">filtering </button>
+            <button class="search">filtering</button>
         </div>
         <div class="second-tables">
-         <!-- dynamic tables here -->
+            <!-- dynamic tables here -->
         </div>
     </div>
     <div class="context">
@@ -52,5 +66,9 @@
         </div>
     </div>
 </div>
+<div class="mainTabContent" id="parameter" >placeholder content</div>
+<div class="mainTabContent" id="visualizer">placeholder</div>
+</body>
+
 
 

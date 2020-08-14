@@ -30,6 +30,9 @@ var columnGenerate = [{
 ]
 
 $(document).ready(function () {
+    $("#spreadsheet").addClass("active");
+
+
     //Create datalists for each parameter to store values entered
 	$.each(allParameters, function (index, value) {
 		$('#variable-lists').append("<option>" + value + "</option>");
@@ -204,11 +207,13 @@ $(document).ready(function () {
 		eventCount++;
 	};
 
-	
+
+	$(document).on('click', '.mainTab', function (e) {
+	    setActive("ID", $(this).attr("data-tabID"), "", "mainTabContent");
+
+	});
 
 	$("#sort").sortable();
-	//$("#sort").disableSelection();
-
 
 	//generate the containers + buttons for new tables
 
@@ -223,6 +228,7 @@ $(document).ready(function () {
 		//buttons for every context
 		tableButtons.append('<div style="margin-bottom:10px">' + value + '</div>');
 		tableButtons.append('<button class="save-selected">save selected</button></div>');
+		tableButtons.append('<button class="clear-selected">clear selected</button></div>');
 		tableButtons.append('<button class="delete-selected">delete selected</button></div>');
 		tableButtons.append('<button class="fill-selected">fill selected</button></div>');
 		tableButtons.append('<button class="fill-options"><select class="fill-selector"><option disabled selected>fill options</option></select></button>');
@@ -443,7 +449,6 @@ $(document).ready(function () {
 		for (var j = 0; j < datalist.options.length; j++) {
 			if (this.value == datalist.options[j].value) {
 				newOption = false;
-				//alert('no');
 				break;
 			}
 		}
@@ -631,6 +636,10 @@ $(document).ready(function () {
 		parentTable.draw();
 	});
 
+	$(document).on('click', '.clear-selected', function (e) {
+	    $(".selected").removeClass("selected");
+	});
+
 	$(document).on('click', '.delete-selected', function (e) {
 		var parentTable = $(this).closest('.table-row').find('table').DataTable();
 		parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
@@ -713,32 +722,40 @@ $(document).ready(function () {
 				$('.sort-box').last().find('select').val(jsonObj[event]["seqType"]);
 				$('.sorter').last().html(event);
 				var subEvents = jsonObj[event]["subEvents"]
-				for (var i in subEvents) {
-					eventType = subEvents[i]["eventType"];
-					var row = $("#" + eventType).DataTable().row.add(subEvents[i]);
+				for (var subEvent in subEvents) {
+					eventType = subEvents[subEvent]["eventType"];
+					var row = $("#" + eventType).DataTable().row.add(subEvents[subEvent]);
 					var $rowNode = $(row.node());
 					$rowNode.attr('id', eventCount);
 					eventCount = eventCount + 1;
 					row.draw();
 				}
 				//$('.table-box').last().find('td input').change();
-				$('.table-box').last().find('tr').addClass('updated');
+				$("#" + eventType).last().find('tr').addClass('updated');
 				$('.update').click();
-				/*var cells = $('.table-box').last().find('input');
-				$.each(cells, function (index, value) {
+
+				$.each($('datalist'), function (index, value) {
+					var $datalist = $(this);
+					var datalist=this;
+
+					var listID = datalist.id;
+					var parameter = listID.split('-')[0];
+
+                    $('#sort').append($datalist.options);
 					var newOption = true;
-					var datalist = this.list;
-					for (var j = 0; j < datalist.options.length; j++) {
-						if (this.value == datalist.options[j].value) {
-							newOption = false;
-							break;
-						}
-					}
-					if (newOption) {
-						$("#" + datalist.id).append("<option>" + this.value + "</option>");
-					}
-					alert("changed options");
-				});*/
+					$("#"+ eventType).DataTable().cells(undefined, parameter + ":name").every( function(){
+					    for (var j = 0; j < datalist.options.length; j++) {
+                            if (this.data() == datalist.options[j].value) {
+                                newOption = false;
+                                break;
+                            }
+                        }
+                        if (newOption) {
+                            $("#" + datalist.id).append("<option>" + this.data() + "</option>");
+                        }
+
+					});
+				});
 
 			}
 

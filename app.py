@@ -66,7 +66,10 @@ def spreadsheet():
             logic[event] = eventData
         with open(os.path.join(logic_path, file_name), 'w') as file:
             json.dump(logic, file, indent=2)
-    return render_template("spreadsheet.html", files=savedFiles, configfile="config.txt", config=json.dumps(event_config))
+    return render_template("spreadsheet.html",
+                           files=savedFiles,
+                           configfile=os.path.join(instance_path, "config.txt"),
+                           config=json.dumps(event_config))
 
 
 @app.route('/timeline', methods=['GET', 'POST'])
