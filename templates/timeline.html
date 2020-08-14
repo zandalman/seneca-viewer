@@ -1,0 +1,89 @@
+<head>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/static/js/sijax/sijax.js"></script>
+    <script type="text/javascript">
+        {{ g.sijax.get_js()|safe }}
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='/timelinestyle.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+<body>
+    <div class="flexColumns">
+        <div class="contextMenu">
+            <p> <button id="generate" onclick="generate()">Generate timeline</button></p>
+            <p> Current file path:</p>
+            <p> {{ file_folder }}</p>
+            <p>Select file</p>
+            <select id="jsonSelector" onchange="Sijax.request('get_json', [this.value]);">
+                 {% for item in json_options %}
+                <option >{{ item }} </option>
+                {% endfor %}
+            </select>
+            <pre id="jsonDisplay" color="green"></pre>
+        </div>
+        <div class="eventContainer">
+            <div class="event" style="display:none;"></div>
+        </div>
+
+    </div>
+</body>
+
+<script>
+/*
+     *Generates blank timeline tree. To be called after a valid JSON file is loaded into #jsonDisplay
+     *(currently, using my own file convention)
+     */
+
+function generate(){
+    if ($("#jsonDisplay").attr("validity")=="True"){
+        $(".eventContainer").empty();
+        var jsonObj = JSON.parse($("#jsonDisplay").html());
+        for (event in jsonObj){
+            var $newEvent = $("<div class='event'><div class='subEventLog'></div></div>");
+            //$newEvent.addClass("event");
+            $newEvent.appendTo($(".eventContainer"));
+            var $nameEvent = $("<div></div>");
+            $nameEvent.addClass("nameplate");
+            $nameEvent.html(event);
+            $nameEvent.prependTo($newEvent);
+            sequenceType = jsonObj[event]["seqType"];
+            for (subEvent in jsonObj[event]["subEvents"]){
+                var $newSubEvent = $("<div class='subEvent'></div>");
+                $newSubEvent.html(subEvent["label"]);
+                if (sequenceType=="parallel"){
+                    $newEvent.children(".subEventLog").addClass("parallel");
+                };
+                if (sequenceType=="serial"){
+                    $newEvent.children(".subEventLog").addClass("serial");
+                    resize(subEvent, event, $newSubEvent);
+                };
+                $newSubEvent.appendTo($newEvent.children(".subEventLog"));
+            }
+        }
+    }
+};
+
+/*
+     *Scales .subEvent block according to event parameters found in active JSON
+     *@param {String} subEvent Name of sub-event, "name" in input JSON
+     *@param {String} event Name of parent event, first-level key in JSON
+     *@param {Node} $node HTML element to be resized
+     */
+
+function resize(subEvent, event, $node){
+    var scaling = {
+                    "s": "200px",
+                    "ms": "100px",
+                    "us": "50px",
+                    undefined: "100px"
+                  };
+    var jsonObj = JSON.parse($("#jsonDisplay").html());
+    var unit = jsonObj[event]["subEvents"][subEvent]["units"];
+    $node.css("width", scaling[unit]);
+};
+
+$(document).ready(function () {
+
+});
+</script>

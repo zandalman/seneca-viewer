@@ -1,0 +1,95 @@
+body{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-family: Roboto;
+    margin: 0;
+}
+
+p{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.flexColumns{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.contextMenu{
+    width: 30%;
+    max-width: 500px;
+    background-color: #EEF9FD;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+
+}
+
+.eventContainer{
+    width: 70%;
+    padding: 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    overflow: auto;
+}
+
+.event{
+    min-width: 100%;
+    background-color: gray;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+    display:flex;
+    flex-direction: row;
+}
+
+.subEventLog.parallel{
+    width: 100%;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.subEventLog.serial{
+    width: 100%;
+    height: 100px;
+    display: flex;
+    flex-direction: row;
+}
+.nameplate{
+    height: 90px;
+    padding: 10px;
+    background-color: transparent;
+    width: 100px;
+    text-align:center;
+}
+
+.subEvent{
+    margin-top: 5px;
+    margin-right: 0px;
+    height: 90px;
+    width: 100%;
+    border: 1px solid black;
+    background-color: white;
+}
+
+.subEvent.serial{
+    width: 100px;
+    height: 90px;
+    border: 1px solid black;
+    background-color: white;
+}
+
+.subEvent.parallel{
+    width: 100px;
+    border: 1px solid black;
+    background-color: white;
+}
