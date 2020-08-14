@@ -1,0 +1,29 @@
+{"analogs": {"eventType": "analogs",
+        "name": "startup",
+        "delay": "10",
+        "vartype": "hardcoded"},
+    
+"signals-2": {"eventType": "signals-2",
+        "name": "set_attenuation",
+        "delay": "1",
+        "attenuation": "1",
+        "vartype": "hardcoded"},
+     
+"trigs": {"eventType": "trig",
+        "name": "dds_freq",
+        "delay": "10",
+	"phase": "Pi",
+	"periods": "3",
+        "frequency": "2",
+	"amplitude": "2",
+	"type": "sine",
+        "units": "hz"},
+     
+"signals-4": {"eventType": "signals-4",
+    "name": "wave2",
+    "delay": "0",
+    "amplitude": "4",
+    "units": "ms",
+    "p5": "1",
+    "amplitude": "2"}
+}
