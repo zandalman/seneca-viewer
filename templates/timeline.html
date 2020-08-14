@@ -51,7 +51,7 @@ function generate(){
 
             for (subEvent in jsonObj[event]["subEvents"]){
                 var $newSubEvent = $("<div class='subEvent'></div>");
-                $newSubEvent.html(subEvent["name"]);
+                $newSubEvent.html(jsonObj[event]["subEvents"][subEvent]["name"]);
                 if (sequenceType=="parallel"){
                     $newEvent.children(".subEventLog").addClass("parallel");
                 };
