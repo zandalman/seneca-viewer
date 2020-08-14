@@ -223,10 +223,10 @@ $(document).ready(function () {
 		$(".context .tabs-bar").append(newTab);
 
 		var newTableRow = $('<div class="table-row"></div>');
-		var tableButtons = $('<div class="rel"><div class="vert-flex"></div></div>');
+
+		var tableButtons = $('<div class="table-buttons"></div>');
 
 		//buttons for every context
-		tableButtons.append('<div style="margin-bottom:10px">' + value + '</div>');
 		tableButtons.append('<button class="save-selected">save selected</button></div>');
 		tableButtons.append('<button class="clear-selected">clear selected</button></div>');
 		tableButtons.append('<button class="delete-selected">delete selected</button></div>');
@@ -337,9 +337,9 @@ $(document).ready(function () {
 			searching: true,
 			"columns": columns,
 			"data": [],
-			"dom": 'tf',
+			"dom": 'tf<"'+type+'">',
 		});
-
+        $("div."+type).html("<div style='text-align:right;'>"+ type + "</div>");
 		//the dataTable initially has to be supplied with a data format
 		//now, clear the data
 		newTable.clear().draw();
