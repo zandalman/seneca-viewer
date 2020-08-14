@@ -21,17 +21,20 @@ $(document).ready(function () {
         }
     });
     $("#func-enter").hide();
+    $("#new-block").button("disable");
     $("#channels").selectableScroll({
         scrollSnapX: 5,
         scrollAmount: 25,
         stop: function(event, ui) {
             if ($(".channel.ui-selected").length === 0) {
                 $("#selected-channels").html("None");
+                $("#new-block").button("disable");
             } else {
                 $("#selected-channels").html("");
                 $(".channel.ui-selected").each(function () {
                     $("#selected-channels").append(this.id + " ");
                 });
+                $("#new-block").button("enable");
             }
         }
     });
@@ -234,23 +237,25 @@ function create_block(block_type) {
     var ymin = -1.2;
     $(".channel.ui-selected").each(function() {
         var new_block_id = this.id + "block" + $(this).children().length;
-        $(this).append("<canvas class='block' id='" + new_block_id + "'></canvas>");
-        var canvas = $("#" + new_block_id)[0],
+        $(this).append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
+        var canvas = $("#" + new_block_id + " canvas")[0],
             ctx = canvas.getContext("2d"),
             width = canvas.width,
             height = canvas.height,
             plot = function plot(fn, range) {
                 var widthScale = (width / (range[1] - range[0])),
-                    heightScale = (height / (range[3] - range[2])),
-                    first = true;
+                    heightScale = (height / (range[3] - range[2]))
                 ctx.beginPath();
                 for (var x = 0; x < width; x++) {
                     var xFnVal = (x / widthScale) - range[0],
                         yGVal = (fn(xFnVal) - range[2]) * heightScale;
                     yGVal = height - yGVal;
-                    if (first) {
+                    if (x === 0) {
                         ctx.moveTo(x, yGVal);
-                        first = false;
+                        $("#" + new_block_id).data("start", fn(xFnVal));
+                    } else if (x === width - 1) {
+                        ctx.lineTo(x, yGVal);
+                        $("#" + new_block_id).data("end", fn(xFnVal));
                     } else {
                         ctx.lineTo(x, yGVal);
                     }
@@ -274,7 +279,7 @@ function create_block(block_type) {
                     return -2 * Math.abs((x % 2) - 1) + 1;
                     break;
                 case "pulse":
-                    return (0.4 < x && x < 0.6) ? 1: 0;
+                    return (1.5 < x && x < 2.5) ? 1: 0;
                     break;
                 case "func":
                     var res = calc.eval(x);
@@ -284,12 +289,22 @@ function create_block(block_type) {
                     return 0;
             }
         }, [0, 4, ymin, ymax]);
+        check_discont(new_block_id);
     });
+}
+
+function check_discont(block_id) {
+    var block = $("#" + block_id);
+    if (Math.abs(block.data("start") - block.prev().data("end")) > 0.1 && block.prev().length > 0) {
+        block.append("<div class='discont'></div>");
+        var err_cnt = block.parent().filter(".discont").length;
+        $("#label-" + block.parent().attr("id")).filter(".err-cnt").text(err_cnt);
+    }
 }
 
 $("#new-channel").on("click", function () {
     var new_channel_id = "ch" + $(".channel").length;
     $("#channel-container").append("<div class='channel' id='" + new_channel_id + "'></div>")
-    $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + ">" + new_channel_id + "</div>")
+    $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + "><br/>" + new_channel_id + "<br/>blocks: <span class='block-cnt'>0</span></br>errors: <span class='err-cnt'>0</span></p></div>")
 });
 

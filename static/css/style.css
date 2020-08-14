@@ -69,9 +69,13 @@ p {
     margin-left: 10px;
 }
 .block {
+    border-right: 1px solid dimgray;
+    position: relative;
+    display: inline-block;
+}
+.block canvas {
     width: 160px;
     height: 90px;
-    border-right: 1px solid dimgray;
 }
 .channel {
     height: 90px;
@@ -88,7 +92,7 @@ p {
 #block-type, #func-enter {
     display: inline-block;
 }
-#func-enter {
+#func {
     background: white;
 }
 #channel-container {
@@ -115,7 +119,13 @@ p {
     background: lightgrey;
 }
 .channel-label {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
+}
+.discont {
+    position: absolute;
+    height: 80px;
+    width: 30px;
+    border: 2px solid red;
+    top: 5px;
+    left: -15px;
 }
