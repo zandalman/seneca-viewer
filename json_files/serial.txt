@@ -1,0 +1,33 @@
+{
+  " start": {
+    "seqType": "serial",
+    "subEvents": [
+      {
+        "eventType": "analogs",
+        "name": "aom_start",
+        "delay": "1",
+        "vartype": "hardcoded"
+      }
+    ]
+  },
+  " shutdown": {
+    "seqType": "serial",
+    "subEvents": [
+      {
+        "eventType": "signals-3",
+        "name": "stop_1",
+        "delay": "2",
+        "frequency": "3",
+        "units": "s"
+      },
+      {
+        "eventType": "signals-4",
+        "name": "aom_stop",
+        "delay": "12",
+        "amplitude": "",
+        "units": "ms",
+        "p5": ""
+      }
+    ]
+  }
+}
