@@ -22,6 +22,12 @@ def timeline():
     files = [f for f in os.listdir(logic_path) if os.path.isfile(os.path.join(logic_path, f))]
 
     def get_json(obj_response, file):
+        '''
+        Updates #jsonDisplay to contain the selected JSON input, if valid.
+
+                Parameters:
+                        file (string): File name
+        '''
         with open(os.path.join(logic_path, file),"r") as json_file:
             try:
                 textCallback = json.dumps(json.load(json_file), indent=2)
@@ -31,7 +37,6 @@ def timeline():
                 obj_response.script('$("#jsonDisplay").attr("validity","False")')
             json_file.close()
         obj_response.html("#jsonDisplay", textCallback)
-
         json_file.close()
 
     g.sijax.register_callback('get_json', get_json)

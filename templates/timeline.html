@@ -20,7 +20,7 @@
                 <option >{{ item }} </option>
                 {% endfor %}
             </select>
-            <pre id="jsonDisplay" color="green"></pre>
+            <pre id="jsonDisplay"></pre>
         </div>
         <div class="eventContainer">
             <div class="event" style="display:none;"></div>
@@ -32,7 +32,7 @@
 <script>
 /*
      *Generates blank timeline tree. To be called after a valid JSON file is loaded into #jsonDisplay
-     *(currently, using my own file convention)
+     *(currently, using my file convention, so only "laura_logic.py" will work)
      */
 
 function generate(){
@@ -41,16 +41,17 @@ function generate(){
         var jsonObj = JSON.parse($("#jsonDisplay").html());
         for (event in jsonObj){
             var $newEvent = $("<div class='event'><div class='subEventLog'></div></div>");
-            //$newEvent.addClass("event");
             $newEvent.appendTo($(".eventContainer"));
-            var $nameEvent = $("<div></div>");
-            $nameEvent.addClass("nameplate");
-            $nameEvent.html(event);
-            $nameEvent.prependTo($newEvent);
+
+            var $nameplate = $("<div></div>");
+            $nameplate.addClass("nameplate");
+            $nameplate.html(event);
+            $nameplate.prependTo($newEvent);
             sequenceType = jsonObj[event]["seqType"];
+
             for (subEvent in jsonObj[event]["subEvents"]){
                 var $newSubEvent = $("<div class='subEvent'></div>");
-                $newSubEvent.html(subEvent["label"]);
+                $newSubEvent.html(subEvent["name"]);
                 if (sequenceType=="parallel"){
                     $newEvent.children(".subEventLog").addClass("parallel");
                 };
