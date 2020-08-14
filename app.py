@@ -25,6 +25,12 @@ def gen_id(marker, seed):
 def get_json_options():
     return {gen_id("j", filename): filename for filename in os.listdir(app.config["UPLOAD_FOLDER"])}
 
+def to_float(val):
+    try:
+        return float(val)
+    except:
+        return val
+
 class SijaxUploadHandlers(object):
 
     def upload_json(self, obj_response, files, form_values):
@@ -53,7 +59,15 @@ class SijaxHandlers(object):
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
     def show_signals(self, obj_response, selected_json_id):
-        pass
+        filename = get_json_options()[selected_json_id]
+        obj_response.html(".channel", "")
+        with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+            json_obj = json.load(f)
+        for event_name, event_data in json_obj.items():
+            for subevent in event_data["subEvents"]:
+                subevent = {key: to_float(value) for key, value in subevent.items()}
+                obj_response.call("create_block", [subevent, subevent["time"]])
+
 
 def create_app():
     """

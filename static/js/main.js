@@ -25,6 +25,7 @@ $(document).ready(function () {
         change: function (event, ui) {
             if (ui.item.value === "none") {
                 $("#remove-json").button("disable");
+                $(".channel").html("");
             } else {
                 $("#remove-json").button("enable");
                 Sijax.request("show_signals", [ui.item.value]);
@@ -238,12 +239,7 @@ var func_math_field = MQ.MathField(func_span, {
     }
 });
 
-$("#new-block").on("click", function () {
-    var block_type = $("#block-type").children("option:selected").val();
-    create_block(block_type);
-});
-
-function create_block(block_type) {
+function create_block_old(block_type) {
     var ymax = 1.2;
     var ymin = -1.2;
     $(".channel.ui-selected").each(function() {
@@ -298,6 +294,85 @@ function create_block(block_type) {
     });
 }
 
+function create_block(block_data, block_time) {
+    var ymax = 1.2;
+    var ymin = -1.2;
+    var channel = $("#ch0");
+    var new_block_id = "block" + channel.children().length;
+    channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
+    var canvas = $("#" + new_block_id + " canvas")[0];
+    var ctx = canvas.getContext("2d");
+    $("#" + new_block_id + " canvas").width((1 + Math.log10(block_time) / (1 + Math.log10(block_time))) * 200);
+    var width = canvas.width;
+    var height = canvas.height;
+    var plot = function plot(fn, range) {
+        var widthScale = (width / (range[1] - range[0]))
+        var heightScale = (height / (range[3] - range[2]))
+        ctx.beginPath();
+        for (var x = 0; x < width; x++) {
+            var xFnVal = (x / widthScale) - range[0]
+            var yGVal = height - (fn(xFnVal) - range[2]) * heightScale;
+            if (x === 0) {
+                ctx.moveTo(x, yGVal);
+                $("#" + new_block_id).data("start", fn(xFnVal));
+            } else if (x === width - 1) {
+                ctx.lineTo(x, yGVal);
+                $("#" + new_block_id).data("end", fn(xFnVal));
+            } else {
+                ctx.lineTo(x, yGVal);
+            }
+        }
+        ctx.strokeStyle = "limegreen";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    };
+    plot(function (x) {
+        var res = 0;
+        switch (block_data.eventType) {
+            case "sine":
+                if (x > block_data.delay && x < block_data.delay + block_data.period * block_data.cycles) {
+                    x = 2 * Math.PI * (x - block_data.delay) / block_data.period - block_data.phase;
+                    res = block_data.amplitude * Math.sin(x);
+                }
+                break;
+            case "saw":
+                if (x > block_data.delay && x < block_data.delay + block_data.period * block_data.cycles) {
+                    x = (x - block_data.delay) / block_data.period - block_data.phase;
+                    res = block_data.amplitude * (x - Math.floor(x));
+                }
+                break;
+            case "square":
+                if (x > block_data.delay && x < block_data.delay + block_data.period * block_data.cycles) {
+                    x = (x - block_data.delay) / block_data.period - block_data.phase;
+                    res = block_data.amplitude * (2 * (2 * Math.floor(x) - Math.floor(2 * x)) + 1);
+                }
+                break;
+            case "triangle":
+                if (x > block_data.delay && x < block_data.delay + block_data.period * block_data.cycles) {
+                    x = (x - block_data.delay) / block_data.period - block_data.phase;
+                    res = block_data.amplitude * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
+                }
+                break;
+
+            default:
+                res = 0;
+        }
+        switch (block_data.rectified) {
+            case "half":
+                res = (res < 0) ? 0: res;
+                break;
+            case "full":
+                res = Math.abs(res);
+                break;
+            default:
+                res = res;
+                break;
+        }
+        return res + block_data.offset;
+    }, [0, block_time, ymin, ymax]);
+    check_discont(new_block_id);
+}
+
 function check_discont(block_id) {
     var block = $("#" + block_id);
     if (Math.abs(block.data("start") - block.prev().data("end")) > 0.1 && block.prev().length > 0) {
@@ -319,6 +394,7 @@ $("#remove-json").on("click", function () {
     refresh_json_options();
     if ($("#json").children("option:selected").val() === "none") {
         $("#remove-json").button("disable");
+        $(".channel").html("");
     }
     Sijax.request("remove_json", [selected_json_id]);
 });

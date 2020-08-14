@@ -13,27 +13,22 @@
             {%- endfor %}
         </select>
         <button id="remove-json">Remove JSON</button>
-        <button id="new-channel">New Channel</button>
-        <button id="new-block">New Block</button>
-        <label for="block-type">Block Type:</label>
-        <select name="block-type" id="block-type">
-            <option value="sine" selected="selected">Sine</option>
-            <option value="saw">Saw</option>
-            <option value="square">Square</option>
-            <option value="pulse">Pulse</option>
-            <option value="tri">Triangle</option>
-            <option value="const">Constant</option>
-            <option value="func">Function</option>
-        </select>
-        <p id="func-enter">Enter function: <span id="func"></span></p><br/>
         <p>Selected channels: <span id="selected-channels">None</span></p>
     </div>
     <div class="row" id="channels">
         <div class="column" style="width: 10%;">
-            <div id="channel-label-container"></div>
+            <div id="channel-label-container">
+                <div class='channel-label' id='label-ch0'><br/>
+                    ch0<br/>
+                    blocks: <span class='block-cnt'>0</span></br>
+                    errors: <span class='err-cnt'>0</span>
+                </div>
+            </div>
         </div>
         <div class="column" style="width: 90%;">
-            <div id="channel-container"></div>
+            <div id="channel-container">
+                <div class="channel" id="ch0"></div>
+            </div>
         </div>
     </div>
 {% endblock %}
