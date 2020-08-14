@@ -75,6 +75,10 @@ p{
     flex-direction: column;
 }
 
+#parameterContext{
+    width: 30%;
+    overflow:auto;
+}
 .parameter-box{
     margin-top: auto;
     margin-bottom: auto;
@@ -142,7 +146,7 @@ td input[type="text"], textarea {
 }
 
 .save-alerts{
-    background-color: #dceef7;
+    background-color: transparent;
     padding: 1px;
     border-radius: 0px;
     width: 100%;
@@ -258,7 +262,6 @@ span br{
     flex-direction: column;
     margin-top: 10px;
     max-height: 50%;
-    overflow: auto;
 }
 
 
@@ -370,8 +373,8 @@ ul{
     margin-left: 20px;
     display: flex;
     flex-direction: column;
-    margin-bottom: 0px;
-    margin-top: 50px;
+    margin-top: 0px;
+    margin-bottom: 50px;
     margin-right: 20px;
     border: 1px none;
     border-radius: 0px;
@@ -390,37 +393,15 @@ ul{
     border-radius: 5px;
 }
 
-.rel{
-    position: relative;
-    margin: auto;
-    margin-top: 10px;
-    text-align: center;
-    width: 115px;
-    border: 1px none;
-}
-
-
-.vert-flex{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: auto;
-    max-width: 100px;
-    overflow-y: scroll;
-    position: auto;
-    border: 1px none;
-}
-
-
 button{
     width: 100%;
     font-family: Roboto;
-    background-color: #EEF7FF;
+    background-color: #dceef7;
     font-size: 11pt;
     box-sizing: border-box;
     padding: 3px;
     margin-right: 5px;
-    border: 1px solid gray;
+    border: none;
 }
 
 .table-box .menu-bar button {

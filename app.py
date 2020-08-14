@@ -22,7 +22,7 @@ class SijaxHandlers(object):
                 Parameters:
                         file (string): File name
         '''
-        with open(os.path.join(logic_path, file), "r") as json_file:
+        with open(os.path.join(json_files_path, file), "r") as json_file:
             try:
                 textCallback = json.dumps(json.load(json_file), indent=2)
                 obj_response.script('$("#jsonDisplay").attr("validity","True")')

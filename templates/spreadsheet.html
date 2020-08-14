@@ -61,7 +61,7 @@
     </div>
     <div class="context">
         <div class="tabs-bar"></div>
-        <div class="parameter-box">
+        <div class="parameter-box" style="display:none;">
             <select id="variable-lists">
                 <option value="" disabled selected>parameter</option>
             </select>
@@ -69,8 +69,8 @@
     </div>
 </div>
 <div class="mainTabContent" id="parameter" >
-    <div class="context">
-        <p> <button id="generate" onclick="generate()">Generate timeline</button></p>
+    <div class="context" id="parameterContext">
+        <p> <button id="generate" >Generate?</button></p>
         <p> Current file path:</p>
         <p> {{ file_folder }}</p>
         <p>Select file</p>

@@ -31,7 +31,7 @@ var columnGenerate = [{
 
 $(document).ready(function () {
     $("#spreadsheet").addClass("active");
-
+    $("#jsonSelector").val($("#target option:first").val());
 
     //Create datalists for each parameter to store values entered
 	$.each(allParameters, function (index, value) {
@@ -718,7 +718,7 @@ $(document).ready(function () {
 			var jsonObj = JSON.parse(event.target.result);
 			for (var event in jsonObj) {
 				addEvent();
-				$('.sort-box').last().find('span').text(event);
+				$('.sort-box').last().find('.event-name').val(event);
 				$('.sort-box').last().find('select').val(jsonObj[event]["seqType"]);
 				$('.sorter').last().html(event);
 				var subEvents = jsonObj[event]["subEvents"]
@@ -730,10 +730,8 @@ $(document).ready(function () {
 					eventCount = eventCount + 1;
 					row.draw();
 				}
-				//$('.table-box').last().find('td input').change();
-				$("#" + eventType).last().find('tr').addClass('updated');
+                $(".second-tables").find("tr").addClass('updated');
 				$('.update').click();
-
 				$.each($('datalist'), function (index, value) {
 					var $datalist = $(this);
 					var datalist=this;
