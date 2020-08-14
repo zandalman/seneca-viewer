@@ -66,7 +66,6 @@ p{
 .context{
     width: 20%;
     padding: 10px;
-    height: 100%;
     margin-left: auto;
     margin-right: auto;
     align-items: center;
@@ -278,6 +277,7 @@ span br{
   color: #646464;
   font-size: 14px;
   user-focus: none;
+  user-select: none;
   outline-style:none;
   overflow: auto;
   background-color: #EFEFEF;
@@ -345,18 +345,14 @@ ul{
 }
 
 
-.dataTables_scroll
-{
-    overflow:auto;
-}
-
 
 .table-box{
     width: 65%;
     position: relative;
     max-height: 90%;
     margin-top: 0px;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: none;
     margin-right: 0px;
     margin-left: 0px;
     border: 1px none black;
@@ -404,7 +400,7 @@ ul{
     margin: auto;
     max-width: 100px;
     overflow-y: scroll;
-    position:auto;
+    position: auto;
     border: 1px none;
 }
 
@@ -474,7 +470,6 @@ table.dataTable thead th {
 .second-tables table{
     margin-bottom: 10px;
 }
-
 
 .second-tables td {
     border: 1px solid #ddd;
