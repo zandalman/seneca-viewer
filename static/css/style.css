@@ -89,7 +89,7 @@ p {
 #block-container {
     margin-top: 20px;
 }
-#block-type, #func-enter {
+select, button, form {
     display: inline-block;
 }
 #func {

@@ -2,6 +2,17 @@
 {% block content %}
     <h1>Viewer</h1><hr class="main">
     <div class="row" id="channel-options">
+        <button onclick="$('#file-upload').trigger('click');">Upload JSON</button>
+        <form id="upload-json" name="upload-json" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file-upload" style="display: none;" onchange="form.submit();"/>
+        </form>
+        <select id="json">
+            <option value="none">None</option>
+            {%- for id, filename in json_options.items() %}
+                <option value="{{ id }}">{{ filename }}</option>
+            {%- endfor %}
+        </select>
+        <button id="remove-json">Remove JSON</button>
         <button id="new-channel">New Channel</button>
         <button id="new-block">New Block</button>
         <label for="block-type">Block Type:</label>

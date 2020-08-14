@@ -11,12 +11,23 @@ var CALC_NUMARGS = [
 
 $(document).ready(function () {
     $("button").button();
+    $("#remove-json").button("disable");
     $("#block-type").selectmenu({
         change: function (event, ui) {
             if (ui.item.value === "func") {
                 $("#func-enter").show();
             } else {
                 $("#func-enter").hide();
+            }
+        }
+    });
+    $("#json").selectmenu({
+        change: function (event, ui) {
+            if (ui.item.value === "none") {
+                $("#remove-json").button("disable");
+            } else {
+                $("#remove-json").button("enable");
+                Sijax.request("show_signals", [ui.item.value]);
             }
         }
     });
@@ -268,23 +279,17 @@ function create_block(block_type) {
             switch(block_type) {
                 case "sine":
                     return Math.sin(2 * Math.PI * x);
-                    break;
                 case "saw":
                     return 2 * (x - 0.5) - 2 * Math.floor(x - 0.5) - 1;
-                    break;
                 case "square":
                     return Math.pow(-1, Math.floor(x));
-                    break;
                 case "tri":
                     return -2 * Math.abs((x % 2) - 1) + 1;
-                    break;
                 case "pulse":
                     return (1.5 < x && x < 2.5) ? 1: 0;
-                    break;
                 case "func":
                     var res = calc.eval(x);
                     return res ? res: 0;
-                    break;
                 default:
                     return 0;
             }
@@ -297,8 +302,8 @@ function check_discont(block_id) {
     var block = $("#" + block_id);
     if (Math.abs(block.data("start") - block.prev().data("end")) > 0.1 && block.prev().length > 0) {
         block.append("<div class='discont'></div>");
-        var err_cnt = block.parent().filter(".discont").length;
-        $("#label-" + block.parent().attr("id")).filter(".err-cnt").text(err_cnt);
+        //var err_cnt = block.parent().filter(".discont").length;
+        //$("#label-" + block.parent().attr("id")).filter(".err-cnt").text(err_cnt);
     }
 }
 
@@ -308,3 +313,16 @@ $("#new-channel").on("click", function () {
     $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + "><br/>" + new_channel_id + "<br/>blocks: <span class='block-cnt'>0</span></br>errors: <span class='err-cnt'>0</span></p></div>")
 });
 
+$("#remove-json").on("click", function () {
+    var selected_json_id = $("#json").children("option:selected").val();
+    $("#json").children("option:selected").remove();
+    refresh_json_options();
+    if ($("#json").children("option:selected").val() === "none") {
+        $("#remove-json").button("disable");
+    }
+    Sijax.request("remove_json", [selected_json_id]);
+});
+
+function refresh_json_options() {
+    $("#json").selectmenu("refresh");
+}
