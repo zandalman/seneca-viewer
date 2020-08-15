@@ -82,11 +82,42 @@
         <pre id="jsonDisplay"></pre>
     </div>
     <div class="inner-element" id="parameter_panel">
-        some placeholder
+        <ul>
+
+        </ul>
+    </div>
+    <div class="context" id="variableRepo">
+        context panel 1
+    </div>
+    <div class="context" id="variableMenu">
+        <button>save</button>
     </div>
 </div>
 <div class="mainTabContent" id="visualizer">placeholder</div>
 </body>
 
 
+<script>
 
+$(document).on('click', "#generate", function(e){
+    generate($("#jsonDisplay").html());
+});
+var activeFile;
+    function generate(jsonText){
+        var variables= [];
+        activeFile= JSON.parse(jsonText);
+        $.each(activeFile, function (index, event) {
+            subEvents=event["subEvents"];
+            $.each(subEvents, function(index, key){
+                $.each(key, function(index, value){
+                    variables.push(value);
+                });
+            });
+	    });
+	    variables = [...new Set(variables)];
+	    $.each(variables, function (index, variable) {
+	        $("#variableRepo").append("<li>"+variable+"</li>");
+	        $("#parameter_panel").append("<span>"+variable+" <input></span>");
+	    });
+    };
+</script>

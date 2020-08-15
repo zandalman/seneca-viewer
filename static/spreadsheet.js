@@ -454,7 +454,7 @@ $(document).ready(function () {
 		}
 		if (newOption) {
 			$("#" + datalist.id).append("<option>" + this.value + "</option>");
-
+			$("#parameter_panel").append("<li>"+this.value+"</li>");
 		}
 	});
 

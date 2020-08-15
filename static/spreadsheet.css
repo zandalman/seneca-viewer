@@ -5,6 +5,7 @@ body{
     display: flex;
     flex-direction: column;
     font-family: Roboto;
+    font-size: 13px;
 }
 
 p{
@@ -13,7 +14,7 @@ p{
 }
 
 .hidden{
-    display:none;
+    display:hidden;
 }
 
 .mainTabs{
@@ -63,17 +64,7 @@ p{
     flex-direction: column;
 }
 
-.context{
-    width: 10%;
-    padding: 10px;
-    overflow-wrap: anywhere;
-    margin-left: auto;
-    margin-right: auto;
-    align-items: center;
-    background-color: #EEF9FD;
-    display: flex;
-    flex-direction: column;
-}
+
 
 #parameterContext{
     width: 30%;
@@ -119,7 +110,7 @@ td input[type="text"], textarea {
 }
 
 #sort-container{
-    width: 40%;
+    min-width: 30%;
     margin-left: 0px;
     border: 1px none black;
     margin-right: 0px;
@@ -127,7 +118,7 @@ td input[type="text"], textarea {
 }
 
 #event-list{
-   width: 10%;
+   min-width: 7%;
    background-color: #53616e;
    border: 0px solid #98a5ab;
    box-shadow: none;
@@ -137,8 +128,18 @@ td input[type="text"], textarea {
 
 #parameter_panel{
     background-color: white;
+    display:flex;
+    flex-direction: column;
+    justify-content:center;
+    margin:auto;
+    width: 40%;
+    overflow: auto;
 }
 
+#eventScroller{
+    width:50%;
+    border: 1px solid black;
+}
 
 #sort-boxes{
     max-height: 94%;
@@ -152,7 +153,6 @@ td input[type="text"], textarea {
     width: 100%;
     min-height: 10px;
     margin-bottom: 10px;
-    font-size: 13px;
     text-align: left;
 }
 
@@ -261,7 +261,7 @@ span br{
     display: flex;
     flex-direction: column;
     margin-top: 10px;
-    max-height: 50%;
+    max-height: 80%;
 }
 
 
@@ -279,7 +279,6 @@ span br{
   justify-content: center;
   align-items: center;
   color: #646464;
-  font-size: 14px;
   user-focus: none;
   user-select: none;
   outline-style:none;
@@ -351,7 +350,7 @@ ul{
 
 
 .table-box{
-    width: 65%;
+    min-width: 50%;
     position: relative;
     max-height: 90%;
     margin-top: 0px;
@@ -397,7 +396,6 @@ button{
     width: 100%;
     font-family: Roboto;
     background-color: #dceef7;
-    font-size: 11pt;
     box-sizing: border-box;
     padding: 3px;
     margin-right: 5px;
@@ -425,6 +423,19 @@ option{
    width: 150px;
 }
 
+.context{
+    min-width: 4%;
+    padding: 10px;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+    background-color: #EEF9FD;
+    display: flex;
+    flex-direction: column;
+}
+
 
 table.dataTable,
 table.dataTable th,
@@ -432,7 +443,7 @@ table.dataTable td {
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
   box-sizing: content-box;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .table-row thead{
