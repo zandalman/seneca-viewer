@@ -29,7 +29,10 @@ def to_float(val):
     try:
         return float(val)
     except:
-        return val
+        try:
+            return [float(item) for item in val]
+        except:
+            return val
 
 class SijaxUploadHandlers(object):
 

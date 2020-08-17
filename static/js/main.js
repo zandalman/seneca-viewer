@@ -339,6 +339,17 @@ function create_block(block_data, block_time) {
                     }
                 }
                 break;
+            case "points":
+                block_data.times.unshift(0);
+                block_data.values.unshift(0);
+                block_data.times.push(block_time);
+                block_data.values.push(0);
+                var last_pnt_time = Math.max.apply(Math, block_data.times.filter(function(y){return y <= x}));
+                var next_pnt_time = Math.min.apply(Math, block_data.times.filter(function(y){return y >= x}));
+                var last_pnt_value = block_data.values(block_data.times.indexOf(last_pnt_time));
+                var next_pnt_value = block_data.values(block_data.times.indexOf(next_pnt_time));
+
+                break;
             default:
                 res = 0;
         }
