@@ -64,7 +64,7 @@ def spreadsheet():
 
     if request.method == 'POST':
         data = request.get_json()["fileData"]
-        file_name = request.get_json()["fileName"] + ".txt"
+        file_name = request.get_json()["fileName"] + ".json"
         events = data.keys()
         columns = json.loads(data[list(events)[0]]["data"])["header"]
         logic = {}
@@ -84,10 +84,15 @@ def spreadsheet():
                 frmtData.append(frmtSubEvent)
             eventData["subEvents"] = frmtData
             logic[event] = eventData
-        with open(os.path.join(logic_path, file_name), 'w') as file:
-            json.dump(logic, file, indent=2)
+        with open(os.path.join(json_files_path, file_name), 'w') as file:
+            try:
+                json.dump(logic, file, indent=2)
+            except Error:
+                console.log(Error)
+
     return render_template("spreadsheet.html",
                            files=savedFiles,
+                           logic="",
                            file_folder = json_files_path,
                            configfile=os.path.join(instance_path, "config.txt"),
                            config=json.dumps(event_config))
@@ -95,7 +100,7 @@ def spreadsheet():
 
 @app.route('/timeline', methods=['GET', 'POST'])
 def timeline():
-    savedFiles = [f for f in os.listdir(json_files_path) if os.path.isfile(os.path.join(logic_path, f))]
+    savedFiles = [f for f in os.listdir(json_files_path) if os.path.isfile(os.path.join(json_files_path, f))]
 
     if g.sijax.is_sijax_request:
         g.sijax.register_callback('get_json', get_json)

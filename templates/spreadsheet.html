@@ -7,6 +7,8 @@
     <script type="text/javascript"
             src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.21/af-2.3.5/b-1.6.2/b-colvis-1.6.2/b-flash-1.6.2/b-html5-1.6.2/cr-1.5.2/fc-3.3.1/fh-3.1.7/kt-2.5.2/r-2.2.5/rg-1.1.2/rr-1.2.7/sc-2.0.2/sp-1.1.1/sl-1.3.1/datatables.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/plug-ins/1.10.21/api/order.neutral().js"></script>
     <script type="text/javascript">
         var configuration=JSON.parse({{config | tojson | safe}});
     </script>
@@ -21,6 +23,7 @@
     <div class="mainTab" data-tabID="spreadsheet">Define logic</div>
     <div class="mainTab" data-tabID="parameter">Set parameters</div>
     <div class="mainTab" data-tabID="visualizer">Visualize</div>
+    <div class="mainTab" data-tabID="visualizer">Translate</div>
 </div>
 <div class="mainTabContent" id="spreadsheet">
     <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span>
@@ -44,7 +47,7 @@
             <button class="addEvent">add event</button>
             <input id='upload-json' type='file' hidden/>
         </div>
-        <div class="save-alerts">
+        <div class="hoz-context">
             <input type="text" id="fileName" placeholder="file name">
 
         </div>
@@ -69,7 +72,7 @@
     </div>
 </div>
 <div class="mainTabContent" id="parameter" >
-    <div class="context" id="parameterContext">
+    <div class="context" id="paramContext">
         <p> <button id="generate" >Generate?</button></p>
         <p> Current file path:</p>
         <p> {{ file_folder }}</p>
@@ -81,43 +84,119 @@
         </select>
         <pre id="jsonDisplay"></pre>
     </div>
-    <div class="inner-element" id="parameter_panel">
-        <ul>
-
-        </ul>
+    <div class="inner-element" id="paramSet">
+        <div class="hoz-context">
+            <span>Sort by </span>
+            <button id="resetSort">event</button>
+            <button>nvalid</button>
+            <button>event type</button>
+            <input id="paramSearch" placeholder="Search">
+        </div>
+        <div class="pList">
+            <table id="table">
+                    <thead><tr><th>name</th><th>sets</th><th>event type</th><th>subEvent</th><th>Event</th></tr></thead>
+            </table>
+        </div>
     </div>
-    <div class="context" id="variableRepo">
-        context panel 1
-    </div>
-    <div class="context" id="variableMenu">
+    <div class="context" id="paramRepo">
         <button>save</button>
+        context panel 1
     </div>
 </div>
 <div class="mainTabContent" id="visualizer">placeholder</div>
+<div class="mainTabContent" id="translator">placeholder</div>
 </body>
 
 
 <script>
 
-$(document).on('click', "#generate", function(e){
-    generate($("#jsonDisplay").html());
-});
 var activeFile;
     function generate(jsonText){
+        $("#paramRepo").empty();
+	    $("#paramSet").children(".pList").empty();
         var variables= [];
         activeFile= JSON.parse(jsonText);
         $.each(activeFile, function (index, event) {
             subEvents=event["subEvents"];
-            $.each(subEvents, function(index, key){
-                $.each(key, function(index, value){
-                    variables.push(value);
+            $.each(subEvents, function(index, subEvent){
+                $("#paramSet").children(".pList").append("<span>"+subEvent["eventType"]+"</span>");
+                $.each(subEvent, function(key, value){
+                    if (key != "eventType"){
+                        variables.push(value);
+                    }
                 });
             });
 	    });
 	    variables = [...new Set(variables)];
 	    $.each(variables, function (index, variable) {
-	        $("#variableRepo").append("<li>"+variable+"</li>");
-	        $("#parameter_panel").append("<span>"+variable+" <input></span>");
+	        $("#paramRepo").append("<li>"+variable+"</li>");
+	        $("#paramSet").children(".pList").append("<span>"+variable+" <input></span>");
 	    });
     };
+
+$(document).ready(function () {
+    $(document).on('click', "#generate", function(e){
+       // generate($("#jsonDisplay").html());
+       $('#table').DataTable().destroy();
+       $('#table').find('tbody').remove();
+        var table = $("#table").DataTable({
+            "columns": [
+                {"name": "name"},
+                {"name": "sets"},
+                {"name": "eventType"},
+                {"name": "subEvent"},
+                {"name": "Event"}
+            ],
+			"columnDefs": [{
+					"defaultContent": "",
+					"targets": "_all"
+				},
+				{
+				    "visible": false,
+				    "targets": [3,4]
+				},
+				{
+					"className": "cell-border",
+					"targets": "none"
+				},
+			],
+			"dom": 'Btfip',
+			buttons: [],
+			"bSort": true,
+			serverSide: false,
+			"paging": false,
+             rowGroup: {
+                dataSrc: [4,3]
+            },
+            colReorder: true,
+            order: [[4]]
+		});
+        jsonText = $("#jsonDisplay").html();
+		activeFile= JSON.parse(jsonText);
+        $.each(activeFile, function (index, event) {
+            subEvents=event["subEvents"];
+            $.each(subEvents, function(index2, subEvent){
+                $("#paramSet").children(".pList").append("<span>"+subEvent["eventType"]+"</span>");
+                $.each(subEvent, function(key, value){
+                    if (key != "eventType"){
+                        table.row.add([value, key, subEvent["eventType"], subEvent["name"], index]);
+                        $("#paramRepo").append("<span>"+value+"</span>");
+                    }
+                });
+            });
+	    });
+        table.draw();
+
+    });
+
+    $(document).on('input', "#paramSearch", function(e){
+        $(".pList").children().hide();
+        $(".pList:contains(" + $(this).val() + ")").show();
+    });
+
+    $(document).on('click', "#resetSort", function(e){
+         table=$('#table').DataTable();
+         table.order.neutral().draw();
+    });
+})
 </script>

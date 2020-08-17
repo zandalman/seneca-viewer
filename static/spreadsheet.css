@@ -66,14 +66,6 @@ p{
 
 
 
-#parameterContext{
-    width: 30%;
-    overflow:auto;
-}
-.parameter-box{
-    margin-top: auto;
-    margin-bottom: auto;
-}
 
 td {
     position: relative;
@@ -146,7 +138,7 @@ td input[type="text"], textarea {
     overflow: auto;
 }
 
-.save-alerts{
+.hoz-context{
     background-color: transparent;
     padding: 1px;
     border-radius: 0px;
@@ -154,6 +146,8 @@ td input[type="text"], textarea {
     min-height: 10px;
     margin-bottom: 10px;
     text-align: left;
+    display: flex;
+    flex-direction: row;
 }
 
 #search-events{
@@ -505,4 +499,30 @@ td select{
 }
 tr{
     height:30px
+}
+
+#paramContext{
+    width: 40%;
+}
+#paramSet{
+    overflow: auto;
+}
+#paramRepo{
+    width: 40%;
+    display:flex;
+    flex-direction: column;
+}
+
+#paramRepo input{
+    width: 50px;
+}
+.pList{
+    display: flex;
+    flex-direction: column;
+    height: 90%;
+    overflow: auto;
+}
+
+#table{
+
 }

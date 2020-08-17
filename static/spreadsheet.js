@@ -250,7 +250,7 @@ $(document).ready(function () {
 		newTableRow.attr("boxID", value);
 	});
 
-	//set up the first tab as the active one
+	//initialize first tab as the active one
 	$('.table-row').hide();
 	$('.table-row').eq(0).addClass('active');
 	$('.tabs-bar .tab').eq(0).addClass('active');
