@@ -68,23 +68,15 @@ hr.main {
 p {
     margin-left: 10px;
 }
-.block {
-    border-right: 1px solid dimgray;
-    position: relative;
-    display: inline-block;
-}
-.block canvas {
-    width: 160px;
-    height: 90px;
-}
 .channel {
     height: 90px;
-    border-bottom: 1px solid dimgray;
     width: auto;
+    margin-bottom: 5px;
 }
 .channel-label {
     height: 90px;
     border-bottom: 1px solid black;
+    margin-bottom: 5px;
 }
 #block-container {
     margin-top: 20px;
@@ -129,13 +121,16 @@ select, button, form {
     top: 5px;
     left: -15px;
 }
-.block canvas:hover {
-    border: 2px solid indianred;
-}
 .block canvas {
-    width: 160px;
     height: 90px;
-    border: 2px solid black;
+}
+.block {
+    border: 1px solid dimgray;
+    position: relative;
+    display: inline-block;
+}
+.block:hover {
+    border: 1px solid indianred;
 }
 td:nth-of-type(2) {
     padding-left: 50px;

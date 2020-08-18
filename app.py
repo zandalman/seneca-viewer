@@ -34,6 +34,18 @@ def to_float(val):
         except:
             return val
 
+def get_block_lens(subevent_times):
+    all_times = [t for ts in subevent_times.values() for t in ts]
+    all_times = list(dict.fromkeys(all_times))
+    block_lens = {}
+    for ch, ts in subevent_times.items():
+        block_lens[ch] = []
+        for t in ts:
+            block_lens[ch] += [all_times.index(t) + 1]
+        block_lens[ch] = [0] + block_lens[ch]
+        block_lens[ch] = [j - i for i, j in zip(block_lens[ch][:-1], block_lens[ch][1:])]
+    return block_lens
+
 class SijaxUploadHandlers(object):
 
     def upload_json(self, obj_response, files, form_values):
@@ -63,12 +75,23 @@ class SijaxHandlers(object):
 
     def show_signals(self, obj_response, selected_json_id):
         filename = get_json_options()[selected_json_id]
-        with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+        with open("/Users/zacharyandalman/example_subevents.json", "r") as f:
             json_obj = json.load(f)
-        for event_name, event_data in json_obj.items():
+        for event, event_data in json_obj.items():
+            subevent_times = {}
+            subevents = []
             for subevent in event_data["subEvents"]:
                 subevent = {key: to_float(value) for key, value in subevent.items()}
-                obj_response.call("create_block", [subevent, subevent["time"]])
+                subevents.append(subevent)
+                if subevent["channel"] not in subevent_times.keys():
+                    subevent_times[subevent["channel"]] = [subevent["time"]]
+                else:
+                    subevent_times[subevent["channel"]] = subevent_times[subevent["channel"]] + [
+                        subevent_times[subevent["channel"]][-1] + subevent["time"]]
+            block_lens = get_block_lens(subevent_times)
+            for subevent in subevents:
+                block_len = block_lens[subevent["channel"]].pop(0)
+                obj_response.call("create_block", [subevent, subevent["time"], block_len])
 
 
 def create_app():

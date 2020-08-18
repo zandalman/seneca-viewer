@@ -103,19 +103,42 @@ function get_channel(channel) {
     return $("#" + channel);
 }
 
-function create_block(block_data, block_time) {
-    var channel = get_channel(block_data.channel);
-    inc_block_cnt(channel);
+function init_block(channel, block_data, block_time, block_len) {
     var new_block_id = channel.attr("id") + "block" + channel.children().length;
     channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
-    $("#" + new_block_id).data({
+    var block = $("#" + new_block_id);
+    block.data({
         "info": block_data,
         "time": block_time
     });
+    block.find("canvas").width(block_len * 100 - 2);
     channel.data("time", channel.data("time") + block_time);
-    var canvas = $("#" + new_block_id + " canvas")[0];
+    return block;
+}
+
+function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
     var ctx = canvas.getContext("2d");
-    $("#" + new_block_id + " canvas").width((1 + Math.log10(block_time) / (1 + Math.log10(block_time))) * 200);
+    ctx.scale(dpr, dpr);
+    return {
+        ctx: ctx,
+        rescale: function() {
+            canvas.style.width = rect.width + "px";
+            canvas.style.height = rect.height + "px";
+        }
+    };
+}
+
+function create_block(block_data, block_time, block_len) {
+    var channel = get_channel(block_data.channel);
+    inc_block_cnt(channel);
+    var block = init_block(channel, block_data, block_time, block_len);
+    var canvas = block.find("canvas")[0];
+    var canvas_setup = setupCanvas(canvas);
+    var ctx = canvas_setup.ctx;
     var width = canvas.width;
     var height = canvas.height;
     function plot(fn, range) {
@@ -127,10 +150,10 @@ function create_block(block_data, block_time) {
             var yGVal = height - (fn(xFnVal) - range[2]) * heightScale;
             if (x === 0) {
                 ctx.moveTo(x, yGVal);
-                $("#" + new_block_id).data("start", fn(xFnVal));
+                block.data("start", fn(xFnVal));
             } else if (x === width - 1) {
                 ctx.lineTo(x, yGVal);
-                $("#" + new_block_id).data("end", fn(xFnVal));
+                block.data("end", fn(xFnVal));
             } else {
                 ctx.lineTo(x, yGVal);
             }
@@ -263,6 +286,7 @@ function create_block(block_data, block_time) {
         ctx.textAlign = "center";
         ctx.fillText(block_data.eventType, width / 2, height / 2);
     }
+    canvas_setup.rescale();
 }
 
 $("#remove-json").on("click", function () {
