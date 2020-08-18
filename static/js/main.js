@@ -1,26 +1,23 @@
-var MQ = MathQuill.getInterface(2);
-var func = "";
-var CALC_CONST = {
-    e: Math.E,
-    pi: Math.PI
-};
-var CALC_NUMARGS = [
-  [/^(\^|\*|\/|\+|\-)$/, 2],
-  [/^(floor|ceil|(sin|cos|tan|sec|csc|cot)h?)$/, 1]
+var defined_events = [
+    "sine",
+    "saw",
+    "square",
+    "triangle",
+    "pulse",
+    "constant",
+    "points",
+    "ramp",
+    "step",
+    "exponential",
+    "log",
+    "chirp",
+    "Gaussian",
+    "Lorentzian"
 ];
 
 $(document).ready(function () {
     $("button").button();
     $("#remove-json").button("disable");
-    $("#block-type").selectmenu({
-        change: function (event, ui) {
-            if (ui.item.value === "func") {
-                $("#func-enter").show();
-            } else {
-                $("#func-enter").hide();
-            }
-        }
-    });
     $("#json").selectmenu({
         change: function (event, ui) {
             if (ui.item.value === "none") {
@@ -32,217 +29,77 @@ $(document).ready(function () {
             }
         }
     });
-    $("#func-enter").hide();
-    $("#new-block").button("disable");
     $("#channels").selectableScroll({
         scrollSnapX: 5,
         scrollAmount: 25,
+        filter: ".channel",
+        distance: 5,
         stop: function(event, ui) {
             if ($(".channel.ui-selected").length === 0) {
                 $("#selected-channels").html("None");
-                $("#new-block").button("disable");
             } else {
                 $("#selected-channels").html("");
                 $(".channel.ui-selected").each(function () {
                     $("#selected-channels").append(this.id + " ");
                 });
-                $("#new-block").button("enable");
             }
         }
+    });
+    $("#block-info").dialog({
+        autoOpen: false
     });
 });
 
-var Calc = function(expr, infix) {
-    this.valid = true;
-    this.expr = expr;
-    if (!infix) {
-        this.expr = this.latexToInfix(expr);
+
+window.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        $(".ui-selected").removeClass("ui-selected");
+        $("#selected-channels").text("None");
     }
-    var OpPrecedence = function(op) {
-        if (typeof op == "undefined") return 0;
-        return op.match(/^(floor|ceil|(sin|cos|tan|sec|csc|cot)h?)$/) ? 10: (op === "^") ? 9: (op === "*" || op === "/") ? 8: (op === "+" || op === "-") ? 7: 0;
-    }
-    var OpAssociativity = function(op) {
-        return op.match(/^(floor|ceil|(sin|cos|tan|sec|csc|cot)h?)$/) ? "R" : "L";
-    }
-    var numArgs = function(op) {
-        for (var i = 0; i < CALC_NUMARGS.length; i++) {
-            if (CALC_NUMARGS[i][0].test(op)) return CALC_NUMARGS[i][1];
-        }
-        return false;
-    }
-    this.rpn_expr = [];
-    var rpn_expr = this.rpn_expr;
-    this.expr = this.expr.replace(/\s+/g, "");
-    // This regex matches any valid token in a user supplied expression (e.g. an operator, a constant, or a variable)
-    var in_tokens = this.expr.match(/(\^|\*|\/|\+|\-|\(|\)|[a-zA-Z0-9\.]+)/gi);
-    var op_stack = [];
-    in_tokens.forEach(function(token) {
-        if (/^[a-zA-Z]$/.test(token)) {
-            if (CALC_CONST.hasOwnProperty(token)) {
-                // Constant
-                rpn_expr.push(["num", CALC_CONST[token]]);
-            } else {
-                // Variable
-                rpn_expr.push(["var", token]);
-            }
-        } else {
-            var numVal = parseFloat(token);
-            if (!isNaN(numVal)) {
-                // Number
-                rpn_expr.push(["num", numVal]);
-            } else if (token === ")") {
-                // Pop tokens off op_stack onto the rpn_expr until we reach a match
-                while (op_stack[op_stack.length - 1] !== "(") {
-                    rpn_expr.push([numArgs(op_stack[op_stack.length - 1]), op_stack.pop()]);
-                    if (op_stack.length === 0) {
-                        this.valid = false;
-                        return;
-                    }
-                }
-                op_stack.pop();
-            } else if (token === "(") {
-                op_stack.push(token);
-            } else {
-                // Operator
-                var tokPrec = OpPrecedence(token),
-                    headPrec = OpPrecedence(op_stack[op_stack.length - 1]);
-                while ((OpAssociativity(token) === "L" && tokPrec <= headPrec) || (OpAssociativity(token) === "R" && tokPrec < headPrec)) {
-                    rpn_expr.push([numArgs(op_stack[op_stack.length - 1]), op_stack.pop()]);
-                    if (op_stack.length === 0) break;
-                    headPrec = OpPrecedence(op_stack[op_stack.length - 1]);
-                }
-                op_stack.push(token);
-            }
-        }
+});
+
+$(document).on("dblclick", ".block", function () {
+    var block_data = $(this).data("info");
+    var block_time = $(this).data("time");
+    var block_info = $("#block-info");
+    block_info.dialog({
+        title: block_data.name + " (" + block_data.eventType + ")"
     });
-    // Push all remaining operators onto the final expression
-    while (op_stack.length > 0) {
-        var popped = op_stack.pop();
-        if (popped === ")") {
-            this.valid = false;
-            break;
+    block_info.html("<tr><td>time</td><td>" + block_time + "</td></tr>");
+    for (var param in block_data) {
+        if (!(["eventType", "name", "time"].includes(param) || block_data[param].toString() === "")) {
+            $("#block-info").append("<tr><td>" + param + "</td><td>" + block_data[param] + "</td></tr>");
         }
-        rpn_expr.push([numArgs(popped), popped]);
     }
+    block_info.dialog("open");
+});
+
+
+function readable_freq(freq, block_time) {
+    return (freq * block_time <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq * block_time) + 1));
 }
 
-Calc.prototype.eval = function(x) {
-    var stack = [], rpn_expr = this.rpn_expr;
-    rpn_expr.forEach(function(token) {
-        if (typeof token[0] == "string") {
-            switch (token[0]) {
-                case "var":
-                    // Variable
-                    stack.push(x);
-                    break;
-                case "num":
-                    // Number
-                    stack.push(token[1]);
-                    break;
-            }
-        } else {
-            // Operator
-            var numArgs = token[0];
-            var args = [];
-            do {
-                args.unshift(stack.pop());
-            } while (args.length < numArgs);
-            switch (token[1]) {
-                case "*":
-                    stack.push(args[0] * args[1]);
-                    break;
-                case "/":
-                    stack.push(args[0] / args[1]);
-                    break;
-                case "+":
-                    stack.push(args[0] + args[1]);
-                    break;
-                case "-":
-                    stack.push(args[0] - args[1]);
-                    break;
-                case "^":
-                    stack.push(Math.pow(args[0], args[1]));
-                    break;
-                case "sin":
-                    stack.push(Math.sin(args[0]));
-                    break;
-                case "cos":
-                    stack.push(Math.cos(args[0]));
-                    break;
-                case "tan":
-                    stack.push(Math.tan(args[0]));
-                    break;
-                case "sec":
-                    stack.push(1 / Math.cos(args[0]));
-                    break;
-                case "csc":
-                    stack.push(1 / Math.sin(args[0]));
-                    break;
-                case "cot":
-                    stack.push(1 / Math.tan(args[0]));
-                    break;
-                case "sinh":
-                    stack.push(0.5 * (Math.pow(Math.E, args[0]) - Math.pow(Math.E, -args[0])));
-                    break;
-                case "cosh":
-                    stack.push(0.5 * (Math.pow(Math.E, args[0]) + Math.pow(Math.E, -args[0])));
-                    break;
-                case "tanh":
-                    stack.push((Math.pow(Math.E, 2*args[0]) - 1) / (Math.pow(Math.E, 2*args[0]) + 1));
-                    break;
-                case "sech":
-                    stack.push(2 / (Math.pow(Math.E, args[0]) + Math.pow(Math.E, -args[0])));
-                    break;
-                case "csch":
-                    stack.push(2 / (Math.pow(Math.E, args[0]) - Math.pow(Math.E, -args[0])));
-                    break;
-                case "coth":
-                    stack.push((Math.pow(Math.E, 2*args[0]) + 1) / (Math.pow(Math.E, 2*args[0]) - 1));
-                    break;
-                case "floor":
-                    stack.push(Math.floor(args[0]));
-                    break;
-                case "ceil":
-                    stack.push(Math.ceil(args[0]));
-                    break;
-                default:
-                    return false;
-            }
-        }
-    });
-    return stack.pop();
-};
-
-Calc.prototype.latexToInfix = function(latex) {
-    var infix = latex;
-    infix = infix
-    .replace(/\\frac{([^}]+)}{([^}]+)}/g, "($1)/($2)") // fractions
-    .replace(/\\left\(/g, "(") // open parenthesis
-    .replace(/\\right\)/g, ")") // close parenthesis
-    .replace(/[^\(](floor|ceil|(sin|cos|tan|sec|csc|cot)h?)\(([^\(\)]+)\)[^\)]/g, "($&)") // functions
-    .replace(/([^(floor|ceil|(sin|cos|tan|sec|csc|cot)h?|\+|\-|\*|\/)])\(/g, "$1*(")
-    .replace(/\)([\w])/g, ")*$1")
-    .replace(/([0-9])([A-Za-z])/g, "$1*$2")
-    .replace(/\\cdot/g,"*")
-  ;
-  return infix;
-};
+function inc_block_cnt(channel) {
+    var channel_label = $("#label-" + channel.attr("id"));
+    var block_cnt = channel_label.find(".block-cnt");
+    block_cnt.text(parseInt(block_cnt.text()) + 1);
+}
 
 function create_block(block_data, block_time) {
-    var ymax = 1.2;
-    var ymin = -1.2;
     var channel = $("#ch0");
+    inc_block_cnt(channel);
     var new_block_id = "block" + channel.children().length;
     channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
+    $("#" + new_block_id).data("info", block_data);
+    $("#" + new_block_id).data("time", block_time);
     var canvas = $("#" + new_block_id + " canvas")[0];
     var ctx = canvas.getContext("2d");
     $("#" + new_block_id + " canvas").width((1 + Math.log10(block_time) / (1 + Math.log10(block_time))) * 200);
     var width = canvas.width;
     var height = canvas.height;
-    var plot = function plot(fn, range) {
-        var widthScale = (width / (range[1] - range[0]))
-        var heightScale = (height / (range[3] - range[2]))
+    function plot(fn, range) {
+        var widthScale = (width / (range[1] - range[0]));
+        var heightScale = (height / (range[3] - range[2]));
         ctx.beginPath();
         for (var x = 0; x < width; x++) {
             var xFnVal = (x / widthScale) - range[0]
@@ -261,127 +118,130 @@ function create_block(block_data, block_time) {
         ctx.lineWidth = 3;
         ctx.stroke();
     };
-    plot(function (x) {
-        var res = 0;
-        switch (block_data.eventType) {
-            case "sine":
-                if (x > block_data.delay && ((x < block_data.delay + block_data.period * block_data.cycles) || block_data.cycles === "")) {
-                    x = 2 * Math.PI * (x - block_data.delay) / block_data.period + block_data.phase;
-                    res = block_data.amplitude * Math.sin(x);
-                }
-                break;
-            case "saw":
-                if (x > block_data.delay && ((x < block_data.delay + block_data.period * block_data.cycles) || block_data.cycles === "")) {
-                    x = (x - block_data.delay) / block_data.period + block_data.phase;
-                    res = block_data.amplitude * (x - Math.floor(x));
-                }
-                break;
-            case "square":
-                if (x > block_data.delay && x < ((block_data.delay + block_data.period * block_data.cycles) || block_data.cycles === "")) {
-                    x = (x - block_data.delay) / block_data.period + block_data.phase;
-                    res = block_data.amplitude * (2 * (2 * Math.floor(x) - Math.floor(2 * x)) + 1);
-                }
-                break;
-            case "triangle":
-                if (x > block_data.delay && x < ((block_data.delay + block_data.period * block_data.cycles) || block_data.cycles === "")) {
-                    x = (x - block_data.delay) / block_data.period + block_data.phase;
-                    res = block_data.amplitude * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
-                }
-                break;
-            case "constant":
-                if (x > block_data.delay) {
-                    x = x - block_data.delay;
-                    res = block_data.value;
-                }
-                break;
-            case "function":
-                if (x > block_data.delay) {
-                    x = x - block_data.delay;
-                    var calc = new Calc(block_data.latex);
-                    res = calc.eval(x) ? calc.eval(x): 0;
-                }
-                break;
-            case "chirp":
-                if (x > block_data.delay) {
-                    x = x - block_data.delay;
-                    var sweep_time = (block_data.sweep_time === "" || block_data.sweep_time > block_time) ? block_time: block_data.sweep_time;
+    if (defined_events.includes(block_data.eventType)) {
+        plot(function (x) {
+            var res = 0;
+            var amp_sign, value_sign, height_sign, dist_center;
+            switch (block_data.eventType) {
+                case "sine":
+                    amp_sign = Math.sign(block_data.amplitude);
+                    x = x * readable_freq(block_data.frequency, block_time);
+                    res = amp_sign * Math.sin(2 * Math.PI * x);
+                    break;
+                case "saw":
+                    amp_sign = Math.sign(block_data.amplitude);
+                    x = x * readable_freq(block_data.frequency, block_time);
+                    res = amp_sign * 2 * (x - Math.floor(x)) - 1;
+                    break;
+                case "square":
+                    amp_sign = Math.sign(block_data.amplitude);
+                    x = x * readable_freq(block_data.frequency, block_time);
+                    res = amp_sign * 2 * (2 * Math.floor(x) - Math.floor(2 * x)) + 1;
+                    break;
+                case "triangle":
+                    amp_sign = Math.sign(block_data.amplitude);
+                    x = x * readable_freq(block_data.frequency, block_time);
+                    res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
+                    break;
+                case "constant":
+                    res = Math.sign(block_data.value);
+                    break;
+                case "function":
+                    break;
+                case "chirp":
+                    var start_freq = readable_freq(block_data.start_frequency, block_time);
+                    var end_freq = Math.max(block_data.end_frequency / start_freq, 30) * start_freq;
                     var chirpiness;
                     if (block_data.chirp_type === "exponential") {
-                        chirpiness = Math.pow(block_data.end_frequency / block_data.start_frequency, 1 / sweep_time);
-                        res = block_data.amplitude * Math.sin(block_data.phase + 2 * Math.PI * block_data.start_frequency * (Math.pow(chirpiness, x) - 1) / Math.log(chirpiness));
-                    } else if (block_data.chirp_type === "linear") {
-                        chirpiness = (block_data.end_frequency - block_data.start_frequency) / sweep_time;
-                        res = block_data.amplitude * Math.sin(block_data.phase + 2 * Math.PI * (chirpiness / 2 * Math.pow(x, 2) + block_data.start_frequency * x));
+                        chirpiness = Math.pow(end_freq / start_freq, 1 / block_time);
+                            res = Math.sin(2 * Math.PI * start_freq * (Math.pow(chirpiness, x) - 1) / Math.log(chirpiness));
+                        } else if (block_data.chirp_type === "linear") {
+                            chirpiness = (end_freq - start_freq) / block_time;
+                            res = Math.sin(2 * Math.PI * (chirpiness / 2 * Math.pow(x, 2) + start_freq * x));
+                        }
+                    break;
+                case "ramp":
+                    value_sign = Math.sign(block_data.value);
+                    if (x > 0.2 * block_time) {
+                        res = (x < 0.8 * block_time) ? value_sign * (x - 0.2 * block_time) / (0.6 * block_time): value_sign;
                     }
-                }
-                break;
-            case "ramp":
-                if (x > block_data.delay) {
-                    x = x - block_data.delay;
-                    res = (x < block_data.ramp_time) ? block_data.value / block_data.ramp_time * x : block_data.value;
-                }
-                break;
-            case "step":
-                if (x > block_data.delay) {
-                    x = x - block_data.delay;
-                    res = (x < block_data.step_time) ? block_data.value / block_data.step_time * x - (block_data.value / block_data.step_time * x) % (block_data.value / block_data.steps): block_data.value;
-                }
-                break;
-            case "pulse":
-                if (x > block_data.delay && ((x < block_data.delay + block_data.period * block_data.cycles) || block_data.cycles === "")) {
-                    x = (x - block_data.delay) % block_data.period;
-                    if (x < block_data.rising) {
-                        res = block_data.amplitude / block_data.rising * x;
-                    } else if (x < block_data.rising + block_data.width) {
-                        res = block_data.amplitude;
-                    } else if (x < block_data.rising + block_data.width + block_data.falling) {
-                        res = block_data.amplitude - block_data.amplitude / block_data.falling * (x - block_data.rising - block_data.width);
+                    break;
+                case "step":
+                    value_sign = Math.sign(block_data.value);
+                    if (x > 0.2 * block_time) {
+                        res = (x < 0.8 * block_time) ? value_sign * ((x - 0.2 * block_time) / (0.6 * block_time) - ((x - 0.2 * block_time) / (0.6 * block_time)) % (1 / block_data.steps)): value_sign;
                     }
-                }
-                break;
-            case "points":
-                block_data.times.unshift(0);
-                block_data.values.unshift(0);
-                block_data.times.push(block_time);
-                block_data.values.push(0);
-                var last_pnt_time = Math.max.apply(Math, block_data.times.filter(function(y){return y <= x}));
-                var next_pnt_time = Math.min.apply(Math, block_data.times.filter(function(y){return y >= x}));
-                var last_pnt_value = block_data.values(block_data.times.indexOf(last_pnt_time));
-                var next_pnt_value = block_data.values(block_data.times.indexOf(next_pnt_time));
-
-                break;
-            default:
-                res = 0;
-        }
-        switch (block_data.rectified) {
-            case "half":
-                res = (res < 0) ? 0: res;
-                break;
-            case "full":
-                res = Math.abs(res);
-                break;
-            default:
-                res = res;
-                break;
-        }
-        return res + block_data.offset;
-    }, [0, block_time, ymin, ymax]);
-    check_discont(new_block_id);
-}
-
-function check_discont(block_id) {
-    var block = $("#" + block_id);
-    if (Math.abs(block.data("start") - block.prev().data("end")) > 0.1 && block.prev().length > 0) {
-        block.append("<div class='discont'></div>");
-        //var err_cnt = block.parent().filter(".discont").length;
-        //$("#label-" + block.parent().attr("id")).filter(".err-cnt").text(err_cnt);
+                    break;
+                case "pulse":
+                    amp_sign = Math.sign(block_data.amplitude);
+                    var freq = readable_freq(block_data.frequency, block_time);
+                    var rising = block_data.rising * block_data.frequency / (block_time * freq);
+                    var width = block_data.width * block_data.frequency / (block_time * freq);
+                    var falling = block_data.falling * block_data.frequency / (block_time * freq);
+                    x = x % (1 / freq);
+                    if (x < rising) {
+                        res = amp_sign * x / rising;
+                    } else if (x < rising + width) {
+                        res = amp_sign;
+                    } else if (x < rising + width + falling) {
+                        res = amp_sign * (1 - (x - rising - width) / falling);
+                    }
+                    break;
+                case "points":
+                    var max_value = Math.max(...block_data.values.map(function(value){return Math.abs(value)}));
+                    var times = block_data.times.map(function(time){return time / block_time});
+                    var values = block_data.values.map(function(value){return value / max_value});
+                    var last_pnt_time = x <= Math.min(...times) ? 0: Math.max.apply(Math, times.filter(function(y){return y <= x}));
+                    var next_pnt_time = x >= Math.max(...times) ? 1: Math.min.apply(Math, times.filter(function(y){return y > x}));
+                    var last_pnt_value = x <= Math.min(...times) ? 0: values[times.indexOf(last_pnt_time)];
+                    var next_pnt_value = x >= Math.max(...times) ? 0: values[times.indexOf(next_pnt_time)];
+                    res = (next_pnt_value - last_pnt_value) / (next_pnt_time - last_pnt_time) * (x - last_pnt_time) + last_pnt_value;
+                    break;
+                case "exponential":
+                    value_sign = Math.sign(block_data.value);
+                    res = value_sign * Math.pow(Math.E, -block_data.decay * x * block_time);
+                    break;
+                case "log":
+                    res = Math.log1p(x * block_time) / Math.log1p(block_time);
+                    break;
+                case "Lorentzian":
+                    height_sign = Math.sign(block_data.height);
+                    var gamma = block_data.width / 2;
+                    dist_center = block_data.center / block_time;
+                    res = height_sign * Math.pow(gamma, 2) / (Math.pow(x - dist_center, 2) + Math.pow(gamma, 2));
+                    break;
+                case "Gaussian":
+                    height_sign = Math.sign(block_data.height);
+                    dist_center = block_data.center / block_time;
+                    res = height_sign * Math.pow(Math.E, -1/2 * Math.pow((x - dist_center) / block_data.std, 2));
+                    break;
+                default:
+                    res = 0;
+            }
+            switch (block_data.rectified) {
+                case "half":
+                    res = (res < 0) ? 0: res;
+                    break;
+                case "full":
+                    res = Math.abs(res);
+                    break;
+                default:
+                    break;
+            }
+            return res;
+        }, [0, 1, -1.2, 1.2]);
+    } else {
+        ctx.font="30px Arial";
+        ctx.fillStyle = "limegreen";
+        ctx.textAlign = "center";
+        ctx.fillText(block_data.eventType, width / 2, height / 2);
     }
 }
 
 $("#new-channel").on("click", function () {
     var new_channel_id = "ch" + $(".channel").length;
     $("#channel-container").append("<div class='channel' id='" + new_channel_id + "'></div>")
-    $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + "><br/>" + new_channel_id + "<br/>blocks: <span class='block-cnt'>0</span></br>errors: <span class='err-cnt'>0</span></p></div>")
+    $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + "><br/>" + new_channel_id + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
 });
 
 $("#remove-json").on("click", function () {

@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
     <h1>Viewer</h1><hr class="main">
+    <div id="block-info">
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+            </tr>
+            <div id="block-params"></div>
+        </table>
+    </div>
     <div class="row" id="channel-options">
         <button onclick="$('#file-upload').trigger('click');">Upload JSON</button>
         <form id="upload-json" name="upload-json" method="post" enctype="multipart/form-data">
@@ -14,15 +23,13 @@
         </select>
         <button id="remove-json">Remove JSON</button>
         <p>Selected channels: <span id="selected-channels">None</span></p>
-        <br/><p id="debug">None</p>
     </div>
     <div class="row" id="channels">
         <div class="column" style="width: 10%;">
             <div id="channel-label-container">
                 <div class='channel-label' id='label-ch0'><br/>
                     ch0<br/>
-                    blocks: <span class='block-cnt'>0</span></br>
-                    errors: <span class='err-cnt'>0</span>
+                    blocks: <span class='block-cnt'>0</span>
                 </div>
             </div>
         </div>
