@@ -3,11 +3,15 @@
     <h1>Viewer</h1><hr class="main">
     <div id="block-info">
         <table>
-            <tr>
-                <th>Parameter</th>
-                <th>Value</th>
-            </tr>
-            <div id="block-params"></div>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <div id="block-params"></div>
+            </tbody>
         </table>
     </div>
     <div class="row" id="channel-options">
@@ -26,17 +30,10 @@
     </div>
     <div class="row" id="channels">
         <div class="column" style="width: 10%;">
-            <div id="channel-label-container">
-                <div class='channel-label' id='label-ch0'><br/>
-                    ch0<br/>
-                    blocks: <span class='block-cnt'>0</span>
-                </div>
-            </div>
+            <div id="channel-label-container"></div>
         </div>
         <div class="column" style="width: 90%;">
-            <div id="channel-container">
-                <div class="channel" id="ch0"></div>
-            </div>
+            <div id="channel-container"></div>
         </div>
     </div>
 {% endblock %}

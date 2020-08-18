@@ -63,7 +63,6 @@ class SijaxHandlers(object):
 
     def show_signals(self, obj_response, selected_json_id):
         filename = get_json_options()[selected_json_id]
-        obj_response.html(".channel", "")
         with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
             json_obj = json.load(f)
         for event_name, event_data in json_obj.items():

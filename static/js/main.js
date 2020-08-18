@@ -12,7 +12,8 @@ var defined_events = [
     "log",
     "chirp",
     "Gaussian",
-    "Lorentzian"
+    "Lorentzian",
+    "step_triangle"
 ];
 
 $(document).ready(function () {
@@ -20,9 +21,10 @@ $(document).ready(function () {
     $("#remove-json").button("disable");
     $("#json").selectmenu({
         change: function (event, ui) {
+            $("#channel-container, #channel-label-container").empty();
+            $(".channel-label-container").children().remove();
             if (ui.item.value === "none") {
                 $("#remove-json").button("disable");
-                $(".channel").html("");
             } else {
                 $("#remove-json").button("enable");
                 Sijax.request("show_signals", [ui.item.value]);
@@ -38,7 +40,7 @@ $(document).ready(function () {
             if ($(".channel.ui-selected").length === 0) {
                 $("#selected-channels").html("None");
             } else {
-                $("#selected-channels").html("");
+                $("#selected-channels").empty();
                 $(".channel.ui-selected").each(function () {
                     $("#selected-channels").append(this.id + " ");
                 });
@@ -49,7 +51,6 @@ $(document).ready(function () {
         autoOpen: false
     });
 });
-
 
 window.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
@@ -67,31 +68,51 @@ $(document).on("dblclick", ".block", function () {
     });
     block_info.html("<tr><td>time</td><td>" + block_time + "</td></tr>");
     for (var param in block_data) {
-        if (!(["eventType", "name", "time"].includes(param) || block_data[param].toString() === "")) {
+        if (param === "values") {
+            $("#block-info").append("<tr><td>num pnts</td><td>" + block_data[param].length + "</td></tr>");
+        } else if (!(["eventType", "name", "time", "times", "channel"].includes(param) || block_data[param].toString() === "")) {
             $("#block-info").append("<tr><td>" + param + "</td><td>" + block_data[param] + "</td></tr>");
         }
     }
     block_info.dialog("open");
 });
 
-
 function readable_freq(freq, block_time) {
     return (freq * block_time <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq * block_time) + 1));
 }
 
 function inc_block_cnt(channel) {
-    var channel_label = $("#label-" + channel.attr("id"));
+    var channel_label = $("#" + channel.data("labelid"));
     var block_cnt = channel_label.find(".block-cnt");
     block_cnt.text(parseInt(block_cnt.text()) + 1);
 }
 
+function get_channel(channel) {
+    var channel_ids = $("#channel-container").children().map(function() {
+        return this.id;
+    }).get();
+    if (!channel_ids.includes(channel)) {
+        var labelid = "label-" + channel;
+        $("#channel-container").append("<div class='channel' id='" + channel + "'></div>");
+        $("#" + channel).data({
+            "labelid": labelid,
+            "time": 0
+        });
+        $("#channel-label-container").append("<div class='channel-label' id='" + labelid + "'><br/>" + channel + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
+    };
+    return $("#" + channel);
+}
+
 function create_block(block_data, block_time) {
-    var channel = $("#ch0");
+    var channel = get_channel(block_data.channel);
     inc_block_cnt(channel);
-    var new_block_id = "block" + channel.children().length;
+    var new_block_id = channel.attr("id") + "block" + channel.children().length;
     channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
-    $("#" + new_block_id).data("info", block_data);
-    $("#" + new_block_id).data("time", block_time);
+    $("#" + new_block_id).data({
+        "info": block_data,
+        "time": block_time
+    });
+    channel.data("time", channel.data("time") + block_time);
     var canvas = $("#" + new_block_id + " canvas")[0];
     var ctx = canvas.getContext("2d");
     $("#" + new_block_id + " canvas").width((1 + Math.log10(block_time) / (1 + Math.log10(block_time))) * 200);
@@ -215,6 +236,12 @@ function create_block(block_data, block_time) {
                     dist_center = block_data.center / block_time;
                     res = height_sign * Math.pow(Math.E, -1/2 * Math.pow((x - dist_center) / block_data.std, 2));
                     break;
+                case "step_triangle":
+                    amp_sign = Math.sign(block_data.amplitude);
+                    x = x * readable_freq(block_data.frequency, block_time);
+                    res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
+                    res = res - res % (2 / block_data.steps);
+                    break;
                 default:
                     res = 0;
             }
@@ -238,20 +265,14 @@ function create_block(block_data, block_time) {
     }
 }
 
-$("#new-channel").on("click", function () {
-    var new_channel_id = "ch" + $(".channel").length;
-    $("#channel-container").append("<div class='channel' id='" + new_channel_id + "'></div>")
-    $("#channel-label-container").append("<div class='channel-label' id='label-'" + new_channel_id + "><br/>" + new_channel_id + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
-});
-
 $("#remove-json").on("click", function () {
     var selected_json_id = $("#json").children("option:selected").val();
     $("#json").children("option:selected").remove();
     refresh_json_options();
     if ($("#json").children("option:selected").val() === "none") {
         $("#remove-json").button("disable");
-        $(".channel").html("");
     }
+    $("#channel-container, #channel-label-container").empty();
     Sijax.request("remove_json", [selected_json_id]);
 });
 
