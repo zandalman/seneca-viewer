@@ -116,20 +116,16 @@ function init_block(channel, block_data, block_time, block_len) {
     return block;
 }
 
-function setupCanvas(canvas) {
+function set_canvas(canvas) {
     var dpr = window.devicePixelRatio || 1;
     var rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     var ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
-    return {
-        ctx: ctx,
-        rescale: function() {
-            canvas.style.width = rect.width + "px";
-            canvas.style.height = rect.height + "px";
-        }
-    };
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    return ctx;
 }
 
 function create_block(block_data, block_time, block_len) {
@@ -137,15 +133,14 @@ function create_block(block_data, block_time, block_len) {
     inc_block_cnt(channel);
     var block = init_block(channel, block_data, block_time, block_len);
     var canvas = block.find("canvas")[0];
-    var canvas_setup = setupCanvas(canvas);
-    var ctx = canvas_setup.ctx;
+    var ctx = set_canvas(canvas);
     var width = canvas.width;
     var height = canvas.height;
     function plot(fn, range) {
         var widthScale = (width / (range[1] - range[0]));
         var heightScale = (height / (range[3] - range[2]));
         ctx.beginPath();
-        for (var x = 0; x < width; x++) {
+        for (var x = 0; x < width; x = x + 0.1) {
             var xFnVal = (x / widthScale) - range[0]
             var yGVal = height - (fn(xFnVal) - range[2]) * heightScale;
             if (x === 0) {
@@ -281,12 +276,11 @@ function create_block(block_data, block_time, block_len) {
             return res;
         }, [0, 1, -1.2, 1.2]);
     } else {
-        ctx.font="30px Arial";
+        ctx.font="20px Arial";
         ctx.fillStyle = "limegreen";
         ctx.textAlign = "center";
         ctx.fillText(block_data.eventType, width / 2, height / 2);
     }
-    canvas_setup.rescale();
 }
 
 $("#remove-json").on("click", function () {
