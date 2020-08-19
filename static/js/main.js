@@ -128,7 +128,12 @@ function set_canvas(canvas) {
     return ctx;
 }
 
-function create_block(block_data, block_time, block_len) {
+function get_event(name) {
+    return;
+}
+
+function create_block(block_data, block_time, block_len, event_name) {
+    var event = get_event(event_name);
     var channel = get_channel(block_data.channel);
     inc_block_cnt(channel);
     var block = init_block(channel, block_data, block_time, block_len);
@@ -140,7 +145,7 @@ function create_block(block_data, block_time, block_len) {
         var widthScale = (width / (range[1] - range[0]));
         var heightScale = (height / (range[3] - range[2]));
         ctx.beginPath();
-        for (var x = 0; x < width; x = x + 0.1) {
+        for (var x = 0; x < width; x = x + 0.01) {
             var xFnVal = (x / widthScale) - range[0]
             var yGVal = height - (fn(xFnVal) - range[2]) * heightScale;
             if (x === 0) {

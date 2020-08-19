@@ -34,17 +34,33 @@ def to_float(val):
         except:
             return val
 
-def get_block_lens(subevent_times):
-    all_times = [t for ts in subevent_times.values() for t in ts]
-    all_times = list(dict.fromkeys(all_times))
-    block_lens = {}
-    for ch, ts in subevent_times.items():
-        block_lens[ch] = []
-        for t in ts:
-            block_lens[ch] += [all_times.index(t) + 1]
-        block_lens[ch] = [0] + block_lens[ch]
-        block_lens[ch] = [j - i for i, j in zip(block_lens[ch][:-1], block_lens[ch][1:])]
-    return block_lens
+
+class Event(object):
+
+    def __init__(self, name, data):
+        self.name = name
+        self.subevents = [{key: to_float(value) for key, value in subevent.items()} for subevent in data["subEvents"]]
+
+    def create_blocks(self, obj_response):
+        for subevent in self.subevents:
+            blocks = self.blocks[subevent["channel"]].pop(0)
+            obj_response.call("create_block", [subevent, subevent["time"], blocks])
+
+    @property
+    def times(self):
+        channels = list(dict.fromkeys([subevent["channel"] for subevent in self.subevents]))
+        times = {ch: [subevent["time"] for subevent in self.subevents if subevent["channel"] == ch] for ch in channels}
+        return {ch: [sum(ch_times[:(i + 1)]) for i in range(len(ch_times))] for ch, ch_times in times.items()}
+
+    @property
+    def all_times(self):
+        return list(dict.fromkeys([time for times in self.times.values() for time in times]))
+
+    @property
+    def blocks(self):
+        blocks = {ch: [0] + [self.all_times.index(time) + 1 for time in times] for ch, times in self.times.items()}
+        return {ch: [j - i for i, j in zip(ch_blocks[:-1], ch_blocks[1:])] for ch, ch_blocks in blocks.items()}
+
 
 class SijaxUploadHandlers(object):
 
@@ -77,21 +93,9 @@ class SijaxHandlers(object):
         filename = get_json_options()[selected_json_id]
         with open("/Users/zacharyandalman/example_subevents.json", "r") as f:
             json_obj = json.load(f)
-        for event, event_data in json_obj.items():
-            subevent_times = {}
-            subevents = []
-            for subevent in event_data["subEvents"]:
-                subevent = {key: to_float(value) for key, value in subevent.items()}
-                subevents.append(subevent)
-                if subevent["channel"] not in subevent_times.keys():
-                    subevent_times[subevent["channel"]] = [subevent["time"]]
-                else:
-                    subevent_times[subevent["channel"]] = subevent_times[subevent["channel"]] + [
-                        subevent_times[subevent["channel"]][-1] + subevent["time"]]
-            block_lens = get_block_lens(subevent_times)
-            for subevent in subevents:
-                block_len = block_lens[subevent["channel"]].pop(0)
-                obj_response.call("create_block", [subevent, subevent["time"], block_len])
+        for name, data in json_obj.items():
+            event = Event(name, data)
+            event.create_blocks(obj_response)
 
 
 def create_app():
