@@ -71,15 +71,11 @@ p {
 .channel {
     height: 90px;
     width: auto;
-    margin-bottom: 5px;
 }
 .channel-label {
     height: 90px;
-    border-bottom: 1px solid black;
-    margin-bottom: 5px;
-}
-#block-container {
-    margin-top: 20px;
+    border: 1px solid black;
+    text-align: center;
 }
 select, button, form {
     display: inline-block;
@@ -104,14 +100,11 @@ select, button, form {
     background: rgba(191, 239, 255, 0.2);
 }
 #channels {
-    max-height: 270px;
+    max-height: 300px;
     overflow-y: scroll;
     margin-top: 20px;
     border: 2px solid black;
     background: lightgrey;
-}
-.channel-label {
-    text-align: center;
 }
 .discont {
     position: absolute;
@@ -125,11 +118,12 @@ select, button, form {
     height: 90px;
 }
 .block {
+    height: 90px;
     border: 1px solid dimgray;
     position: relative;
     display: inline-block;
 }
-.block:hover {
+.block:hover, .block.selected {
     border: 1px solid indianred;
 }
 td:nth-of-type(2) {

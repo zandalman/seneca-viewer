@@ -22,8 +22,10 @@ def gen_id(marker, seed):
     """
     return marker + uuid.uuid5(uuid.NAMESPACE_DNS, seed).hex
 
+
 def get_json_options():
     return {gen_id("j", filename): filename for filename in os.listdir(app.config["UPLOAD_FOLDER"])}
+
 
 def to_float(val):
     try:
@@ -40,26 +42,17 @@ class Event(object):
     def __init__(self, name, data):
         self.name = name
         self.subevents = [{key: to_float(value) for key, value in subevent.items()} for subevent in data["subEvents"]]
+        channels = list(dict.fromkeys([subevent["channel"] for subevent in self.subevents]))
+        times = {ch: [subevent["time"] for subevent in self.subevents if subevent["channel"] == ch] for ch in channels}
+        self.times = {ch: [sum(ch_times[:(i + 1)]) for i in range(len(ch_times))] for ch, ch_times in times.items()}
+        self.all_times = list(dict.fromkeys([time for times in self.times.values() for time in times]))
+        blocks = {ch: [0] + [self.all_times.index(time) + 1 for time in times] for ch, times in self.times.items()}
+        self.blocks = {ch: [j - i for i, j in zip(ch_blocks[:-1], ch_blocks[1:])] for ch, ch_blocks in blocks.items()}
 
     def create_blocks(self, obj_response):
         for subevent in self.subevents:
-            blocks = self.blocks[subevent["channel"]].pop(0)
-            obj_response.call("create_block", [subevent, subevent["time"], blocks])
-
-    @property
-    def times(self):
-        channels = list(dict.fromkeys([subevent["channel"] for subevent in self.subevents]))
-        times = {ch: [subevent["time"] for subevent in self.subevents if subevent["channel"] == ch] for ch in channels}
-        return {ch: [sum(ch_times[:(i + 1)]) for i in range(len(ch_times))] for ch, ch_times in times.items()}
-
-    @property
-    def all_times(self):
-        return list(dict.fromkeys([time for times in self.times.values() for time in times]))
-
-    @property
-    def blocks(self):
-        blocks = {ch: [0] + [self.all_times.index(time) + 1 for time in times] for ch, times in self.times.items()}
-        return {ch: [j - i for i, j in zip(ch_blocks[:-1], ch_blocks[1:])] for ch, ch_blocks in blocks.items()}
+            length = self.blocks[subevent["channel"]].pop(0)
+            obj_response.call("create_block", [subevent, subevent["time"], length])
 
 
 class SijaxUploadHandlers(object):
@@ -82,6 +75,7 @@ class SijaxUploadHandlers(object):
             file_data.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             obj_response.html_append("#json", "<option value='%s'>%s</option>" % (gen_id("j", filename), filename))
             obj_response.call("refresh_json_options")
+
 
 class SijaxHandlers(object):
 

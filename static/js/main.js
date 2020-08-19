@@ -50,6 +50,19 @@ $(document).ready(function () {
     $("#block-info").dialog({
         autoOpen: false
     });
+    $("#channel-label-container").sortable({
+        containment: "#channel-label-container",
+        stop: function (event, ui) {
+            var channel = $("#" + ui.item.data("chid"));
+            var old_index = $(".channel:visible").index(channel);
+            var new_index = $(".channel-label:visible").index(ui.item);
+            if (new_index < old_index) {
+                channel.insertBefore($(".channel:visible").eq(new_index));
+            } else {
+                channel.insertAfter($(".channel:visible").eq(new_index));
+            }
+        }
+    });
 });
 
 window.addEventListener("keydown", function (event) {
@@ -60,25 +73,27 @@ window.addEventListener("keydown", function (event) {
 });
 
 $(document).on("dblclick", ".block", function () {
-    var block_data = $(this).data("info");
-    var block_time = $(this).data("time");
-    var block_info = $("#block-info");
-    block_info.dialog({
-        title: block_data.name + " (" + block_data.eventType + ")"
+    $(".block").removeClass("selected");
+    $("this").addClass("selected");
+    var data = $(this).data("info");
+    var time = $(this).data("time");
+    var info = $("#block-info");
+    info.dialog({
+        title: data.name + " (" + data.eventType + ")"
     });
-    block_info.html("<tr><td>time</td><td>" + block_time + "</td></tr>");
-    for (var param in block_data) {
+    info.html("<tr><td>time</td><td>" + time + "</td></tr>");
+    for (var param in data) {
         if (param === "values") {
-            $("#block-info").append("<tr><td>num pnts</td><td>" + block_data[param].length + "</td></tr>");
-        } else if (!(["eventType", "name", "time", "times", "channel"].includes(param) || block_data[param].toString() === "")) {
-            $("#block-info").append("<tr><td>" + param + "</td><td>" + block_data[param] + "</td></tr>");
+            info.append("<tr><td>num pnts</td><td>" + data[param].length + "</td></tr>");
+        } else if (!(["eventType", "name", "time", "times", "channel"].includes(param) || data[param].toString() === "")) {
+            info.append("<tr><td>" + param + "</td><td>" + data[param] + "</td></tr>");
         }
     }
-    block_info.dialog("open");
+    info.dialog("open");
 });
 
-function readable_freq(freq, block_time) {
-    return (freq * block_time <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq * block_time) + 1));
+function readable_freq(freq, time) {
+    return (freq * time <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq * time) + 1));
 }
 
 function inc_block_cnt(channel) {
@@ -99,24 +114,26 @@ function get_channel(channel) {
             "time": 0
         });
         $("#channel-label-container").append("<div class='channel-label' id='" + labelid + "'><br/>" + channel + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
+        $("#" + labelid).data("chid", channel);
     };
     return $("#" + channel);
 }
 
-function init_block(channel, block_data, block_time, block_len) {
+function init_block(channel, data, time, length) {
     var new_block_id = channel.attr("id") + "block" + channel.children().length;
     channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
     var block = $("#" + new_block_id);
     block.data({
-        "info": block_data,
-        "time": block_time
+        "info": data,
+        "time": time
     });
-    block.find("canvas").width(block_len * 100 - 2);
-    channel.data("time", channel.data("time") + block_time);
+    block.find("canvas").width(length * 100 - 2);
+    channel.data("time", channel.data("time") + time);
     return block;
 }
 
-function set_canvas(canvas) {
+function init_canvas(block) {
+    var canvas = block.find("canvas")[0];
     var dpr = window.devicePixelRatio || 1;
     var rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * dpr;
@@ -125,166 +142,182 @@ function set_canvas(canvas) {
     ctx.scale(dpr, dpr);
     canvas.width = rect.width;
     canvas.height = rect.height;
-    return ctx;
+    return {
+        width: canvas.width,
+        height: canvas.height,
+        ctx: ctx
+    };
 }
 
-function get_event(name) {
-    return;
-}
-
-function create_block(block_data, block_time, block_len, event_name) {
-    var event = get_event(event_name);
-    var channel = get_channel(block_data.channel);
-    inc_block_cnt(channel);
-    var block = init_block(channel, block_data, block_time, block_len);
-    var canvas = block.find("canvas")[0];
-    var ctx = set_canvas(canvas);
-    var width = canvas.width;
-    var height = canvas.height;
-    function plot(fn, range) {
-        var widthScale = (width / (range[1] - range[0]));
-        var heightScale = (height / (range[3] - range[2]));
-        ctx.beginPath();
-        for (var x = 0; x < width; x = x + 0.01) {
-            var xFnVal = (x / widthScale) - range[0]
-            var yGVal = height - (fn(xFnVal) - range[2]) * heightScale;
+function init_plot_func(block, canvas) {
+    function plot(func, range) {
+        var scaled_width = (canvas.width / (range[1] - range[0]));
+        var scaled_height = (canvas.height / (range[3] - range[2]));
+        canvas.ctx.beginPath();
+        for (var x = 0; x < canvas.width; x = x + 0.01) {
+            var scaled_x = (x / scaled_width) - range[0];
+            var scaled_y = func(scaled_x);
+            var y = canvas.height - (scaled_y - range[2]) * scaled_height;
             if (x === 0) {
-                ctx.moveTo(x, yGVal);
-                block.data("start", fn(xFnVal));
-            } else if (x === width - 1) {
-                ctx.lineTo(x, yGVal);
-                block.data("end", fn(xFnVal));
+                canvas.ctx.moveTo(x, y);
+                block.data("start", scaled_y);
+            } else if (x === canvas.width - 1) {
+                canvas.ctx.lineTo(x, y);
+                block.data("end", scaled_y);
             } else {
-                ctx.lineTo(x, yGVal);
+                canvas.ctx.lineTo(x, y);
             }
         }
-        ctx.strokeStyle = "limegreen";
-        ctx.lineWidth = 3;
-        ctx.stroke();
-    };
-    if (defined_events.includes(block_data.eventType)) {
-        plot(function (x) {
-            var res = 0;
-            var amp_sign, value_sign, height_sign, dist_center;
-            switch (block_data.eventType) {
-                case "sine":
-                    amp_sign = Math.sign(block_data.amplitude);
-                    x = x * readable_freq(block_data.frequency, block_time);
-                    res = amp_sign * Math.sin(2 * Math.PI * x);
-                    break;
-                case "saw":
-                    amp_sign = Math.sign(block_data.amplitude);
-                    x = x * readable_freq(block_data.frequency, block_time);
-                    res = amp_sign * 2 * (x - Math.floor(x)) - 1;
-                    break;
-                case "square":
-                    amp_sign = Math.sign(block_data.amplitude);
-                    x = x * readable_freq(block_data.frequency, block_time);
-                    res = amp_sign * 2 * (2 * Math.floor(x) - Math.floor(2 * x)) + 1;
-                    break;
-                case "triangle":
-                    amp_sign = Math.sign(block_data.amplitude);
-                    x = x * readable_freq(block_data.frequency, block_time);
-                    res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
-                    break;
-                case "constant":
-                    res = Math.sign(block_data.value);
-                    break;
-                case "function":
-                    break;
-                case "chirp":
-                    var start_freq = readable_freq(block_data.start_frequency, block_time);
-                    var end_freq = Math.max(block_data.end_frequency / start_freq, 30) * start_freq;
-                    var chirpiness;
-                    if (block_data.chirp_type === "exponential") {
-                        chirpiness = Math.pow(end_freq / start_freq, 1 / block_time);
-                            res = Math.sin(2 * Math.PI * start_freq * (Math.pow(chirpiness, x) - 1) / Math.log(chirpiness));
-                        } else if (block_data.chirp_type === "linear") {
-                            chirpiness = (end_freq - start_freq) / block_time;
-                            res = Math.sin(2 * Math.PI * (chirpiness / 2 * Math.pow(x, 2) + start_freq * x));
-                        }
-                    break;
-                case "ramp":
-                    value_sign = Math.sign(block_data.value);
-                    if (x > 0.2 * block_time) {
-                        res = (x < 0.8 * block_time) ? value_sign * (x - 0.2 * block_time) / (0.6 * block_time): value_sign;
-                    }
-                    break;
-                case "step":
-                    value_sign = Math.sign(block_data.value);
-                    if (x > 0.2 * block_time) {
-                        res = (x < 0.8 * block_time) ? value_sign * ((x - 0.2 * block_time) / (0.6 * block_time) - ((x - 0.2 * block_time) / (0.6 * block_time)) % (1 / block_data.steps)): value_sign;
-                    }
-                    break;
-                case "pulse":
-                    amp_sign = Math.sign(block_data.amplitude);
-                    var freq = readable_freq(block_data.frequency, block_time);
-                    var rising = block_data.rising * block_data.frequency / (block_time * freq);
-                    var width = block_data.width * block_data.frequency / (block_time * freq);
-                    var falling = block_data.falling * block_data.frequency / (block_time * freq);
-                    x = x % (1 / freq);
-                    if (x < rising) {
-                        res = amp_sign * x / rising;
-                    } else if (x < rising + width) {
-                        res = amp_sign;
-                    } else if (x < rising + width + falling) {
-                        res = amp_sign * (1 - (x - rising - width) / falling);
-                    }
-                    break;
-                case "points":
-                    var max_value = Math.max(...block_data.values.map(function(value){return Math.abs(value)}));
-                    var times = block_data.times.map(function(time){return time / block_time});
-                    var values = block_data.values.map(function(value){return value / max_value});
-                    var last_pnt_time = x <= Math.min(...times) ? 0: Math.max.apply(Math, times.filter(function(y){return y <= x}));
-                    var next_pnt_time = x >= Math.max(...times) ? 1: Math.min.apply(Math, times.filter(function(y){return y > x}));
-                    var last_pnt_value = x <= Math.min(...times) ? 0: values[times.indexOf(last_pnt_time)];
-                    var next_pnt_value = x >= Math.max(...times) ? 0: values[times.indexOf(next_pnt_time)];
-                    res = (next_pnt_value - last_pnt_value) / (next_pnt_time - last_pnt_time) * (x - last_pnt_time) + last_pnt_value;
-                    break;
-                case "exponential":
-                    value_sign = Math.sign(block_data.value);
-                    res = value_sign * Math.pow(Math.E, -block_data.decay * x * block_time);
-                    break;
-                case "log":
-                    res = Math.log1p(x * block_time) / Math.log1p(block_time);
-                    break;
-                case "Lorentzian":
-                    height_sign = Math.sign(block_data.height);
-                    var gamma = block_data.width / 2;
-                    dist_center = block_data.center / block_time;
-                    res = height_sign * Math.pow(gamma, 2) / (Math.pow(x - dist_center, 2) + Math.pow(gamma, 2));
-                    break;
-                case "Gaussian":
-                    height_sign = Math.sign(block_data.height);
-                    dist_center = block_data.center / block_time;
-                    res = height_sign * Math.pow(Math.E, -1/2 * Math.pow((x - dist_center) / block_data.std, 2));
-                    break;
-                case "step_triangle":
-                    amp_sign = Math.sign(block_data.amplitude);
-                    x = x * readable_freq(block_data.frequency, block_time);
-                    res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
-                    res = res - res % (2 / block_data.steps);
-                    break;
-                default:
-                    res = 0;
-            }
-            switch (block_data.rectified) {
-                case "half":
-                    res = (res < 0) ? 0: res;
-                    break;
-                case "full":
-                    res = Math.abs(res);
-                    break;
-                default:
-                    break;
-            }
-            return res;
-        }, [0, 1, -1.2, 1.2]);
+        canvas.ctx.strokeStyle = "limegreen";
+        canvas.ctx.lineWidth = 3;
+        canvas.ctx.stroke();
+    }
+    return plot;
+}
+
+function init_func (data, time) {
+    function func(x) {
+        var res = 0;
+        var amp_sign, value_sign, height_sign, dist_center;
+        switch (data.eventType) {
+            case "sine":
+                amp_sign = Math.sign(data.amplitude);
+                x = x * readable_freq(data.frequency, time);
+                res = amp_sign * Math.sin(2 * Math.PI * x);
+                break;
+            case "saw":
+                amp_sign = Math.sign(data.amplitude);
+                x = x * readable_freq(data.frequency, time);
+                res = amp_sign * 2 * (x - Math.floor(x)) - 1;
+                break;
+            case "square":
+                amp_sign = Math.sign(data.amplitude);
+                x = x * readable_freq(data.frequency, time);
+                res = amp_sign * 2 * (2 * Math.floor(x) - Math.floor(2 * x)) + 1;
+                break;
+            case "triangle":
+                amp_sign = Math.sign(data.amplitude);
+                x = x * readable_freq(data.frequency, time);
+                res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
+                break;
+            case "constant":
+                res = Math.sign(data.value);
+                break;
+            case "chirp":
+                var start_freq = readable_freq(data.start_frequency, time);
+                var end_freq = Math.max(data.end_frequency / start_freq, 30) * start_freq;
+                var chirpiness;
+                if (data.chirp_type === "exponential") {
+                    chirpiness = Math.pow(end_freq / start_freq, 1 / time);
+                    res = Math.sin(2 * Math.PI * start_freq * (Math.pow(chirpiness, x) - 1) / Math.log(chirpiness));
+                } else if (data.chirp_type === "linear") {
+                    chirpiness = (end_freq - start_freq) / time;
+                    res = Math.sin(2 * Math.PI * (chirpiness / 2 * Math.pow(x, 2) + start_freq * x));
+                }
+                break;
+            case "ramp":
+                value_sign = Math.sign(data.value);
+                if (x > 0.2 * time) {
+                    res = (x < 0.8 * time) ? value_sign * (x - 0.2 * time) / (0.6 * time) : value_sign;
+                }
+                break;
+            case "step":
+                value_sign = Math.sign(data.value);
+                if (x > 0.2 * time) {
+                    res = (x < 0.8 * time) ? value_sign * ((x - 0.2 * time) / (0.6 * time) - ((x - 0.2 * time) / (0.6 * time)) % (1 / data.steps)) : value_sign;
+                }
+                break;
+            case "pulse":
+                amp_sign = Math.sign(data.amplitude);
+                var freq = readable_freq(data.frequency, time);
+                var rising = data.rising * data.frequency / (time * freq);
+                var width = data.width * data.frequency / (time * freq);
+                var falling = data.falling * data.frequency / (time * freq);
+                x = x % (1 / freq);
+                if (x < rising) {
+                    res = amp_sign * x / rising;
+                } else if (x < rising + width) {
+                    res = amp_sign;
+                } else if (x < rising + width + falling) {
+                    res = amp_sign * (1 - (x - rising - width) / falling);
+                }
+                break;
+            case "points":
+                var max_value = Math.max(...data.values.map(function (value) {
+                    return Math.abs(value)
+                }));
+                var times = data.times.map(function (t) {
+                    return t / time
+                });
+                var values = data.values.map(function (value) {
+                    return value / max_value
+                });
+                var last_pnt_time = x <= Math.min(...times) ? 0 : Math.max.apply(Math, times.filter(function (y) {
+                    return y <= x
+                }));
+                var next_pnt_time = x >= Math.max(...times) ? 1 : Math.min.apply(Math, times.filter(function (y) {
+                    return y > x
+                }));
+                var last_pnt_value = x <= Math.min(...times) ? 0 : values[times.indexOf(last_pnt_time)];
+                var next_pnt_value = x >= Math.max(...times) ? 0 : values[times.indexOf(next_pnt_time)];
+                res = (next_pnt_value - last_pnt_value) / (next_pnt_time - last_pnt_time) * (x - last_pnt_time) + last_pnt_value;
+                break;
+            case "exponential":
+                value_sign = Math.sign(data.value);
+                res = value_sign * Math.pow(Math.E, -data.decay * x * time);
+                break;
+            case "log":
+                res = Math.log1p(x * time) / Math.log1p(time);
+                break;
+            case "Lorentzian":
+                height_sign = Math.sign(data.height);
+                var gamma = data.width / 2;
+                dist_center = data.center / time;
+                res = height_sign * Math.pow(gamma, 2) / (Math.pow(x - dist_center, 2) + Math.pow(gamma, 2));
+                break;
+            case "Gaussian":
+                height_sign = Math.sign(data.height);
+                dist_center = data.center / time;
+                res = height_sign * Math.pow(Math.E, -1 / 2 * Math.pow((x - dist_center) / data.std, 2));
+                break;
+            case "step_triangle":
+                amp_sign = Math.sign(data.amplitude);
+                x = x * readable_freq(data.frequency, time);
+                res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
+                res = res - res % (2 / data.steps);
+                break;
+            default:
+                res = 0;
+        }
+        switch (data.rectified) {
+            case "half":
+                res = (res < 0) ? 0 : res;
+                break;
+            case "full":
+                res = Math.abs(res);
+                break;
+            default:
+                break;
+        }
+        return res;
+    }
+    return func;
+}
+
+function create_block(data, time, length) {
+    var channel = get_channel(data.channel);
+    inc_block_cnt(channel);
+    var block = init_block(channel, data, time, length);
+    var canvas = init_canvas(block);
+    if (defined_events.includes(data.eventType)) {
+        var plot = init_plot_func(block, canvas);
+        var func = init_func(data, time);
+        plot(func, [0, 1, -1.2, 1.2]);
     } else {
-        ctx.font="20px Arial";
-        ctx.fillStyle = "limegreen";
-        ctx.textAlign = "center";
-        ctx.fillText(block_data.eventType, width / 2, height / 2);
+        canvas.ctx.font="20px Arial";
+        canvas.ctx.fillStyle = "limegreen";
+        canvas.ctx.textAlign = "center";
+        canvas.ctx.fillText(data.eventType, canvas.width / 2, canvas.height / 2);
     }
 }
 
@@ -302,3 +335,8 @@ $("#remove-json").on("click", function () {
 function refresh_json_options() {
     $("#json").selectmenu("refresh");
 }
+
+$(".channel-label").on("dblclick", function () {
+    var channel = $("#" + $(this).data("chid"));
+    channel.addClass("ui-selected");
+});
