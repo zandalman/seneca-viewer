@@ -137,7 +137,11 @@ td:nth-of-type(2) {
 .event-title {
     text-align: center;
     height: 3em;
+    margin: 0;
     border-right: 2px solid black;
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
 }
 #signals {
     max-height: 270px;

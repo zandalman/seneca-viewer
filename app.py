@@ -39,38 +39,36 @@ def to_float(val):
 
 class Event(object):
 
-    def __init__(self, name, data):
+    def __init__(self, name, data, channels):
         self.name = name
         self.subevents = [{key: to_float(value) for key, value in subevent.items()} for subevent in data["subEvents"]]
         self.blocks = {}
         self.length = 0
+        self.channels = channels
 
     def calc_block_lengths(self):
-        channels = list(dict.fromkeys([subevent["name"] for subevent in self.subevents]))
-        indices = {ch: [] for ch in channels}
-        prev_events = {ch: dict(eventType=None) for ch in channels}
+        indices = {ch: [] for ch in self.channels}
+        prev_events = {ch: dict(eventType=None) for ch in self.channels}
         index = -1
         for subevent in self.subevents:
             channel = subevent["name"]
             # use parameters from last subevent on channel if same event type
-            self.subevents = [subev if subev["eventType"] == prev_events[channel]["eventType"] else dict(prev_events[channel], **subevent) for subev in self.subevents]
+            if subevent["eventType"] == prev_events[channel]["eventType"]:
+                self.subevents = [subev if subev != subevent else dict(prev_events[channel], **subevent) for subev in self.subevents]
             index += (subevent["parallel"] == "false")
             indices[channel] += [index]
             prev_events[channel] = subevent
-        for channel in channels:
-            if indices[channel][0] > 0:
+        for channel in self.channels:
+            if not indices[channel] or indices[channel][0] > 0:
                 indices[channel] = [0] + indices[channel]
                 self.subevents = [self.subevents[0], dict(name=channel, eventType="none", parallel="true")] + self.subevents[1:]
-        self.blocks = {ch: [j - i for i, j in zip(ch_blocks, ch_blocks[1:] + [index + 1])] for ch, ch_blocks in indices.items()}
+        self.blocks = {ch: [j - i for i, j in zip(ch_indices, ch_indices[1:] + [index + 1])] for ch, ch_indices in indices.items()}
         self.length = index + 1
 
     def create_blocks(self, obj_response):
         for subevent in self.subevents:
             length = self.blocks[subevent["name"]].pop(0)
-            obj_response.call("create_block", [subevent, length])
-
-    def init(self, obj_response):
-        obj_response.html_append("#event-names", "<div class='event-title' style='width: %dpx'><br>%s</div>" % (100 * self.length - 2, self.name))
+            obj_response.call("create_block", [subevent, length, self.name])
 
 
 class SijaxUploadHandlers(object):
@@ -101,15 +99,20 @@ class SijaxHandlers(object):
         filename = get_json_options()[selected_json_id]
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
+class SijaxCometHandlers(object):
+
     def show_signals(self, obj_response, selected_json_id):
         filename = get_json_options()[selected_json_id]
         with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
             json_obj = json.load(f)
+        channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for subevent in event_data["subEvents"]]))
         for name, data in json_obj.items():
-            event = Event(name, data)
+            event = Event(name, data, channels)
             event.calc_block_lengths()
-            event.init(obj_response)
+            obj_response.call("add_event", [event.name, event.length])
+            yield obj_response
             event.create_blocks(obj_response)
+            yield obj_response
 
 
 def create_app():
@@ -139,6 +142,7 @@ def create_app():
         form_init_js = g.sijax.register_upload_callback("upload-json", SijaxUploadHandlers().upload_json)  # Register Sijax upload handlers
         if g.sijax.is_sijax_request:
             g.sijax.register_object(SijaxHandlers())
+            g.sijax.register_comet_object(SijaxCometHandlers())
             return g.sijax.process_request()
         return render_template("main.html", form_init_js=form_init_js, json_options=get_json_options())  # Render template
     return app

@@ -19,20 +19,25 @@
         <form id="upload-json" name="upload-json" method="post" enctype="multipart/form-data">
             <input type="file" name="file" id="file-upload" style="display: none;" onchange="form.submit();"/>
         </form>
+        <button id="remove-json">Remove JSON</button>
+        <label for="json">JSON select: </label>
         <select id="json">
             <option value="none">None</option>
             {%- for id, filename in json_options.items() %}
                 <option value="{{ id }}">{{ filename }}</option>
             {%- endfor %}
         </select>
-        <button id="remove-json">Remove JSON</button>
         <p>Selected channels: <span id="selected-channels">None</span></p>
         <label for="ch-filter">Channel filter: </label>
         <input id="ch-filter">
+        <label for="ev-filter">Event select: </label>
+        <select id="ev-select">
+            <option value="none">None</option>
+        </select>
     </div>
     <div id="channels">
         <div class="row">
-            <div class="column left" style="width: 10%;">
+            <div class="column left" style="width: 10%; height: 3em;">
                 <p>Events</p>
             </div>
             <div class="column" style="width: 90%;" id="event-names"></div>

@@ -13,8 +13,7 @@ var defined_events = [
     "chirp",
     "Gaussian",
     "Lorentzian",
-    "step_triangle",
-    "none"
+    "step_triangle"
 ];
 
 $(document).ready(function () {
@@ -26,9 +25,39 @@ $(document).ready(function () {
             $(".channel-label-container").children().remove();
             if (ui.item.value === "none") {
                 $("#remove-json").button("disable");
+                $("#ev-select").empty();
+                $("#ev-select").append("<option value='none'>None</option>");
+                $("#ev-select").selectmenu("refresh");
+                $("#event-names").empty();
             } else {
                 $("#remove-json").button("enable");
-                Sijax.request("show_signals", [ui.item.value]);
+                sjxComet.request("show_signals", [ui.item.value]);
+            }
+        }
+    });
+    $("#ev-select").selectmenu({
+        change: function (event, ui) {
+            $(".channel").show();
+            $(".channel-label").show();
+            $(".block").show();
+            $(".event-title").show();
+            if (ui.item.value !== "none") {
+                $(".event-title").each(function () {
+                    if ($(this).text() !== ui.item.value) {
+                        $(this).hide();
+                    }
+                });
+                $(".block").each(function () {
+                    if ($(this).data("event") !== ui.item.value) {
+                        $(this).hide();
+                    }
+                });
+                $(".channel").each(function () {
+                    if ($(this).find(".block:visible").not(".empty").length === 0) {
+                        $(this).hide();
+                        $("#" + $(this).data("labelid")).hide();
+                    }
+                });
             }
         }
     });
@@ -77,7 +106,7 @@ window.addEventListener("keydown", function (event) {
 });
 
 $(document).on("dblclick", ".block", function () {
-    if ($(this).data("info").eventType !== "none") {
+    if (!$(this).hasClass("empty")) {
         $(".block").removeClass("selected");
         $(this).addClass("selected");
         var data = $(this).data("info");
@@ -113,14 +142,18 @@ function init_channel(channel_name) {
     $("#" + channel_name).data("labelid", labelid);
     $("#channel-label-container").append("<div class='channel-label' id='" + labelid + "'><br/>" + channel_name + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
     $("#" + labelid).data("chid", channel_name);
-    return $("#" + channel_name);
+    var channel = $("#" + channel_name);
+    return channel;
 }
 
-function init_block(channel, data, length) {
+function init_block(channel, data, length, event_name) {
     var new_block_id = channel.attr("id") + "block" + channel.children().length;
     channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
     var block = $("#" + new_block_id);
-    block.data("info", data);
+    block.data({
+        "info": data,
+        "event": event_name
+    });
     block.find("canvas").width(length * 100);
     return block;
 }
@@ -300,7 +333,7 @@ function init_func (data) {
     return func;
 }
 
-function create_block(data, length) {
+function create_block(data, length, event_name) {
     var channel_ids = $("#channel-container").children().map(function() {
         return this.id;
     }).get();
@@ -311,12 +344,14 @@ function create_block(data, length) {
         channel = init_channel(data.name);
     }
     inc_block_cnt(channel);
-    var block = init_block(channel, data, length);
+    var block = init_block(channel, data, length, event_name);
     var canvas = init_canvas(block);
     if (defined_events.includes(data.eventType)) {
         var plot = init_plot_func(block, canvas);
         var func = init_func(data);
         plot(func, [0, 1, -1.2, 1.2]);
+    } else if (data.eventType === "none") {
+        block.addClass("empty");
     } else {
         canvas.ctx.font="20px Arial";
         canvas.ctx.fillStyle = "limegreen";
@@ -331,6 +366,10 @@ $("#remove-json").on("click", function () {
     refresh_json_options();
     if ($("#json").children("option:selected").val() === "none") {
         $("#remove-json").button("disable");
+        $("#ev-select").empty();
+        $("#ev-select").append("<option value='none'>None</option>");
+        $("#ev-select").selectmenu("refresh");
+        $("#event-names").empty();
     }
     $("#channel-container, #channel-label-container").empty();
     Sijax.request("remove_json", [selected_json_id]);
@@ -359,3 +398,9 @@ $("#event-names").on("scroll", function () {
 $("#channel-container").on("scroll", function () {
     $("#event-names").scrollLeft($(this).scrollLeft());
 });
+
+function add_event(name, length) {
+    $("#event-names").append("<div class='event-title' style='width: " + (100 * length - 2) + "px'><br>" + name + "</div>");
+    $("#ev-select").append("<option val='" + name + "'>" + name + "</option>");
+    $("#ev-select").selectmenu("refresh");
+}
