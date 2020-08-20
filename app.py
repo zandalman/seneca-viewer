@@ -37,6 +37,9 @@ def to_float(val):
             return val
 
 
+
+
+
 class Event(object):
 
     def __init__(self, name, data):
@@ -53,6 +56,12 @@ class Event(object):
         for subevent in self.subevents:
             length = self.blocks[subevent["channel"]].pop(0)
             obj_response.call("create_block", [subevent, subevent["time"], length])
+
+    def init(self, obj_response):
+        obj_response.html_append("#event-names", "<div class='event-title' style='width: %dpx'><br>%s</div>" % (100 * len(self.all_times), self.name))
+        for time in self.all_times:
+            #obj_response.html_append("#timeline", "<div class=''>%.3g</div>" % )
+            pass
 
 
 class SijaxUploadHandlers(object):
@@ -85,10 +94,11 @@ class SijaxHandlers(object):
 
     def show_signals(self, obj_response, selected_json_id):
         filename = get_json_options()[selected_json_id]
-        with open("/Users/zacharyandalman/example_subevents.json", "r") as f:
+        with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
             json_obj = json.load(f)
         for name, data in json_obj.items():
             event = Event(name, data)
+            event.init(obj_response)
             event.create_blocks(obj_response)
 
 
