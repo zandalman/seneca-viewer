@@ -52,8 +52,8 @@ class Event(object):
         index = -1
         for subevent in self.subevents:
             channel = subevent["name"]
-            if subevent["eventType"] == prev_events[channel]["eventType"]:
-                self.subevents = [subev if subev != subevent else dict(prev_events[channel], **subevent) for subev in self.subevents]
+            # use parameters from last subevent on channel if same event type
+            self.subevents = [subev if subev["eventType"] == prev_events[channel]["eventType"] else dict(prev_events[channel], **subevent) for subev in self.subevents]
             index += (subevent["parallel"] == "false")
             indices[channel] += [index]
             prev_events[channel] = subevent
