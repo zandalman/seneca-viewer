@@ -37,31 +37,40 @@ def to_float(val):
             return val
 
 
-
-
-
 class Event(object):
 
     def __init__(self, name, data):
         self.name = name
         self.subevents = [{key: to_float(value) for key, value in subevent.items()} for subevent in data["subEvents"]]
-        channels = list(dict.fromkeys([subevent["channel"] for subevent in self.subevents]))
-        times = {ch: [subevent["time"] for subevent in self.subevents if subevent["channel"] == ch] for ch in channels}
-        self.times = {ch: [sum(ch_times[:(i + 1)]) for i in range(len(ch_times))] for ch, ch_times in times.items()}
-        self.all_times = list(dict.fromkeys([time for times in self.times.values() for time in times]))
-        blocks = {ch: [0] + [self.all_times.index(time) + 1 for time in times] for ch, times in self.times.items()}
-        self.blocks = {ch: [j - i for i, j in zip(ch_blocks[:-1], ch_blocks[1:])] for ch, ch_blocks in blocks.items()}
+        self.blocks = {}
+        self.length = 0
+
+    def calc_block_lengths(self):
+        channels = list(dict.fromkeys([subevent["name"] for subevent in self.subevents]))
+        indices = {ch: [] for ch in channels}
+        prev_events = {ch: dict(eventType=None) for ch in channels}
+        index = -1
+        for subevent in self.subevents:
+            channel = subevent["name"]
+            if subevent["eventType"] == prev_events[channel]["eventType"]:
+                self.subevents = [subev if subev != subevent else dict(prev_events[channel], **subevent) for subev in self.subevents]
+            index += (subevent["parallel"] == "false")
+            indices[channel] += [index]
+            prev_events[channel] = subevent
+        for channel in channels:
+            if indices[channel][0] > 0:
+                indices[channel] = [0] + indices[channel]
+                self.subevents = [self.subevents[0], dict(name=channel, eventType="none", parallel="true")] + self.subevents[1:]
+        self.blocks = {ch: [j - i for i, j in zip(ch_blocks, ch_blocks[1:] + [index + 1])] for ch, ch_blocks in indices.items()}
+        self.length = index + 1
 
     def create_blocks(self, obj_response):
         for subevent in self.subevents:
-            length = self.blocks[subevent["channel"]].pop(0)
-            obj_response.call("create_block", [subevent, subevent["time"], length])
+            length = self.blocks[subevent["name"]].pop(0)
+            obj_response.call("create_block", [subevent, length])
 
     def init(self, obj_response):
-        obj_response.html_append("#event-names", "<div class='event-title' style='width: %dpx'><br>%s</div>" % (100 * len(self.all_times), self.name))
-        for time in self.all_times:
-            #obj_response.html_append("#timeline", "<div class=''>%.3g</div>" % )
-            pass
+        obj_response.html_append("#event-names", "<div class='event-title' style='width: %dpx'><br>%s</div>" % (100 * self.length - 2, self.name))
 
 
 class SijaxUploadHandlers(object):
@@ -98,6 +107,7 @@ class SijaxHandlers(object):
             json_obj = json.load(f)
         for name, data in json_obj.items():
             event = Event(name, data)
+            event.calc_block_lengths()
             event.init(obj_response)
             event.create_blocks(obj_response)
 
