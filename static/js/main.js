@@ -18,19 +18,20 @@ var defined_events = [
 
 $(document).ready(function () {
     $("button").button();
-    $("#remove-json").button("disable");
+    $("#remove-json, #view-code").button("disable");
     $("#json").selectmenu({
         change: function (event, ui) {
             $("#channel-container, #channel-label-container").empty();
             $(".channel-label-container").children().remove();
+            $("#json-code").empty();
             if (ui.item.value === "none") {
-                $("#remove-json").button("disable");
+                $("#remove-json, #view-code").button("disable");
                 $("#ev-select").empty();
                 $("#ev-select").append("<option value='none'>None</option>");
                 $("#ev-select").selectmenu("refresh");
                 $("#event-names").empty();
             } else {
-                $("#remove-json").button("enable");
+                $("#remove-json, #view-code").button("enable");
                 sjxComet.request("show_signals", [ui.item.value]);
             }
         }
@@ -83,6 +84,11 @@ $(document).ready(function () {
             $(".block").removeClass("selected");
         }
     });
+    $("#code-dialog").dialog({
+        autoOpen: false,
+        width: 500,
+        height: 500
+    });
     $("#channel-label-container").sortable({
         containment: "#channel-label-container",
         stop: function (event, ui) {
@@ -102,6 +108,9 @@ window.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         $(".ui-selected").removeClass("ui-selected");
         $("#selected-channels").text("None");
+        if ($("#fullscreen").text() === "fullscreen_exit") {
+            $("#fullscreen").trigger("click");
+        }
     }
 });
 
@@ -127,7 +136,7 @@ $(document).on("dblclick", ".block", function () {
 });
 
 function readable_freq(freq, length) {
-    return length * (freq <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq) + 1));
+    return length * ((freq <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq) + 1)));
 }
 
 function inc_block_cnt(channel) {
@@ -365,7 +374,7 @@ $("#remove-json").on("click", function () {
     $("#json").children("option:selected").remove();
     refresh_json_options();
     if ($("#json").children("option:selected").val() === "none") {
-        $("#remove-json").button("disable");
+        $("#remove-json, #view-code").button("disable");
         $("#ev-select").empty();
         $("#ev-select").append("<option value='none'>None</option>");
         $("#ev-select").selectmenu("refresh");
@@ -404,3 +413,50 @@ function add_event(name, length) {
     $("#ev-select").append("<option val='" + name + "'>" + name + "</option>");
     $("#ev-select").selectmenu("refresh");
 }
+
+$("#fullscreen").on("click", function () {
+    if (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+    ) {
+        $("#signals").css("max-height", "270px");
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+            $(this).text("fullscreen");
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+            $(this).text("fullscreen");
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+            $(this).text("fullscreen");
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+            $(this).text("fullscreen");
+        }
+    } else {
+        $("#signals").css("max-height", "none");
+        element = $("#channels").get(0);
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+            $(this).text("fullscreen_exit");
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+            $(this).text("fullscreen_exit");
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            $(this).text("fullscreen_exit");
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+            $(this).text("fullscreen_exit");
+        }
+    }
+});
+
+$("#view-code").on("click", function () {
+    $("#code-dialog").dialog({
+        "title": $("#json").children("option:selected").text()
+    });
+    $("#code-dialog").dialog("open");
+});

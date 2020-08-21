@@ -104,6 +104,7 @@ select, button, form {
     margin-top: 20px;
     border: 2px solid black;
     background: lightgrey;
+    position: relative;
 }
 .discont {
     position: absolute;
@@ -149,9 +150,29 @@ td:nth-of-type(2) {
 }
 #event-names {
     overflow-x: scroll;
+    white-space: nowrap;
+    height: 3em;
+    display: inline-block;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
 #event-names::-webkit-scrollbar {
     display: none;
+}
+#fullscreen {
+    position: absolute;
+    z-index: 10;
+}
+code {
+    font-family: 'Source Code Pro', monospace;
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-left: 3px solid #f36d33;
+    color: #666;
+    page-break-inside: avoid;
+    margin-bottom: 1.6em;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
 }

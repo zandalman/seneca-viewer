@@ -45,6 +45,7 @@ class Event(object):
         self.blocks = {}
         self.length = 0
         self.channels = channels
+        self.event_channels = list(dict.fromkeys([subevent["name"] for subevent in self.subevents]))
 
     def calc_block_lengths(self):
         indices = {ch: [] for ch in self.channels}
@@ -105,6 +106,10 @@ class SijaxCometHandlers(object):
         filename = get_json_options()[selected_json_id]
         with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
             json_obj = json.load(f)
+            f.seek(0, 0)
+            for count, line in enumerate(f.readlines()):
+                obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s<br>" % (count, 40 * line.count("\t"), line.strip()))
+        yield obj_response
         channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for subevent in event_data["subEvents"]]))
         for name, data in json_obj.items():
             event = Event(name, data, channels)
