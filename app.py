@@ -1,4 +1,5 @@
 from flask import Flask, render_template, g, jsonify, request
+from collections import OrderedDict
 import pathlib, os, json, datetime
 from datetime import datetime
 import flask_sijax
@@ -57,7 +58,7 @@ def spreadsheet():
     for event in event_config["type_parameters"]:
         for parameter in event_config["type_parameters"][event]:
             event_config["all_parameters"].append(parameter)
-    event_config["all_parameters"] = list(set(event_config["all_parameters"]))
+    event_config["all_parameters"] = list(OrderedDict.fromkeys(event_config["all_parameters"]))
     # Column generation requires that eventType be the first parameter
     event_config["all_parameters"].remove("eventType")
     event_config["all_parameters"].insert(0, "eventType")

@@ -70,15 +70,6 @@
          "ch1"
       ]
    },
-   "function":{
-      "eventType":"function",
-      "name":"function_example",
-      "delay":"0",
-      "latex":"\\frac{\\sin(x)^2}{2}",
-      "channels":[
-         "ch1"
-      ]
-   },
    "points":{
       "eventType":"points",
       "name":"points_example",
@@ -89,7 +80,7 @@
          "3",
          "4"
       ],
-      "values":[
+      "value(s)":[
          "0",
          "1",
          "0",
@@ -100,5 +91,15 @@
          "ch1",
          "ch2"
       ]
+   },
+   "function":{
+      "eventType":"function",
+      "name":"function_example",
+      "delay":"0",
+      "latex":"\\frac{\\sin(x)^2}{2}",
+      "channels":[
+         "ch1"
+      ]
    }
+   
 }

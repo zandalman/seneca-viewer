@@ -200,6 +200,7 @@ $(document).ready(function () {
 			},
 			"scrollCollapse": true,
 			serverSide: false,
+			colReorder: true,
 			"paging": false,
 		});
 		newDataTable.buttons().containers().addClass('flex');
@@ -228,13 +229,9 @@ $(document).ready(function () {
 
 		//buttons for every context
 		tableButtons.append('<button class="save-selected">save selected</button></div>');
-		tableButtons.append('<button class="clear-selected">clear selected</button></div>');
-		tableButtons.append('<button class="delete-selected">delete selected</button></div>');
 		tableButtons.append('<button class="fill-selected">fill selected</button></div>');
 		tableButtons.append('<button class="fill-options"><select class="fill-selector"><option disabled selected>fill options</option></select></button>');
-		tableButtons.append('<button class="show-saved">show saved</button>');
 		tableButtons.append('<button class="add-rows">add rows</button>');
-		tableButtons.append('<button class="update">update</button>');
 		tableButtons.appendTo(newTableRow);
 
 		newTableRow.append('<div class="row-subset"><table class="display" width="100%"></table></div>');
@@ -464,10 +461,14 @@ $(document).ready(function () {
 		allTabs = !allTabs;
 		if (allTabs == true) {
 			$('.table-row').show();
+			$('.table-row').addClass("active");
 			$('.table-row').find('table').DataTable().columns.adjust().draw();
 		} else {
 			$('.table-row').hide();
-			$('.table-row').filter('.active').show();
+			$('.table-row').removeClass("active");
+			$('.table-row').eq(0).addClass("active");
+			$('.table-row').eq(0).show();
+			$('.table-row').filter('.active').find('table').DataTable().columns.adjust().draw();
 
 		}
 	});
@@ -593,47 +594,57 @@ $(document).ready(function () {
 
 
 	$(document).on('click', '.fill-selected', function (e) {
-		var parentTable = $(this).closest('.table-row').find('table').DataTable();
-		parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-			var rowID = $(".fill-selector").val();
-			this.data(parentTable.row($("#" + rowID)).data()).draw();
-		});
-		$(parentTable.rows('.selected').nodes()).addClass('updated');
-		$(parentTable.rows('.selected').nodes()).removeClass('selected');
+	    var activeTables = $('.table-row').filter('.active').has('.selected');
+	    $.each(activeTables, function (index, tableRow) {
+	        var parentTableRow = $(this);
+            var parentTable = $(this).find('table').DataTable();
+            parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+                var rowID = parentTableRow.find($(".fill-selector")).val();
+                this.data(parentTable.row($("#" + rowID)).data()).draw();
+            });
+            $(parentTable.rows('.selected').nodes()).addClass('updated');
+            $(parentTable.rows('.selected').nodes()).removeClass('selected');
+        });
 	});
 
 	$(document).on('click', '.save-selected', function (e) {
-		var parentTable = $(this).closest('.table-row').find('table').DataTable();
-		var $cell = $(this);
-		parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-			$(this.node()).addClass('saved');
-			$(this.node()).removeClass('selected');
-			var rowID = $(this.node()).attr('id');
-			if (!$("option[value=" + rowID + "]").length) {
-				var $newFillOption = $("<option></option>");
-				$newFillOption.val(rowID);
-				$newFillOption.html(this.data().name);
-				$newFillOption.appendTo($cell.closest('.table-row').find('select'));
-			}
+	    var activeTables = $('.table-row').filter('.active').has('.selected');
+	    $.each(activeTables, function (index, tableRow) {
+	        var parentTable = $(this).closest('.table-row').find('table').DataTable();
+            var $cell = $(this);
+            parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+                $(this.node()).addClass('saved');
+                $(this.node()).removeClass('selected');
+                var rowID = $(this.node()).attr('id');
+                if (!$("option[value=" + rowID + "]").length) {
+                    var $newFillOption = $("<option></option>");
+                    $newFillOption.val(rowID);
+                    $newFillOption.html(this.data().name);
+                    $newFillOption.appendTo($cell.closest('.table-row').find('select'));
+                }
 
-		});
+            });
+         })
 	});
 
 	var showingSaved = false;
 	$(document).on('click', '.show-saved', function (e) {
-		var parentTable = $(this).closest('.table-row').find('table').DataTable();
-		if (showingSaved == false) {
-			$(".saved").addClass('selected');
-			$.fn.dataTable.ext.search.push(
-				function (settings, data, dataIndex) {
-					return $(parentTable.row(dataIndex).node()).hasClass('saved');
-				}
-			);
-		} else if (showingSaved == true) {
-			$.fn.dataTable.ext.search.pop();
-		}
-		showingSaved = !showingSaved;
-		parentTable.draw();
+	    var activeTables = $('.table-row').filter('.active');
+            $.each(activeTables, function (index, tableRow) {
+            var parentTable = $(this).closest('.table-row').find('table').DataTable();
+            if (showingSaved == false) {
+                $(".saved").addClass('selected');
+                $.fn.dataTable.ext.search.push(
+                    function (settings, data, dataIndex) {
+                        return $(parentTable.row(dataIndex).node()).hasClass('saved');
+                    }
+                );
+            } else if (showingSaved == true) {
+                $.fn.dataTable.ext.search.pop();
+            }
+            showingSaved = !showingSaved;
+            parentTable.draw();
+            })
 	});
 
 	$(document).on('click', '.clear-selected', function (e) {
@@ -641,16 +652,20 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '.delete-selected', function (e) {
-		var parentTable = $(this).closest('.table-row').find('table').DataTable();
-		parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-			var rowID = $(this.node()).attr('id');
-			if ($(this.node()).hasClass('saved')) {
-				$("option[value=" + rowID + "]").remove();
-			}
-			$('[rowID=' + rowID + ']').closest('table').DataTable().row($('[rowID=' + rowID + ']')).remove().draw();
-		});
-		parentTable.rows('.selected').remove().draw();
-		parentTable.draw();
+	    var activeTables = $('.table-row').filter('.active').has('.selected');
+	    $.each(activeTables, function (index, tableRow) {
+	        var parentTable = $(this).find('table').DataTable();
+            parentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+                var rowID = $(this.node()).attr('id');
+                if ($(this.node()).hasClass('saved')) {
+                    $("option[value=" + rowID + "]").remove();
+                }
+                $('[rowID=' + rowID + ']').closest('table').DataTable().row($('[rowID=' + rowID + ']')).remove().draw();
+            });
+            parentTable.rows('.selected').remove().draw();
+            parentTable.draw();
+	    });
+
 	});
 
 	$(document).on('click', '.config', function (e) {
@@ -659,11 +674,13 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '.update', function (e) {
-		//locate the table corresponding to the update button
-		var parentTable = $(this).closest('.table-row').find('table').DataTable();
-		var activeTable = $('.sort-box').filter('.active').find('table').DataTable();
+		var activeTables = $('.table-row').filter('.active').has('.updated');
+		var eventTable = $('.sort-box').filter('.active').find('table').DataTable();
 		//transfer the updated rows' data into sorter table
-		parentTable.rows('.updated').every(function (rowIdx, tableLoop, rowLoop) {
+        $.each(activeTables, function (index, tableRow) {
+            console.log(index);
+            parentTable = $(this).find('table').DataTable();
+            parentTable.rows('.updated').every(function (rowIdx, tableLoop, rowLoop) {
 			var tableType = parentTable.table().node().id;
 			if (parentTable.cell(rowIdx, "name:name").data() != '') {
 				//criteria for getting into the sorter is having a name
@@ -680,9 +697,9 @@ $(document).ready(function () {
 				//if there is no sorter element corresponding to the row, make one
 				if (!$('[rowID=' + rowID + ']').length) {
 					$(this.node()).addClass('logged');
-					var newSortRow = activeTable.row.add(this.data());
-					activeTable.cell(newSortRow.node(), 2).data(tableID).draw();
-					activeTable.cell(newSortRow.node(), 0).data(rowID).draw();
+					var newSortRow = eventTable.row.add(this.data());
+					eventTable.cell(newSortRow.node(), 2).data(tableID).draw();
+					eventTable.cell(newSortRow.node(), 0).data(rowID).draw();
 					$(newSortRow.node()).attr('rowID', rowID);
 					newSortRow.draw();
 
@@ -697,8 +714,9 @@ $(document).ready(function () {
 
 				}
 			}
-		});
-		parentTable.draw();
+            });
+            parentTable.draw();
+        });
 	});
 
 	$(document).on('change', "#upload-json", function (event) {

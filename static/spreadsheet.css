@@ -342,13 +342,31 @@ ul{
 }
 
 
+.second-tables{
+    height: 100%;
+    overflow: auto;
+}
+.second-tables table{
+    margin-bottom: 10px;
+}
+
+.second-tables td {
+    border: 1px solid #ddd;
+    width: 50px;
+    -webkit-user-modify: read-only;
+    user-focus: none;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: left;
+    text-align: right;
+}
 
 .table-box{
     min-width: 50%;
     position: relative;
-    max-height: 90%;
+    height: 90%;
     margin-top: 0px;
-    overflow-x: auto;
     overflow-y: none;
     margin-right: 0px;
     margin-left: 0px;
@@ -453,26 +471,6 @@ table.dataTable thead th {
     font-weight: normal;
     width: 100px;
 };
-
-
-.second-tables{
-    background-color: black;
-    max-height: 100%;
-    overflow: auto;
-}
-.second-tables table{
-    margin-bottom: 10px;
-}
-
-.second-tables td {
-    border: 1px solid #ddd;
-    width: 50px;
-    -webkit-user-modify: read-only;
-    user-focus: none;
-}
-
-.second-tables input {
-}
 
 
 .dataTables_filter {
