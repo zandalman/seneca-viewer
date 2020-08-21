@@ -12,12 +12,14 @@
             src="https://cdn.datatables.net/plug-ins/1.10.21/api/order.neutral().js"></script>
     <script type="text/javascript">
         var configuration=JSON.parse({{config | tojson | safe}});
+
     </script>
     <script type="text/javascript" src="/static/js/sijax/sijax.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='/spreadsheet.js') }}"></script>
-        <script type="text/javascript">
+    <script type="text/javascript">
             {{ g.sijax.get_js()|safe }}
-        </script>
+
+    </script>
 </head>
 <body>
 <div class="mainTabs">
@@ -40,7 +42,10 @@
             </div>
         </div>
 
-        <button class="config" style="margin-bottom:10px;">configuration</button>
+        <div class="menu-bar">
+            <button class="config">configuration</button>
+            <button id="toggleSorter">toggle sorter</button>
+        </div>
         <div class="menu-bar">
             <button class="upload">upload</button>
             <button class="all">toggle all</button>
@@ -65,7 +70,7 @@
             <!-- dynamic tables here -->
         </div>
     </div>
-    <div class="context">
+    <div class="context" id="eventTableSelector">
         <div class="tabs-bar"></div>
         <div class="parameter-box" style="display:none;">
             <select id="variable-lists">
@@ -74,15 +79,17 @@
         </div>
     </div>
 </div>
-<div class="mainTabContent" id="parameter" >
+<div class="mainTabContent" id="parameter">
     <div class="context" id="paramContext">
-        <p> <button id="generate" >Generate?</button></p>
+        <p>
+            <button id="generate">Generate?</button>
+        </p>
         <p> Current file path:</p>
         <p> {{ file_folder }}</p>
         <p>Select file</p>
         <select id="jsonSelector" onchange="Sijax.request('get_json', [this.value]);">
-             {% for item in files %}
-            <option >{{ item }} </option>
+            {% for item in files %}
+            <option>{{ item }}</option>
             {% endfor %}
         </select>
         <pre id="jsonDisplay"></pre>
@@ -95,22 +102,22 @@
         </div>
         <div class="pList">
             <table id="table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Sets</th>
-                            <th>Event Type</th>
-                            <th>subEvent</th>
-                            <th>Event</th>
-                            <th>value</th>
-                        </tr>
-                    </thead>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Sets</th>
+                    <th>Event Type</th>
+                    <th>subEvent</th>
+                    <th>Event</th>
+                    <th>value</th>
+                </tr>
+                </thead>
             </table>
         </div>
     </div>
     <div class="context" id="paramRepo">
         <button>save</button>
-        context panel 1
+        <div id="clearAll" style="margin: 5px;">get all </div>
     </div>
 </div>
 <div class="mainTabContent" id="visualizer">placeholder</div>
@@ -147,13 +154,16 @@ var activeFile;
 $(document).ready(function () {
     $("#table").find('th').hide();
     $("#paramSearch").hide();
+    $("#clearAll").hide();
 
     $(document).on('click', "#generate", function(e){
        // generate($("#jsonDisplay").html());
        $('#table').DataTable().destroy();
        $('#table').find('tbody').remove();
+       $("#paramRepo").find('span').remove();
        $("#table").find('th').show();
        $("#paramSearch").show();
+       $("#clearAll").show();
         var table = $("#table").DataTable({
             "columns": [
                 {"name": "name"},
@@ -162,7 +172,7 @@ $(document).ready(function () {
                 {"name": "subEvent"},
                 {"name": "Event"},
                 {
-                    "name": "Value",
+                    "name": "value",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return data;
@@ -202,7 +212,6 @@ $(document).ready(function () {
             var subEvents=event["subEvents"];
             var variables =[];
             $.each(subEvents, function(index2, subEvent){
-                //$("#paramSet").children(".pList").append("<span>"+subEvent["eventType"]+"</span>");
                 $.each(subEvent, function(key, value){
                     var eventType=subEvent["eventType"];
                     var inputType = configuration["original"][eventType][key];
@@ -229,6 +238,34 @@ $(document).ready(function () {
          table.search( $(this).val() ).draw();
     });
 
+    $('#paramRepo').on('dblclick', 'span', function(e){
+        var table=$("#table").DataTable();
+        var varName=$(this).closest('span').attr('varName');
+        table.column(0).search('\^' + varName + '\$', true, false ).draw();
+    });
+
+    $('#clearAll').on('dblclick', function(e){
+        console.log('hello');
+        var table = $('#table').DataTable();
+        table
+         .search( '' )
+         .columns().search( '' )
+         .draw();
+    });
+
+    $('#paramRepo').on('change', 'input', function(e){
+        var table=$('#table').DataTable();
+         var varName=$(this).closest('span').attr('varName');
+         var newValue = $(this).val();
+         table.rows( function ( idx, data, node ) {
+            return data[0] === varName ?
+                true : false;
+            })
+            .every(function ( rowIdx, tableLoop, rowLoop ) {
+                table.cell(rowIdx, "value:name").data(newValue).draw();
+                } );
+    });
+
     $(document).on('click', "#resetSort", function(e){
          var table=$('#table').DataTable();
          table.order.neutral().draw();
@@ -250,4 +287,5 @@ $(document).ready(function () {
             table.draw();
     });
 });
+
 </script>

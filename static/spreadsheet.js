@@ -48,13 +48,16 @@ $(document).ready(function () {
 			"name": value
 		});
 	});
-    
-    
-    $(document).on("click", ".addEvent", addEvent);
-    
-    //Add a single event table on load
-    $('.addEvent').click();
-    
+
+    /*
+     *Toggles between a DataTable() search filter and no filtering
+     *@param {Node} $node Alternatively, directly pass the selected node
+     *@param {String} elementClass Class assigned to element group
+     */
+    function toggleSearch(attribute, value, $node, elementClass){
+    }
+
+
     /*
      *Sets the selected element as the single active element
      *@param {String} attribute Attr. used to identify the selected element
@@ -208,6 +211,12 @@ $(document).ready(function () {
 		eventCount++;
 	};
 
+
+
+
+    $(document).on("click", ".addEvent", addEvent);
+    //Add a single event table on load
+    $('.addEvent').click();
 
 	$(document).on('click', '.mainTab', function (e) {
 	    setActive("ID", $(this).attr("data-tabID"), "", "mainTabContent");
@@ -363,7 +372,8 @@ $(document).ready(function () {
 		var validSubmit = true;
 		$.each(eventList, function (index, value) {
 			var id = $(this).attr("eventID");
-			var sequenceType = $(".sort-box[boxID=" + id + "]").find('.sequence').children('select').val();
+			var $sortBox = $(".sort-box[boxID=" + id + "]");
+			var sequenceType = $sortBox.find('.sequence').children('select').val();
 			if (sequenceType == null) {
 				alert('Events must be assigned sequence type');
 				validSubmit = false;
@@ -378,14 +388,13 @@ $(document).ready(function () {
 
 			var $table = $("table[sortTableID=" + id + "]").DataTable();
 			data = $table.buttons.exportData();
-			var eventName = $(this).children('span').html();
+			var eventName = $sortBox.find('.event-name').val();
 			var eventData = {};
 			eventData["sequenceType"] = sequenceType;
 			eventData["data"] = JSON.stringify(data);
 			eventsMerged[eventName] = eventData;
 
 		})
-
 
 		if (validSubmit == true) {
             finalData["fileName"] = $('#fileName').val();
@@ -403,6 +412,12 @@ $(document).ready(function () {
 		}
 
 	});
+
+    $(document).on('click', "#toggleSorter", function(e){
+         $("#event-list").toggle();
+         $(".sort-box").filter('.active').find('table').DataTable().columns.adjust().draw();
+    });
+
 
 	$(document).on('click', '.upload', function (e) {
 		$("#upload-json").click();
@@ -678,7 +693,6 @@ $(document).ready(function () {
 		var eventTable = $('.sort-box').filter('.active').find('table').DataTable();
 		//transfer the updated rows' data into sorter table
         $.each(activeTables, function (index, tableRow) {
-            console.log(index);
             parentTable = $(this).find('table').DataTable();
             parentTable.rows('.updated').every(function (rowIdx, tableLoop, rowLoop) {
 			var tableType = parentTable.table().node().id;
@@ -749,7 +763,10 @@ $(document).ready(function () {
 					row.draw();
 				}
                 $(".second-tables").find("tr").addClass('updated');
+                $('.table-row').addClass('active');
 				$('.update').click();
+				$('.table-row').removeClass('active');
+				$('.table-row').eq(0).addClass('active');
 				$.each($('datalist'), function (index, value) {
 					var $datalist = $(this);
 					var datalist=this;

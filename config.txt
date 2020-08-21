@@ -166,7 +166,7 @@
         "channels": "locked"
       },
       "TTL":{
-        "eventType": "locked",
+        "eventType": "locked",	
         "name": "locked",
         "channels": "locked"
       }

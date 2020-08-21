@@ -101,22 +101,43 @@ td input[type="text"], textarea {
   display: inline-block;
 }
 
+.context{
+    min-width: 4%;
+    padding: 10px;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+    background-color: #EEF9FD;
+    display: flex;
+    flex-direction: column;
+}
+
+#eventTableSelector{
+   min-width: 100px;
+   width: 10%;
+}
+
 #sort-container{
     min-width: 30%;
     margin-left: 0px;
     border: 1px none black;
     margin-right: 0px;
-    //overflow: none;
+    resize: horizontal;
+    overflow: auto;
 }
 
 #event-list{
-   min-width: 7%;
+   min-width: 80px;
    background-color: #53616e;
    border: 0px solid #98a5ab;
    box-shadow: none;
    color: white;
    overflow: auto;
 }
+
+
 
 #parameter_panel{
     background-color: white;
@@ -173,6 +194,7 @@ input, span {
 span{
     min-width: 50px;
     white-space: nowrap;
+    margin-bottom: 5px;
 }
 
 .event-name{
@@ -368,6 +390,7 @@ ul{
     height: 90%;
     margin-top: 0px;
     overflow-y: none;
+    resize: horizontal;
     margin-right: 0px;
     margin-left: 0px;
     border: 1px none black;
@@ -435,18 +458,6 @@ option{
    width: 150px;
 }
 
-.context{
-    min-width: 4%;
-    padding: 10px;
-    overflow-wrap: anywhere;
-    overflow-y: auto;
-    margin-left: auto;
-    margin-right: auto;
-    align-items: center;
-    background-color: #EEF9FD;
-    display: flex;
-    flex-direction: column;
-}
 
 
 table.dataTable,
