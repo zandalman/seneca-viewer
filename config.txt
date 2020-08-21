@@ -1,105 +1,173 @@
 {
    "sine":{
-      "eventType":"sine",
-      "name":"sine_example",
-      "delay":"0",
-      "phase":"0",
-      "period":"0.2",
-      "amplitude":"1",
-      "cycles":"1",
-      "rectified":"false",
-      "offset":"0",
-      "channels":[
-         "ch0",
-         "ch1"
-      ]
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "phase":"set",
+      "period":"set",
+      "amplitude":"set",
+      "cycles":"set",
+      "rectified":"locked",
+      "offset":"set",
+      "channels":"locked"
    },
    "saw":{
-      "eventType":"saw",
-      "name":"saw_example",
-      "delay":"0",
-      "phase":"0",
-      "period":"0.2",
-      "amplitude":"1",
-      "cycles":"1",
-      "rectified":"false",
-      "offset":"0",
-      "channels":[
-         "ch0",
-         "ch2"
-      ]
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "phase":"set",
+      "period":"set",
+      "amplitude":"set",
+      "cycles":"set",
+      "rectified":"locked",
+      "offset":"set",
+      "channels":"locked"
    },
    "square":{
-      "eventType":"trig",
-      "name":"dds_freq",
-      "delay":"10",
-      "phase":"Pi",
-      "periods":"3",
-      "frequency":"2",
-      "amplitude":"2",
-      "type":"sine",
-      "units":"hz"
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "phase":"set",
+      "periods":"set",
+      "frequency":"set",
+      "amplitude":"set",
+      "type":"locked",
+      "units":"locked"
    },
    "triangle":{
-      "eventType":"signals-4",
-      "name":"wave2",
-      "delay":"0",
-      "amplitude":"4",
-      "units":"ms",
-      "p5":"1",
-      "amplitude":"2"
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "amplitude":"set",
+      "units":"locked"
    },
    "pulse":{
-      "eventType":"pulse",
-      "name":"pulse_example",
-      "delay":"0",
-      "duty_cycles":"0.5",
-      "frequency":"5",
-      "amplitude":"1",
-      "cycles":"1",
-      "channels":[
-         "ch4"
-      ]
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "width":"set",
+      "period":"set",
+      "duty_cycles":"set",
+      "frequency":"set",
+      "amplitude":"set",
+      "cycles":"set",
+      "rising":"set",
+      "rectified":"locked",
+      "falling":"set",
+      "channels":"locked"
    },
    "constant":{
-      "eventType":"constant",
-      "name":"constant_example",
-      "delay":"0",
-      "amplitude":"0.5",
-      "channels":[
-         "ch1"
-      ]
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "amplitude":"set",
+      "channels":"locked",
+      "recitified":"locked",
+      "offset":"set"
    },
    "points":{
-      "eventType":"points",
-      "name":"points_example",
-      "times":[
-         "0",
-         "1",
-         "2",
-         "3",
-         "4"
-      ],
-      "value(s)":[
-         "0",
-         "1",
-         "0",
-         "0.5",
-         "0"
-      ],
-      "channels":[
-         "ch1",
-         "ch2"
-      ]
+      "eventType":"locked",
+      "name":"locked",
+      "times":"set",
+      "value(s)":"set",
+      "channels":"locked"
    },
    "function":{
-      "eventType":"function",
-      "name":"function_example",
-      "delay":"0",
-      "latex":"\\frac{\\sin(x)^2}{2}",
-      "channels":[
-         "ch1"
-      ]
-   }
-   
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "latex":"set",
+      "channels":"locked"
+   },
+   "ramp":{
+      "eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "value":"set",
+      "ramp_time":"set",
+      "rectified":"locked",
+      "offset":"set",
+      "channels":"locked"
+   },
+   "step":{
+	"eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "value":"set",
+        "steps": "set",
+        "rectified": "locked",
+        "offset": "set",
+        "channels":"locked"
+      },
+ "Lorentzian":{
+	"eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "value":"set",
+        "center": "set",
+        "width": "set",
+        "height": "set",
+        "offset": "set",
+        "rectified": "locked",
+        "channels": "locked"
+      },
+      "Gaussian":{
+"eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+"center": "set",
+        "width": "set",
+        "height": "set",
+        "offset": "set",
+        "rectified": "locked",
+        "channels": "locked"
+      },
+      "Exponential":{
+"eventType":"locked",
+      "name":"locked",
+        "delay": "set",
+        "value": "set",
+        "decay": "set",
+        "offset": "set",
+        "rectified": "locked",
+        "channels": "locked"
+      },
+      "Log":{
+"eventType":"locked",
+      "name":"locked",
+        "delay": "set",
+        "coefficient": "set",
+        "value_start": "set",
+        "value_stop": "set",
+        "offset": "set",
+        "rectified": "locked",
+        "channels": "locked"
+      },
+      "Chirp":{
+"eventType":"locked",
+      "name":"locked",
+        "delay": "set",
+        "phase": "set",
+        "start_frequency": "set",
+        "end_frequency": "set",
+        "type": "locked",
+        "offset": "set",
+        "rectified": "locked",
+        "channels":"locked"
+      },
+      "AM":{
+"eventType":"locked",
+      "name":"locked",
+        "channels": "locked"
+      },
+      "FM":{
+        "eventType": "locked",
+        "name": "locked",
+        "channels": "locked"
+      },
+      "TTL":{
+        "eventType": "locked",
+        "name": "locked",
+        "channels": "locked"
+      }
 }

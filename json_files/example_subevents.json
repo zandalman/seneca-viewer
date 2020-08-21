@@ -77,7 +77,7 @@
 		"eventType": "function",
 		"name": "function_example",
 		"delay": "0",
-		"latex": "\\frac{\\sin(t)^2}{2}",
+		"latex": "latex_here",
 		"rectified": "false",
 		"offset": "0",
 		"channels": ["ch1"]

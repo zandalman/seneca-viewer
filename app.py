@@ -49,7 +49,7 @@ def spreadsheet():
         config_json = json.load(config_file)
     event_config = {
         "types": list(config_json.keys()),
-        "example_data": list(config_json.values())
+        "original": config_json
     }
     event_config["type_parameters"] = {}
     for type in config_json:
@@ -90,7 +90,6 @@ def spreadsheet():
                 json.dump(logic, file, indent=2)
             except Error:
                 console.log(Error)
-
     return render_template("spreadsheet.html",
                            files=savedFiles,
                            logic="",
