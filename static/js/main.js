@@ -23,10 +23,12 @@ $(document).ready(function () {
     $("button").button();
     $("#remove-json, #view-code").button("disable");
     $("#ev-select").select2({
-        placeholder: "None"
+        placeholder: "None",
+        disabled: true
     });
     $("#ch-select").select2({
-        placeholder: "None"
+        placeholder: "None",
+        disabled: true
     });
     $("#json").select2({
         placeholder: {
@@ -91,6 +93,7 @@ $("#ev-select").on("change", function () {
             }
         });
     }
+    $("#ch-select").trigger("change");
 });
 
 $("#ch-select").on("change", function () {
@@ -117,6 +120,7 @@ $("#json").on("select2:select", function (e) {
     $("#json-code").empty();
     $("#json option").removeClass("selected");
     $("#remove-json, #view-code").button("enable");
+    $("#ev-select, #ch-select").prop("disabled", false);
     $("#json").find("[value=" + selected_json_id + "]").addClass("selected");
     sjxComet.request("show_signals", [selected_json_id]);
 });
@@ -230,7 +234,7 @@ function init_plot_func(block, canvas) {
 }
 
 // Initialize a plotting function
-function init_func (data) {
+function init_func (data, length) {
     function func(x) {
         var res = 0;
         var amp_sign, value_sign, height_sign, dist_center;
@@ -378,7 +382,7 @@ function create_block(data, length, event_name) {
     var canvas = init_canvas(block);
     if (defined_events.includes(data.eventType)) {
         var plot = init_plot_func(block, canvas);
-        var func = init_func(data);
+        var func = init_func(data, length);
         plot(func, [0, 1, -1.2, 1.2]);
     } else if (data.eventType === "none") {
         block.addClass("empty");
@@ -483,4 +487,5 @@ function select_none() {
     $("#remove-json, #view-code").button("disable");
     selects.empty();
     $("#event-names").empty();
+    selects.prop("disabled", true);
 }

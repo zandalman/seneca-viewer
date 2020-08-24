@@ -7,6 +7,7 @@
 }
 body {
     background-color: #eaeaea;
+    overflow-x: hidden;
 }
 .button {
     cursor: pointer;
