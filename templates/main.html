@@ -23,7 +23,6 @@
         <button id="view-code">View Code</button>
         <label for="json">JSON select: </label>
         <select id="json" name="json">
-            <option value="none">None</option>
             {%- for id, filename in json_options.items() %}
                 <option value="{{ id }}">{{ filename }}</option>
             {%- endfor %}

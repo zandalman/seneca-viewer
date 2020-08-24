@@ -22,20 +22,6 @@ $(document).ready(function () {
     // Initialize buttons
     $("button").button();
     $("#remove-json, #view-code").button("disable");
-    // Initialize JSON select menu
-    $("#json").selectmenu({
-        change: function (event, ui) {
-            $("#channel-container, #channel-label-container").empty();
-            $(".channel-label-container").children().remove();
-            $("#json-code").empty();
-            if (ui.item.value === "none") {
-                select_none();
-            } else {
-                $("#remove-json, #view-code").button("enable");
-                sjxComet.request("show_signals", [ui.item.value]);
-            }
-        }
-    });
     $("#ev-select").select2({
         placeholder: "None"
     });
@@ -43,8 +29,13 @@ $(document).ready(function () {
         placeholder: "None"
     });
     $("#json").select2({
-        placeholder: "None"
+        placeholder: {
+            id: "none",
+            text: "None"
+        },
+        allowClear: "true"
     });
+    $("#json").val(null).trigger("change");
     // Initialize block info dialog
     $("#block-info").dialog({
         autoOpen: false,
@@ -108,13 +99,31 @@ $("#ch-select").on("change", function () {
     });
     $(".channel").show();
     $(".channel-label").show();
-    $(".channel").each(function () {
-        var chid = this.id;
-        if (!selected_channels.includes(chid)) {
-            $(this).hide();
-            $("#" + $(this).data("labelid")).hide();
-        }
-    });
+    if (selected_channels.length > 0) {
+        $(".channel").each(function () {
+            var chid = this.id;
+            if (!selected_channels.includes(chid)) {
+                $(this).hide();
+                $("#" + $(this).data("labelid")).hide();
+            }
+        });
+    }
+});
+
+$("#json").on("select2:select", function (e) {
+    var selected_json_id = e.params.data.id;
+    $("#channel-container, #channel-label-container").empty();
+    $(".channel-label-container").children().remove();
+    $("#json-code").empty();
+    $("#json option").removeClass("selected");
+    $("#remove-json, #view-code").button("enable");
+    $("#json").find("[value=" + selected_json_id + "]").addClass("selected");
+    sjxComet.request("show_signals", [selected_json_id]);
+});
+
+$("#json").on("select2:clear", function () {
+    $("#channel-container, #channel-label-container").empty();
+    select_none();
 });
 
 // Display block info on double click
@@ -155,10 +164,10 @@ function inc_block_cnt(channel) {
 function init_channel(channel_name) {
     var labelid = "label-" + channel_name;
     $("#channel-container").append("<div class='channel' id='" + channel_name + "'></div>");
-    $("#" + channel_name).data("labelid", labelid);
+    var channel = $("#" + channel_name);
+    channel.data("labelid", labelid);
     $("#channel-label-container").append("<div class='channel-label' id='" + labelid + "'><br/>" + channel_name + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
     $("#" + labelid).data("chid", channel_name);
-    var channel = $("#" + channel_name);
     return channel;
 }
 
@@ -175,7 +184,7 @@ function init_block(channel, data, length, event_name) {
     return block;
 }
 
-// Initialize a block canvas
+// Initialize a canvas
 function init_canvas(block) {
     var canvas = block.find("canvas")[0];
     var dpr = window.devicePixelRatio || 1;
@@ -393,20 +402,21 @@ function create_block(data, length, event_name) {
 
 // Remove a JSON file
 $("#remove-json").on("click", function () {
-    var selected_json_id = $("#json").select2("data");
-    $("#json").children("option:selected").remove();
-    refresh_json_options();
-    if ($("#json").children("option:selected").val() === "none") {
+    var selected_json = $("#json").find(".selected");
+    if (selected_json.val() === "none") {
         select_none();
+    } else {
+        selected_json.remove();
     }
     $("#channel-container, #channel-label-container").empty();
-    Sijax.request("remove_json", [selected_json_id]);
+    Sijax.request("remove_json", [selected_json.val()]);
 });
 
 // Link scrolling between event names and signals
 $("#event-names").on("scroll", function () {
     $("#channel-container").scrollLeft($(this).scrollLeft());
 });
+
 $("#channel-container").on("scroll", function () {
     $("#event-names").scrollLeft($(this).scrollLeft());
 });
@@ -460,18 +470,14 @@ $("#fullscreen").on("click", function () {
 
 // View code for current JSON
 $("#view-code").on("click", function () {
-    $("#code-dialog").dialog({
+    var dialog = $("#code-dialog");
+    dialog.dialog({
         "title": $("#json").children("option:selected").text()
     });
-    $("#code-dialog").dialog("open");
+    dialog.dialog("open");
 });
 
-// Refresh JSON options
-function refresh_json_options() {
-    $("#json").selectmenu("refresh");
-}
-
-// Select none
+// Remove options if no JSON is selected.
 function select_none() {
     var selects = $("#ev-select, #ch-select");
     $("#remove-json, #view-code").button("disable");

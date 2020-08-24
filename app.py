@@ -1,11 +1,12 @@
+# Import modules
 from flask import Flask, render_template, g
 import flask_sijax
-import os
 from werkzeug import secure_filename
 import os
 import json
 import uuid
 
+# Initialize global variables
 json_options = {}
 
 def gen_id(marker, seed):
@@ -24,6 +25,12 @@ def gen_id(marker, seed):
 
 
 def get_json_options():
+    """
+    Get the uploaded JSON file options.
+
+    Returns:
+        Dictionary with ids as keys and filenames as values for each file in the upload folder.
+    """
     return {gen_id("j", filename): filename for filename in os.listdir(app.config["UPLOAD_FOLDER"])}
 
 
@@ -39,7 +46,25 @@ def to_float(val):
 
 
 class Event(object):
+    """
+    Event object.
 
+    Args:
+        name (str): Event name.
+        data (dict): Event data.
+        channels (list): List of channels for all events.
+
+    Attributes:
+        name (str): Event name.
+        subevents (list): List of subevents associated with the event.
+        blocks (dict): Dictionary with channels as keys and lists as values.
+            Each list contains the relative length of the signal block for each subevent in the channel.
+            Empty until the calc_block_lengths method is called.
+        length (int): The relative length of the entire event.
+            Zero until the calc_block_lengths method is called.
+        channels (list): List of channels for all events.
+        event_channels (list): List of channels for current event.
+    """
     def __init__(self, name, data, channels):
         self.name = name
         self.subevents = [[{key: to_float(value) for key, value in subevent.items()} for subevent in step] for step in data["subEvents"]]
@@ -49,6 +74,7 @@ class Event(object):
         self.event_channels = list(dict.fromkeys([subevent["name"] for step in self.subevents for subevent in step]))
 
     def calc_block_lengths(self):
+        """Calculate the relative length of the signal block for each subevent."""
         indices = {ch: [] for ch in self.channels}
         prev_events = {ch: dict(eventType=None) for ch in self.channels}
         step_cnt = 0
@@ -69,6 +95,12 @@ class Event(object):
         self.length = step_cnt + 1
 
     def create_blocks(self, obj_response):
+        """
+        Create signal blocks in the analysis app.
+
+        Args:
+            obj_response: Sijax object response.
+        """
         for step in self.subevents:
             for subevent in step:
                 length = self.blocks[subevent["name"]].pop(0)
@@ -76,7 +108,11 @@ class Event(object):
 
 
 class SijaxUploadHandlers(object):
+    """
+    Handlers object encapsulating Sijax upload handlers.
 
+    Encapsulation allows all handlers to be registered simultaneously.
+    """
     def upload_json(self, obj_response, files, form_values):
         if "file" not in files:
             obj_response.alert("Upload unsuccessful.")
@@ -98,24 +134,51 @@ class SijaxUploadHandlers(object):
 
 
 class SijaxHandlers(object):
+    """
+    Handlers object encapsulating Sijax handlers.
 
+    Encapsulation allows all handlers to be registered simultaneously.
+    """
     def remove_json(self, obj_response, selected_json_id):
+        """
+        Remove the selected JSON file.
+
+        Args:
+            obj_response: Sijax object response.
+            selected_json_id (str): Id of the selected JSON file.
+        """
         filename = get_json_options()[selected_json_id]
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
 class SijaxCometHandlers(object):
+    """
+    Handlers object encapsulating Sijax comet handlers.
 
+    Encapsulation allows all handlers to be registered simultaneously.
+    """
     def show_signals(self, obj_response, selected_json_id):
+        """
+        Display signals for the selected JSON file.
+
+        Args:
+            obj_response: Sijax object response.
+            selected_json_id (str): Id of the selected JSON file.
+
+        Yields:
+            Sijax object response.
+        """
         filename = get_json_options()[selected_json_id]
+        # Read JSON file
         with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
             json_obj = json.load(f)
+            # Write JSON to code dialog
             f.seek(0, 0)
             for count, line in enumerate(f.readlines()):
                 obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s<br>" % (count, 40 * line.count("\t"), line.strip()))
         yield obj_response
         channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
         for channel in channels:
-            obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>");
+            obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
         for name, data in json_obj.items():
             event = Event(name, data, channels)
             event.calc_block_lengths()
