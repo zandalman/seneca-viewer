@@ -1,0 +1,262 @@
+{
+    "example_signals": {
+	"subEvents": [
+	    [
+		{
+		    "eventType": "sine",
+		    "name": "ch0",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "5",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		},
+		{
+		    "eventType": "saw",
+		    "name": "ch1",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "10",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		},
+		{
+		    "eventType": "square",
+		    "name": "ch2",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "100",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		},
+		{
+		    "eventType": "triangle",
+		    "name": "ch3",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "1000",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "step_triangle",
+		    "name": "ch2",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "100",
+		    "amplitude": "1",
+		    "steps": "10",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "pulse",
+		    "name": "ch3",
+		    "delay": "0.5",
+		    "width": "0.01",
+		    "frequency": "10",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rising": "0.01",
+		    "falling": "0.02",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "constant",
+		    "name": "ch4",
+		    "delay": "0",
+		    "value": "0.5",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "function",
+		    "name": "ch1",
+		    "delay": "0",
+		    "latex": "\\frac{\\sin(t)^2}{2}",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "sine",
+		    "name": "ch0",
+		    "frequency": "500"
+		},
+		{
+	    	    "eventType": "points",
+		    "name": "ch1",
+		    "times": ["0", "1", "2", "3", "3.5", "4"],
+		    "values": ["0", "1", "0", "0.5", "-1.5", "0"],
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+	    	    "eventType": "ramp",
+		    "name": "ch2",
+		    "delay": "0",
+		    "value": "1",
+		    "ramp_time": "0.5",
+		    "rectified": "false",
+		    "offset": "0"
+		},
+		{
+	    	    "eventType": "step",
+		    "name": "ch5",
+		    "delay": "0.1",
+		    "value": "1",
+		    "steps": "5",
+		    "step_time": "0.5",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+	    	    "eventType": "Lorentzian",
+		    "name": "ch1",
+		    "center": "0.5",
+		    "width": "0.2",
+		    "height": "1",
+		    "offset": "0",
+		    "rectified": "false"
+		},
+		{
+	    	    "eventType": "Gaussian",
+		    "name": "ch3",
+		    "center": "0.5",
+		    "std": "0.2",
+		    "height": "1",
+		    "offset": "0",
+		    "rectified": "false"
+		}
+	    ],
+	    [
+		{
+	    	    "eventType": "exponential",
+		    "name": "ch0",
+		    "delay": "0",
+		    "value": "0.2",
+		    "decay": "2",
+		    "offset": "0",
+		    "rectified": "false"
+		},
+		{
+	    	    "eventType": "log",
+		    "name": "ch6",
+		    "delay": "0",
+		    "coefficient": "2",
+		    "offset": "0",
+		    "rectified": "false"
+		}
+	    ],
+	    [
+		{
+	    	    "eventType": "chirp",
+		    "name": "ch0",
+		    "delay": "0",
+		    "phase": "0",
+		    "start_frequency": "1",
+		    "end_frequency": "10",
+		    "chirp_type": "exponential",
+		    "sweep_time": "",
+		    "amplitude": "1",
+		    "offset": "0",
+		    "rectified": "false"
+		},
+		{
+	    	    "eventType": "AM",
+		    "name": "ch1"
+		},
+		{
+	    	    "eventType": "FM",
+		    "name": "ch2"
+		},
+		{
+	    	    "eventType": "TTL",
+		    "name": "ch3",
+		    "VCC": "5",
+		    "VOH": "2.7",
+		    "VIH": "2",
+		    "VIL": "0.8",
+		    "VOL": "0.4"
+		}
+	    ]
+	]
+    },
+    "example_signals2": {
+	"subEvents": [
+	    [
+		{
+		    "eventType": "sine",
+		    "name": "ch0",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "5",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		},
+		{
+		    "eventType": "saw",
+		    "name": "ch7",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "10",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "saw",
+		    "name": "ch2",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "1000000",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ],
+	    [
+		{
+		    "eventType": "saw",
+		    "name": "ch3",
+		    "delay": "0",
+		    "phase": "0",
+		    "frequency": "10000",
+		    "amplitude": "1",
+		    "cycles": "",
+		    "rectified": "false",
+		    "offset": "0"
+		}
+	    ]
+	]
+    }
+}

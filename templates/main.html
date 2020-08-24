@@ -27,8 +27,7 @@
             {%- for id, filename in json_options.items() %}
                 <option value="{{ id }}">{{ filename }}</option>
             {%- endfor %}
-        </select>
-        <p>Selected channels: <span id="selected-channels">None</span></p>
+        </select><br><br>
         <label for="ch-filter">Channel filter: </label>
         <input id="ch-filter">
         <label for="ev-filter">Event select: </label>

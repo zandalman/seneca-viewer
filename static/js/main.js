@@ -63,23 +63,6 @@ $(document).ready(function () {
             }
         }
     });
-    // Initialize channels selectable
-    $("#channels").selectableScroll({
-        scrollSnapX: 5,
-        scrollAmount: 25,
-        filter: ".channel",
-        distance: 5,
-        stop: function(event, ui) {
-            if ($(".channel.ui-selected").length === 0) {
-                $("#selected-channels").html("None");
-            } else {
-                $("#selected-channels").empty();
-                $(".channel.ui-selected").each(function () {
-                    $("#selected-channels").append(this.id + " ");
-                });
-            }
-        }
-    });
     // Initialize block info dialog
     $("#block-info").dialog({
         autoOpen: false,
@@ -107,14 +90,6 @@ $(document).ready(function () {
             }
         }
     });
-});
-
-// Unselect channels on escape key
-window.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-        $(".ui-selected").removeClass("ui-selected");
-        $("#selected-channels").text("None");
-    }
 });
 
 // Display block info on double click

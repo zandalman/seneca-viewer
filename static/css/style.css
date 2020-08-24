@@ -94,12 +94,6 @@ select, button, form {
 #channel-label-container {
     min-height: 90px;
 }
-.channel.ui-selecting {
-    background: rgba(191, 239, 255, 0.3);
-}
-.channel.ui-selected {
-    background: rgba(191, 239, 255, 0.2);
-}
 #channels {
     margin-top: 20px;
     border: 2px solid black;
