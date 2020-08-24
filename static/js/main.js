@@ -1,3 +1,5 @@
+// List of defined event types
+// Undefined event types will be displayed as text
 var defined_events = [
     "sine",
     "saw",
@@ -17,25 +19,24 @@ var defined_events = [
 ];
 
 $(document).ready(function () {
+    // Initialize buttons
     $("button").button();
     $("#remove-json, #view-code").button("disable");
+    // Initialize JSON select menu
     $("#json").selectmenu({
         change: function (event, ui) {
             $("#channel-container, #channel-label-container").empty();
             $(".channel-label-container").children().remove();
             $("#json-code").empty();
             if (ui.item.value === "none") {
-                $("#remove-json, #view-code").button("disable");
-                $("#ev-select").empty();
-                $("#ev-select").append("<option value='none'>None</option>");
-                $("#ev-select").selectmenu("refresh");
-                $("#event-names").empty();
+                select_none();
             } else {
                 $("#remove-json, #view-code").button("enable");
                 sjxComet.request("show_signals", [ui.item.value]);
             }
         }
     });
+    // Initialize event select menu
     $("#ev-select").selectmenu({
         change: function (event, ui) {
             $(".channel").show();
@@ -62,6 +63,7 @@ $(document).ready(function () {
             }
         }
     });
+    // Initialize channels selectable
     $("#channels").selectableScroll({
         scrollSnapX: 5,
         scrollAmount: 25,
@@ -78,17 +80,20 @@ $(document).ready(function () {
             }
         }
     });
+    // Initialize block info dialog
     $("#block-info").dialog({
         autoOpen: false,
         close: function (event, ui) {
             $(".block").removeClass("selected");
         }
     });
+    // Initialize code view dialog
     $("#code-dialog").dialog({
         autoOpen: false,
         width: 500,
         height: 500
     });
+    // Initialize channel sortable
     $("#channel-label-container").sortable({
         containment: "#channel-label-container",
         stop: function (event, ui) {
@@ -104,16 +109,15 @@ $(document).ready(function () {
     });
 });
 
+// Unselect channels on escape key
 window.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         $(".ui-selected").removeClass("ui-selected");
         $("#selected-channels").text("None");
-        if ($("#fullscreen").text() === "fullscreen_exit") {
-            $("#fullscreen").trigger("click");
-        }
     }
 });
 
+// Display block info on double click
 $(document).on("dblclick", ".block", function () {
     if (!$(this).hasClass("empty")) {
         $(".block").removeClass("selected");
@@ -135,16 +139,19 @@ $(document).on("dblclick", ".block", function () {
     }
 });
 
+// Turn real frequency into a readable frequency for the signal display
 function readable_freq(freq, length) {
     return length * ((freq <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq) + 1)));
 }
 
+// Increment block count
 function inc_block_cnt(channel) {
     var channel_label = $("#" + channel.data("labelid"));
     var block_cnt = channel_label.find(".block-cnt");
     block_cnt.text(parseInt(block_cnt.text()) + 1);
 }
 
+// Initialize a channel
 function init_channel(channel_name) {
     var labelid = "label-" + channel_name;
     $("#channel-container").append("<div class='channel' id='" + channel_name + "'></div>");
@@ -155,6 +162,7 @@ function init_channel(channel_name) {
     return channel;
 }
 
+// Initialize a block
 function init_block(channel, data, length, event_name) {
     var new_block_id = channel.attr("id") + "block" + channel.children().length;
     channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
@@ -167,6 +175,7 @@ function init_block(channel, data, length, event_name) {
     return block;
 }
 
+// Initialize a block canvas
 function init_canvas(block) {
     var canvas = block.find("canvas")[0];
     var dpr = window.devicePixelRatio || 1;
@@ -184,6 +193,7 @@ function init_canvas(block) {
     };
 }
 
+// Initialize a canvas plotting function
 function init_plot_func(block, canvas) {
     function plot(func, range) {
         var scaled_width = (canvas.width / (range[1] - range[0]));
@@ -210,6 +220,7 @@ function init_plot_func(block, canvas) {
     return plot;
 }
 
+// Initialize a plotting function
 function init_func (data) {
     function func(x) {
         var res = 0;
@@ -342,6 +353,7 @@ function init_func (data) {
     return func;
 }
 
+// Create a new block
 function create_block(data, length, event_name) {
     var channel_ids = $("#channel-container").children().map(function() {
         return this.id;
@@ -361,6 +373,16 @@ function create_block(data, length, event_name) {
         plot(func, [0, 1, -1.2, 1.2]);
     } else if (data.eventType === "none") {
         block.addClass("empty");
+    } else if (data.eventType === "TTL") {
+        canvas.ctx.beginPath();
+        [data.VCC, data.VOH, data.VIH, data.VOL, data.VIL].forEach(function (level, index) {
+            canvas.ctx.moveTo(0, (1 - level / data.VCC) * canvas.height);
+            canvas.ctx.lineTo(canvas.width, (1 - level / data.VCC) * canvas.height);
+        });
+        canvas.ctx.strokeStyle = "limegreen";
+        canvas.ctx.lineWidth = 2;
+        canvas.ctx.setLineDash([5, 5]);
+        canvas.ctx.stroke();
     } else {
         canvas.ctx.font="20px Arial";
         canvas.ctx.fillStyle = "limegreen";
@@ -369,25 +391,19 @@ function create_block(data, length, event_name) {
     }
 }
 
+// Remove a JSON file
 $("#remove-json").on("click", function () {
     var selected_json_id = $("#json").children("option:selected").val();
     $("#json").children("option:selected").remove();
     refresh_json_options();
     if ($("#json").children("option:selected").val() === "none") {
-        $("#remove-json, #view-code").button("disable");
-        $("#ev-select").empty();
-        $("#ev-select").append("<option value='none'>None</option>");
-        $("#ev-select").selectmenu("refresh");
-        $("#event-names").empty();
+        select_none();
     }
     $("#channel-container, #channel-label-container").empty();
     Sijax.request("remove_json", [selected_json_id]);
 });
 
-function refresh_json_options() {
-    $("#json").selectmenu("refresh");
-}
-
+// Filter channels by name
 $("#ch-filter").on("input", function() {
     $(".channel").show();
     $(".channel-label").show();
@@ -401,6 +417,7 @@ $("#ch-filter").on("input", function() {
     });
 });
 
+// Link scrolling between event names and signals
 $("#event-names").on("scroll", function () {
     $("#channel-container").scrollLeft($(this).scrollLeft());
 });
@@ -408,12 +425,14 @@ $("#channel-container").on("scroll", function () {
     $("#event-names").scrollLeft($(this).scrollLeft());
 });
 
+// Add a new event
 function add_event(name, length) {
     $("#event-names").append("<div class='event-title' style='width: " + (100 * length - 2) + "px'><br>" + name + "</div>");
     $("#ev-select").append("<option val='" + name + "'>" + name + "</option>");
     $("#ev-select").selectmenu("refresh");
 }
 
+// Toggle fullscreen mode
 $("#fullscreen").on("click", function () {
     if (
         document.fullscreenElement ||
@@ -454,9 +473,25 @@ $("#fullscreen").on("click", function () {
     }
 });
 
+// View code for current JSON
 $("#view-code").on("click", function () {
     $("#code-dialog").dialog({
         "title": $("#json").children("option:selected").text()
     });
     $("#code-dialog").dialog("open");
 });
+
+// Refresh JSON options
+function refresh_json_options() {
+    $("#json").selectmenu("refresh");
+}
+
+// Select none
+function select_none() {
+    var event_select = $("#ev-select");
+    $("#remove-json, #view-code").button("disable");
+    event_select.empty();
+    event_select.append("<option value='none'>None</option>");
+    event_select.selectmenu("refresh");
+    $("#event-names").empty();
+}

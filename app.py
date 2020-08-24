@@ -28,6 +28,7 @@ def get_json_options():
 
 
 def to_float(val):
+    """Parse numbers and lists of numbers as floats."""
     try:
         return float(val)
     except:
@@ -41,35 +42,37 @@ class Event(object):
 
     def __init__(self, name, data, channels):
         self.name = name
-        self.subevents = [{key: to_float(value) for key, value in subevent.items()} for subevent in data["subEvents"]]
+        self.subevents = [[{key: to_float(value) for key, value in subevent.items()} for subevent in step] for step in data["subEvents"]]
         self.blocks = {}
         self.length = 0
         self.channels = channels
-        self.event_channels = list(dict.fromkeys([subevent["name"] for subevent in self.subevents]))
+        self.event_channels = list(dict.fromkeys([subevent["name"] for step in self.subevents for subevent in step]))
 
     def calc_block_lengths(self):
         indices = {ch: [] for ch in self.channels}
         prev_events = {ch: dict(eventType=None) for ch in self.channels}
-        index = -1
-        for subevent in self.subevents:
-            channel = subevent["name"]
-            # use parameters from last subevent on channel if same event type
-            if subevent["eventType"] == prev_events[channel]["eventType"]:
-                self.subevents = [subev if subev != subevent else dict(prev_events[channel], **subevent) for subev in self.subevents]
-            index += (subevent["parallel"] == "false")
-            indices[channel] += [index]
-            prev_events[channel] = subevent
+        step_cnt = 0
+        for i, step in enumerate(self.subevents):
+            for j, subevent in enumerate(step):
+                channel = subevent["name"]
+                # use parameters from last subevent on channel if same event type
+                if subevent["eventType"] == prev_events[channel]["eventType"]:
+                    self.subevents[i][j] = dict(prev_events[channel], **subevent)
+                indices[channel] += [step_cnt]
+                prev_events[channel] = subevent
+            step_cnt += 1
         for channel in self.channels:
             if not indices[channel] or indices[channel][0] > 0:
                 indices[channel] = [0] + indices[channel]
-                self.subevents = [self.subevents[0], dict(name=channel, eventType="none", parallel="true")] + self.subevents[1:]
-        self.blocks = {ch: [j - i for i, j in zip(ch_indices, ch_indices[1:] + [index + 1])] for ch, ch_indices in indices.items()}
-        self.length = index + 1
+                self.subevents[0] += [dict(name=channel, eventType="none")]
+        self.blocks = {ch: [j - i for i, j in zip(ch_indices, ch_indices[1:] + [step_cnt + 1])] for ch, ch_indices in indices.items()}
+        self.length = step_cnt + 1
 
     def create_blocks(self, obj_response):
-        for subevent in self.subevents:
-            length = self.blocks[subevent["name"]].pop(0)
-            obj_response.call("create_block", [subevent, length, self.name])
+        for step in self.subevents:
+            for subevent in step:
+                length = self.blocks[subevent["name"]].pop(0)
+                obj_response.call("create_block", [subevent, length, self.name])
 
 
 class SijaxUploadHandlers(object):
@@ -110,7 +113,7 @@ class SijaxCometHandlers(object):
             for count, line in enumerate(f.readlines()):
                 obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s<br>" % (count, 40 * line.count("\t"), line.strip()))
         yield obj_response
-        channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for subevent in event_data["subEvents"]]))
+        channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
         for name, data in json_obj.items():
             event = Event(name, data, channels)
             event.calc_block_lengths()
