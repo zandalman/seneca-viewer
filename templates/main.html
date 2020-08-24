@@ -22,18 +22,16 @@
         <button id="remove-json">Remove JSON</button>
         <button id="view-code">View Code</button>
         <label for="json">JSON select: </label>
-        <select id="json">
+        <select id="json" name="json">
             <option value="none">None</option>
             {%- for id, filename in json_options.items() %}
                 <option value="{{ id }}">{{ filename }}</option>
             {%- endfor %}
         </select><br><br>
-        <label for="ch-filter">Channel filter: </label>
-        <input id="ch-filter">
-        <label for="ev-filter">Event select: </label>
-        <select id="ev-select">
-            <option value="none">None</option>
-        </select>
+        <label for="ch-select">Channel select: </label>
+        <select id="ch-select" name="channels[]" multiple="multiple"></select>
+        <label for="ev-select">Event select: </label>
+        <select id="ev-select" name="events[]" multiple="multiple"></select>
     </div>
     <div id="channels">
         <i class="material-icons button" id="fullscreen">fullscreen</i>

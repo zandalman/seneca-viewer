@@ -114,6 +114,8 @@ class SijaxCometHandlers(object):
                 obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s<br>" % (count, 40 * line.count("\t"), line.strip()))
         yield obj_response
         channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
+        for channel in channels:
+            obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>");
         for name, data in json_obj.items():
             event = Event(name, data, channels)
             event.calc_block_lengths()

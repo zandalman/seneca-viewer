@@ -36,32 +36,14 @@ $(document).ready(function () {
             }
         }
     });
-    // Initialize event select menu
-    $("#ev-select").selectmenu({
-        change: function (event, ui) {
-            $(".channel").show();
-            $(".channel-label").show();
-            $(".block").show();
-            $(".event-title").show();
-            if (ui.item.value !== "none") {
-                $(".event-title").each(function () {
-                    if ($(this).text() !== ui.item.value) {
-                        $(this).hide();
-                    }
-                });
-                $(".block").each(function () {
-                    if ($(this).data("event") !== ui.item.value) {
-                        $(this).hide();
-                    }
-                });
-                $(".channel").each(function () {
-                    if ($(this).find(".block:visible").not(".empty").length === 0) {
-                        $(this).hide();
-                        $("#" + $(this).data("labelid")).hide();
-                    }
-                });
-            }
-        }
+    $("#ev-select").select2({
+        placeholder: "None"
+    });
+    $("#ch-select").select2({
+        placeholder: "None"
+    });
+    $("#json").select2({
+        placeholder: "None"
     });
     // Initialize block info dialog
     $("#block-info").dialog({
@@ -88,6 +70,49 @@ $(document).ready(function () {
             } else {
                 channel.insertAfter($(".channel:visible").eq(new_index));
             }
+        }
+    });
+});
+
+$("#ev-select").on("change", function () {
+    var selected_events = $("#ev-select").select2("data").map(function (event) {
+        return event.id;
+    });
+    $(".channel").show();
+    $(".channel-label").show();
+    $(".block").show();
+    $(".event-title").show();
+    if (selected_events.length > 0) {
+        $(".event-title").each(function () {
+            if (!selected_events.includes($(this).text())) {
+                $(this).hide();
+            }
+        });
+        $(".block").each(function () {
+            if (!selected_events.includes($(this).data("event"))) {
+                $(this).hide();
+            }
+        });
+        $(".channel").each(function () {
+            if ($(this).find(".block:visible").not(".empty").length === 0) {
+                $(this).hide();
+                $("#" + $(this).data("labelid")).hide();
+            }
+        });
+    }
+});
+
+$("#ch-select").on("change", function () {
+    var selected_channels = $("#ch-select").select2("data").map(function (ch) {
+        return ch.id;
+    });
+    $(".channel").show();
+    $(".channel-label").show();
+    $(".channel").each(function () {
+        var chid = this.id;
+        if (!selected_channels.includes(chid)) {
+            $(this).hide();
+            $("#" + $(this).data("labelid")).hide();
         }
     });
 });
@@ -368,7 +393,7 @@ function create_block(data, length, event_name) {
 
 // Remove a JSON file
 $("#remove-json").on("click", function () {
-    var selected_json_id = $("#json").children("option:selected").val();
+    var selected_json_id = $("#json").select2("data");
     $("#json").children("option:selected").remove();
     refresh_json_options();
     if ($("#json").children("option:selected").val() === "none") {
@@ -376,20 +401,6 @@ $("#remove-json").on("click", function () {
     }
     $("#channel-container, #channel-label-container").empty();
     Sijax.request("remove_json", [selected_json_id]);
-});
-
-// Filter channels by name
-$("#ch-filter").on("input", function() {
-    $(".channel").show();
-    $(".channel-label").show();
-    var filters = $(this).val().split(",");
-    $(".channel").each(function () {
-        var chid = this.id;
-        if (filters.some(function(filter) {return (chid.indexOf(filter) === -1)})) {
-            $(this).hide();
-            $("#" + $(this).data("labelid")).hide();
-        }
-    });
 });
 
 // Link scrolling between event names and signals
@@ -404,7 +415,6 @@ $("#channel-container").on("scroll", function () {
 function add_event(name, length) {
     $("#event-names").append("<div class='event-title' style='width: " + (100 * length - 2) + "px'><br>" + name + "</div>");
     $("#ev-select").append("<option val='" + name + "'>" + name + "</option>");
-    $("#ev-select").selectmenu("refresh");
 }
 
 // Toggle fullscreen mode
@@ -463,10 +473,8 @@ function refresh_json_options() {
 
 // Select none
 function select_none() {
-    var event_select = $("#ev-select");
+    var selects = $("#ev-select, #ch-select");
     $("#remove-json, #view-code").button("disable");
-    event_select.empty();
-    event_select.append("<option value='none'>None</option>");
-    event_select.selectmenu("refresh");
+    selects.empty();
     $("#event-names").empty();
 }

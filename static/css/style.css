@@ -170,3 +170,6 @@ code {
     display: block;
     word-wrap: break-word;
 }
+#ev-select, #ch-select {
+    width: 300px;
+}
