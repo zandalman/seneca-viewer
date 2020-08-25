@@ -4,7 +4,7 @@
     -ms-user-select: none;
     user-select: none;
 }
-body {
+#json-options, #visualizer {
     font-family: ubuntu;
 }
 .icon-button {
@@ -63,10 +63,10 @@ label {
     box-sizing: border-box;
     text-align: center;
 }
-#channel-options form, #channel-options select, #channel-options label {
+#json-options form, #channel-options select, #json-options label {
     display: inline-block;
 }
-#channel-options select {
+#channel-options select, #json-options select {
     width: 300px;
 }
 #channel-container {
@@ -116,7 +116,6 @@ label {
     overflow-x: hidden;
 }
 #signals {
-    max-height: 270px;
     overflow-y: scroll;
 }
 #event-names {

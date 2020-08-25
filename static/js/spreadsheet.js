@@ -415,12 +415,6 @@ $(document).ready(function () {
 		return newSortBox;
 	};
 
-
-    $(document).on('click', '.mainTab', function (e) {
-	    setActive("ID", $(this).attr("data-tabID"), "", "mainTabContent");
-
-	});
-
     $(document).on("click", ".addEvent", addEvent);
     //Add a single event table on load
     $('.addEvent').click();

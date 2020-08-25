@@ -20,9 +20,18 @@ var defined_events = [
 
 $(document).ready(function () {
     // Initialize tabs
-    $("#main-tabs").tabs();
+    $("#main-tabs").tabs({
+        activate: function(event, ui) {
+            var old_tab_id = ui.oldTab.children().attr("id");
+            var new_tab_id = ui.newTab.children().attr("id");
+            if (new_tab_id === "visualizer-tab" && old_tab_id !== "visualizer-tab") {
+                1+1;
+                // Glitch -- in process of fixing
+            }
+        }
+    });
     // Initialize buttons
-    $("#remove-json, #upload-json, #view-code").button();
+    $("#json-options button").button();
     $("#remove-json, #view-code").button("disable");
     $("#ev-select").select2({
         placeholder: "None",
@@ -115,8 +124,7 @@ $("#ch-select").on("change", function () {
     }
 });
 
-$("#json-select").on("select2:select", function (e) {
-    var selected_json_id = e.params.data.id;
+function select_json(selected_json_id) {
     $("#channel-container, #channel-label-container").empty();
     $(".channel-label-container").children().remove();
     $("#json-code").empty();
@@ -125,6 +133,11 @@ $("#json-select").on("select2:select", function (e) {
     $("#ev-select, #ch-select").prop("disabled", false);
     $("#json-select").find("[value=" + selected_json_id + "]").addClass("selected");
     sjxComet.request("show_signals", [selected_json_id]);
+}
+
+$("#json-select").on("select2:select", function (e) {
+    var selected_json_id = e.params.data.id;
+    select_json(selected_json_id);
 });
 
 $("#json-select").on("select2:clear", function () {
@@ -409,10 +422,9 @@ function create_block(data, length, event_name) {
 // Remove a JSON file
 $("#remove-json").on("click", function () {
     var selected_json = $("#json-select").find(".selected");
-    if (selected_json.val() === "none") {
-        select_none();
-    } else {
+    if (selected_json.val() !== "none") {
         selected_json.remove();
+        select_none();
     }
     $("#channel-container, #channel-label-container").empty();
     Sijax.request("remove_json", [selected_json.val()]);
@@ -491,3 +503,8 @@ function select_none() {
     $("#event-names").empty();
     selects.prop("disabled", true);
 }
+
+function refresh_json_options() {
+    $("#json-select").val(null).trigger("change");
+}
+

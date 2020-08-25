@@ -7,9 +7,6 @@ import json
 import uuid
 from collections import OrderedDict
 
-# Initialize global variables
-json_options = {}
-
 def gen_id(marker, seed):
     """
     Generate a random id for use as a unique HTML id.
@@ -203,7 +200,7 @@ class SijaxCometHandlers(object):
             # Write JSON to code dialog
             f.seek(0, 0)
             for count, line in enumerate(f.readlines()):
-                obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s<br>" % (count, 40 * line.count("\t"), line.strip()))
+                obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
         yield obj_response
         channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
         for channel in channels:
