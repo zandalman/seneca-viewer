@@ -7,13 +7,6 @@ import uuid
 from collections import OrderedDict
 import pathlib
 
-app = Flask(__name__)
-
-sijax_path = os.path.join('.', os.path.dirname(__file__), 'static/js/sijax/')
-app.config['SIJAX_STATIC_PATH'] = sijax_path
-app.config['SIJAX_JSON_URI'] = '/static/js/sijax/json2.js'
-flask_sijax.Sijax(app)
-
 # Initialize global variables
 json_options = {}
 
@@ -146,7 +139,16 @@ class SijaxHandlers(object):
     Handlers object encapsulating Sijax handlers.
 
     Encapsulation allows all handlers to be registered simultaneously.
+
+    Args:
+        app: Sijax app.
+
+    Attributes:
+        app: Sijax app.
     """
+    def __init__(self, app):
+        self.app = app
+
     def remove_json(self, obj_response, selected_json_id):
         """
         Remove the selected JSON file.
@@ -158,14 +160,14 @@ class SijaxHandlers(object):
         filename = get_json_options()[selected_json_id]
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    def get_json(obj_response, file):
+    def get_json(self, obj_response, file):
         '''
         Updates #jsonDisplay to contain the selected JSON input, if valid.
 
                 Parameters:
                         file (string): File name
         '''
-        with open(os.path.join(json_files_path, file), "r") as json_file:
+        with open(os.path.join(self.app.config["JSON_FILE_PATH"], file), "r") as json_file:
             try:
                 textCallback = json.dumps(json.load(json_file), indent=2)
                 obj_response.script('$("#jsonDisplay").attr("validity","True")')
@@ -244,7 +246,8 @@ def create_app():
     app.config.update(
         SIJAX_STATIC_PATH=os.path.join('.', os.path.dirname(__file__), "static/js/sijax/"),
         SIJAX_JSON_URI="/static/js/sijax/json2.js",
-        UPLOAD_FOLDER=os.path.join(app.root_path, "uploads")
+        UPLOAD_FOLDER=os.path.join(app.root_path, "uploads"),
+        JSON_FILES_PATH = os.path.join(app.root_path, "json_files")
     )
     flask_sijax.Sijax(app)  # initialize flask-sijax
 
@@ -256,17 +259,15 @@ def create_app():
         Returns:
             The rendered html template for the main page.
         """
-        instance_path = os.path.dirname(pathlib.Path(app.instance_path))
-        json_files_path = os.path.join(instance_path, "json_files")
 
         form_init_js = g.sijax.register_upload_callback("upload-json", SijaxUploadHandlers().upload_json)  # Register Sijax upload handlers
         if g.sijax.is_sijax_request:
-            g.sijax.register_object(SijaxHandlers())
+            g.sijax.register_object(SijaxHandlers(app))
             g.sijax.register_comet_object(SijaxCometHandlers())
             return g.sijax.process_request()
 
-        savedFiles = [f for f in os.listdir(json_files_path) if os.path.isfile(os.path.join(json_files_path, f))]
-        with open(os.path.join(instance_path, "config.txt"), "r") as config_file:
+        savedFiles = [f for f in os.listdir(app.config["JSON_FILES_PATH"]) if os.path.isfile(os.path.join(app.config["JSON_FILES_PATH"], f))]
+        with open(os.path.join(app.root_path, "config.txt"), "r") as config_file:
             config_json = json.load(config_file)
         event_config = jsonProcess(config_json)
         if request.method == 'POST':
@@ -291,19 +292,19 @@ def create_app():
                     frmtData.append(frmtSubEvent)
                 eventData["subEvents"] = frmtData
                 logic[event] = eventData
-            with open(os.path.join(json_files_path, file_name), 'w') as file:
+            with open(os.path.join(app.config["JSON_FILES_PATH"], file_name), 'w') as file:
                 try:
                     json.dump(logic, file, indent=2)
-                except Error:
-                    console.log(Error)
+                except Exception as err:
+                    print(err)
 
         return render_template("main.html",
                                form_init_js=form_init_js,
                                json_options=get_json_options(),
                                files=savedFiles,
                                logic="",
-                               file_folder=json_files_path,
-                               configfile=os.path.join(instance_path, "config.txt"),
+                               file_folder=app.config["JSON_FILES_PATH"],
+                               configfile=os.path.join(app.root_path, "config.txt"),
                                config=json.dumps(event_config))  # Render template
     return app
 
