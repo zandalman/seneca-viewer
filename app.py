@@ -1,3 +1,4 @@
+# Import modules
 from flask import Flask, render_template, g, request
 import flask_sijax
 from werkzeug import secure_filename
