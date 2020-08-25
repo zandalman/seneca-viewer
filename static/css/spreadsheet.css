@@ -355,7 +355,7 @@ ul{
 
 .flex{
     display:flex;
-    flex-direction:horizontal;
+    flex-direction: horizontal;
     text-align: center;
 }
 
