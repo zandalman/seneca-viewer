@@ -22,7 +22,7 @@ $(document).ready(function () {
     // Initialize tabs
     $("#main-tabs").tabs();
     // Initialize buttons
-    $("button").button();
+    $("#remove-json, #upload-json, #view-code").button();
     $("#remove-json, #view-code").button("disable");
     $("#ev-select").select2({
         placeholder: "None",

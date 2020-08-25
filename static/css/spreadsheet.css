@@ -14,7 +14,7 @@ p{
 }
 
 .hidden{
-    display:hidden;
+    display: none;
 }
 
 .mainTabs{
@@ -101,7 +101,7 @@ td input[type="text"], textarea {
 .context{
     min-width: 4%;
     padding: 10px;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
     overflow-y: auto;
     margin-left: auto;
     margin-right: auto;
@@ -389,7 +389,7 @@ ul{
     position: relative;
     height: 90%;
     margin-top: 0px;
-    overflow-y: none;
+    overflow-y: hidden;
     resize: horizontal;
     margin-right: 0px;
     margin-left: 0px;
@@ -481,7 +481,7 @@ table.dataTable td {
 table.dataTable thead th {
     font-weight: normal;
     width: 100px;
-};
+}
 
 
 .dataTables_filter {
