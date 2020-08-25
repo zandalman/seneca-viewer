@@ -203,7 +203,7 @@ span{
 
 .menu-bar{
     display: flex;
-    flex-direction: horizontal;
+    flex-direction: row;
     margin-bottom: 10px;
 
 }
@@ -214,7 +214,6 @@ span{
     width: 100%;
     min-height: 35px;
     display: flex;
-    align-items: left;
     background-color: #FFF;
     overflow:auto;
     overflow-y: hidden;
@@ -352,10 +351,9 @@ ul{
     -webkit-user-modify: read-only;
 }
 
-
 .flex{
     display:flex;
-    flex-direction: horizontal;
+    flex-direction: row;
     text-align: center;
 }
 
