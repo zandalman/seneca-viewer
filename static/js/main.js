@@ -30,14 +30,14 @@ $(document).ready(function () {
         placeholder: "None",
         disabled: true
     });
-    $("#json").select2({
+    $("#json-select").select2({
         placeholder: {
             id: "none",
             text: "None"
         },
         allowClear: "true"
     });
-    $("#json").val(null).trigger("change");
+    $("#json-select").val(null).trigger("change");
     // Initialize block info dialog
     $("#block-info").dialog({
         autoOpen: false,
@@ -113,19 +113,19 @@ $("#ch-select").on("change", function () {
     }
 });
 
-$("#json").on("select2:select", function (e) {
+$("#json-select").on("select2:select", function (e) {
     var selected_json_id = e.params.data.id;
     $("#channel-container, #channel-label-container").empty();
     $(".channel-label-container").children().remove();
     $("#json-code").empty();
-    $("#json option").removeClass("selected");
+    $("#json-select option").removeClass("selected");
     $("#remove-json, #view-code").button("enable");
     $("#ev-select, #ch-select").prop("disabled", false);
-    $("#json").find("[value=" + selected_json_id + "]").addClass("selected");
+    $("#json-select").find("[value=" + selected_json_id + "]").addClass("selected");
     sjxComet.request("show_signals", [selected_json_id]);
 });
 
-$("#json").on("select2:clear", function () {
+$("#json-select").on("select2:clear", function () {
     $("#channel-container, #channel-label-container").empty();
     select_none();
 });
@@ -406,7 +406,7 @@ function create_block(data, length, event_name) {
 
 // Remove a JSON file
 $("#remove-json").on("click", function () {
-    var selected_json = $("#json").find(".selected");
+    var selected_json = $("#json-select").find(".selected");
     if (selected_json.val() === "none") {
         select_none();
     } else {
@@ -476,7 +476,7 @@ $("#fullscreen").on("click", function () {
 $("#view-code").on("click", function () {
     var dialog = $("#code-dialog");
     dialog.dialog({
-        "title": $("#json").children("option:selected").text()
+        "title": $("#json-select").children("option:selected").text()
     });
     dialog.dialog("open");
 });

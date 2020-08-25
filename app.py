@@ -129,7 +129,7 @@ class SijaxUploadHandlers(object):
             obj_response.alert("A json file '%s' has already been uploaded." % filename)
         else:
             file_data.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-            obj_response.html_append("#json", "<option value='%s'>%s</option>" % (gen_id("j", filename), filename))
+            obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", filename), filename))
             obj_response.call("refresh_json_options")
 
 

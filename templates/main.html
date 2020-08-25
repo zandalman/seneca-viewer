@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Viewer</h1><hr class="main">
     <div id="block-info">
         <table>
             <thead>
@@ -21,8 +20,8 @@
         </form>
         <button id="remove-json">Remove JSON</button>
         <button id="view-code">View Code</button>
-        <label for="json">JSON select: </label>
-        <select id="json" name="json">
+        <label for="json-select">JSON select: </label>
+        <select id="json-select" name="json">
             {%- for id, filename in json_options.items() %}
                 <option value="{{ id }}">{{ filename }}</option>
             {%- endfor %}
@@ -33,10 +32,10 @@
         <select id="ev-select" name="events[]" multiple="multiple"></select>
     </div>
     <div id="channels">
-        <i class="material-icons button" id="fullscreen">fullscreen</i>
+        <i class="material-icons icon-button" id="fullscreen">fullscreen</i>
         <div class="row">
             <div class="column left" style="width: 10%; height: 3em;">
-                <p>Events</p>
+                <p style="margin-left: 10px;">Events</p>
             </div>
             <div class="column" style="width: 90%;" id="event-names"></div>
         </div>
