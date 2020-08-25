@@ -436,7 +436,6 @@ $(document).ready(function () {
 		$(".context .tabs-bar").append(newTab);
 
 		var newTableRow = $('<div class="table-row"></div>');
-
 		var tableButtons = $('<div class="table-buttons"></div>');
 
 		//buttons for every context
@@ -568,11 +567,12 @@ $(document).ready(function () {
 
 
 	$(".save").on('click', function (e) {
-		var eventList = $('#sort').find('li');
-		var allTables = $('.sort-box').find('table');
+	    var allTables = $('.sort-box').find('table');
 		var finalData = {};
 		var eventsMerged ={};
 		var validSubmit = true;
+	    var groupList = $('#sort').find('.groupSorter');
+		var eventList = $('#sort').find('li');
 		$.each(eventList, function (index, value) {
 			var id = $(this).attr("eventID");
 			var $sortBox = $(".sort-box[boxID=" + id + "]");
