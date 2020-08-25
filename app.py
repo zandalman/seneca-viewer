@@ -6,7 +6,6 @@ import os
 import json
 import uuid
 from collections import OrderedDict
-import pathlib
 
 # Initialize global variables
 json_options = {}
@@ -308,9 +307,6 @@ def create_app():
                                configfile=os.path.join(app.root_path, "config.txt"),
                                config=json.dumps(event_config))  # Render template
     return app
-
-
-
 
 
 if __name__ == "__main__":
