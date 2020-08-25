@@ -65,8 +65,6 @@ p{
 }
 
 
-
-
 td {
     position: relative;
 }
@@ -84,7 +82,6 @@ td input[type="text"], textarea {
     width: 100%;
     border: none;
 }
-
 
 
 .inner-element{
@@ -136,8 +133,6 @@ td input[type="text"], textarea {
    color: white;
    overflow: auto;
 }
-
-
 
 #parameter_panel{
     background-color: white;
@@ -197,9 +192,13 @@ span{
     margin-bottom: 5px;
 }
 
-.event-name{
+.groupName, .event-name{
     background-color: transparent;
     border: none;
+}
+
+.groupName{
+    margin-bottom: 5px;
 }
 
 .menu-bar{
@@ -222,8 +221,6 @@ span{
     margin-bottom: 10px;
 }
 
-
-
 .sort-tabs-bar{
     background-color: transparent;
     margin-bottom: 0px;
@@ -236,6 +233,7 @@ span{
     padding: 10px;
     border-radius: 0px;
     margin-bottom: 10px;
+    width: 100%;
 }
 
 .sort-menu{
@@ -251,7 +249,6 @@ span{
     border: 1px none white;
     margin-bottom: 5px;
     outline-style: none;
-    //display: block;
     overflow: auto;
 }
 
@@ -267,11 +264,9 @@ span{
     background-color: white;
 }
 
-
 span br{
     display: none;
 }
-
 
 .tabs-bar{
     display: flex;
@@ -289,8 +284,6 @@ span br{
   margin-bottom: 5px;
   background-color: #EFEFEF;
   border: 0px solid #7F7F7F;
-  //border-top-right-radius: 15px;
-  //border-top-left-radius: 15px;
   display:flex;
   justify-content: center;
   align-items: center;
@@ -329,6 +322,9 @@ ul{
     width: 100%;
     user-focus: none;
 }
+.groupSorter.active{
+    font-weight: bold;
+}
 .sorter.active{
     color: #c9e5ff;
 }
@@ -363,6 +359,12 @@ ul{
     text-align: center;
 }
 
+.groupBox{
+    display:flex;
+    flex-direction:column;
+    text-align: center;
+    width: 100%;
+}
 
 .second-tables{
     height: 100%;
@@ -492,7 +494,6 @@ table.dataTable thead th {
     color: #4a82a1;
 }
 
-
 .updated input, .updated{
     font-weight: bold;
 }
@@ -525,13 +526,10 @@ tr{
 #paramRepo input{
     width: 50px;
 }
+
 .pList{
     display: flex;
     flex-direction: column;
     height: 90%;
     overflow: auto;
-}
-
-#table{
-
 }
