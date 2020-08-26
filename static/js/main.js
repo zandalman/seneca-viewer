@@ -22,11 +22,11 @@ $(document).ready(function () {
     // Initialize tabs
     $("#main-tabs").tabs({
         activate: function(event, ui) {
-            var old_tab_id = ui.oldTab.children().attr("id");
             var new_tab_id = ui.newTab.children().attr("id");
             if (new_tab_id === "visualizer-tab") {
                 var selected_json_id = $("#json-select").find(".selected").val();
                 if (selected_json_id) {
+                    $("#ch-select, #ev-select").empty();
                     select_json(selected_json_id);
                 }
             }
@@ -84,10 +84,7 @@ $("#ev-select").on("change", function () {
     var selected_events = $("#ev-select").select2("data").map(function (event) {
         return event.id;
     });
-    $(".channel").show();
-    $(".channel-label").show();
-    $(".block").show();
-    $(".event-title").show();
+    $(".channel, .channel-label, .block, .event-title").show();
     if (selected_events.length > 0) {
         $(".event-title").each(function () {
             if (!selected_events.includes($(this).text())) {
@@ -106,7 +103,18 @@ $("#ev-select").on("change", function () {
             }
         });
     }
-    $("#ch-select").trigger("change");
+    var selected_channels = $("#ch-select").select2("data").map(function (ch) {
+        return ch.id;
+    });
+    if (selected_channels.length > 0) {
+        $(".channel").each(function () {
+            var chid = this.id;
+            if (!selected_channels.includes(chid)) {
+                $(this).hide();
+                $("#" + $(this).data("labelid")).hide();
+            }
+        });
+    }
 });
 
 $("#ch-select").on("change", function () {
@@ -127,7 +135,7 @@ $("#ch-select").on("change", function () {
 });
 
 function select_json(selected_json_id) {
-    $("#channel-container, #channel-label-container").empty();
+    $("#channel-container, #channel-label-container, #event-names").empty();
     $(".channel-label-container").children().remove();
     $("#json-code").empty();
     $("#json-select option").removeClass("selected");

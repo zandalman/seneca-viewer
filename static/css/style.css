@@ -113,7 +113,7 @@ label {
     border-right: 2px solid black;
     display: inline-block;
     text-overflow: ellipsis;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 #signals {
     overflow-y: scroll;
