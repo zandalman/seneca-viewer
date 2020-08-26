@@ -7,6 +7,7 @@
         </form>
         <button id="remove-json">Remove JSON</button>
         <button id="view-code">View Code</button>
+        <button id="visualize">Visualize Signals</button>
         <label for="json-select">JSON select: </label>
         <select id="json-select" name="json">
             {%- for id, filename in json_options.items() %}
@@ -21,24 +22,19 @@
         <ul>
             <li><a href="#spreadsheet">Define Logic</a></li>
             <li><a href="#parameter">Set variables</a></li>
-            <li><a href="#visualizer" id="visualizer-tab">Visualize</a></li>
             <li><a href="#translator">Translate</a></li>
         </ul>
         <div id="spreadsheet">
             <div class="flex">
-
-                <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span>
-                </div>
+                <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span></div>
                 <div class="inner-element" id="sort-container">
                     <div class="config-popup" style="display:none">
-                        <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}
-                        </div>
+                        <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
                         <div class="flex">
                             <button>edit file</button>
                             <button>choose new file</button>
                         </div>
                     </div>
-
                     <div class="menu-bar">
                         <button class="config">configuration</button>
                         <button id="toggleSorter">toggle sorter</button>
@@ -53,7 +49,6 @@
                     </div>
                     <div class="hoz-context">
                         <input type="text" id="fileName" placeholder="file name">
-
                     </div>
                     <div id="sort-boxes"></div>
                 </div>
@@ -78,8 +73,8 @@
                 </div>
             </div>
         </div>
-            <div id="parameter">
-                <div class="flex">
+        <div id="parameter">
+            <div class="flex">
                 <div class="context" id="paramContext">
                     <p>
                         <button id="generate">Generate?</button>
@@ -115,50 +110,10 @@
                         </table>
                     </div>
                 </div>
-                <div class="context" id="paramRepo">
-                    <button>save</button>
-                    <div id="clearAll" style="margin: 5px;">get all </div>
-                </div>
             </div>
-            </div>
-        <div id="visualizer">
-            <div id="block-info">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Parameter</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <div id="block-params"></div>
-                    </tbody>
-                </table>
-            </div>
-            <div class="row" id="channel-options">
-                <label for="ch-select">Channel select: </label>
-                <select id="ch-select" name="channels[]" multiple="multiple"></select>
-                <label for="ev-select">Event select: </label>
-                <select id="ev-select" name="events[]" multiple="multiple"></select>
-            </div>
-            <div id="channels">
-                <i class="material-icons icon-button" id="fullscreen">fullscreen</i>
-                <div class="row">
-                    <div class="column left" style="width: 10%; height: 3em; text-align: center;">
-                        <p>Events</p>
-                    </div>
-                    <div class="column" style="width: 90%;" id="event-names"></div>
-                </div>
-                <div id="signals">
-                    <div class="row">
-                        <div class="column left" style="width: 10%;">
-                            <div id="channel-label-container"></div>
-                        </div>
-                        <div class="column" style="width: 90%;">
-                            <div id="channel-container"></div>
-                        </div>
-                    </div>
-                </div>
+            <div class="context" id="paramRepo">
+                <button>save</button>
+                <div id="clearAll" style="margin: 5px;">get all </div>
             </div>
         </div>
         <div id="translator">
