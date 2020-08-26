@@ -1,7 +1,7 @@
 # Import modules
 from flask import Flask, render_template, g, request
 import flask_sijax
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 import os
 import json
 import uuid

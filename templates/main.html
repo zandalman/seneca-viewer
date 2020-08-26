@@ -25,97 +25,102 @@
             <li><a href="#translator">Translate</a></li>
         </ul>
         <div id="spreadsheet">
-            <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span>
-            </div>
-            <div class="inner-element" id="sort-container">
-                <div class="config-popup" style="display:none">
-                    <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}
-                    </div>
-                    <div class="flex">
-                        <button>edit file</button>
-                        <button>choose new file</button>
-                    </div>
-                </div>
+            <div class="flex">
 
-                <div class="menu-bar">
-                    <button class="config">configuration</button>
-                    <button id="toggleSorter">toggle sorter</button>
+                <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span>
                 </div>
-                <div class="menu-bar">
-                    <button class="upload">upload</button>
-                    <button class="all">toggle all</button>
-                    <button class="save">save JSON</button>
-                    <button class="addEvent">add event</button>
-                    <button class="addGroup">add group</button>
-                    <input id='upload-json' type='file' hidden/>
-                </div>
-                <div class="hoz-context">
-                    <input type="text" id="fileName" placeholder="file name">
+                <div class="inner-element" id="sort-container">
+                    <div class="config-popup" style="display:none">
+                        <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}
+                        </div>
+                        <div class="flex">
+                            <button>edit file</button>
+                            <button>choose new file</button>
+                        </div>
+                    </div>
 
+                    <div class="menu-bar">
+                        <button class="config">configuration</button>
+                        <button id="toggleSorter">toggle sorter</button>
+                    </div>
+                    <div class="menu-bar">
+                        <button class="upload">upload</button>
+                        <button class="all">toggle all</button>
+                        <button class="save">save JSON</button>
+                        <button class="addEvent">add event</button>
+                        <button class="addGroup">add group</button>
+                        <input id='upload-json' type='file' hidden/>
+                    </div>
+                    <div class="hoz-context">
+                        <input type="text" id="fileName" placeholder="file name">
+
+                    </div>
+                    <div id="sort-boxes"></div>
                 </div>
-                <div id="sort-boxes"></div>
+                <div class="table-box">
+                    <div class="menu-bar">
+                        <button class="all-tabs">all tables</button>
+                        <button class="update">update</button>
+                        <button class="clear-selected">clear selection</button>
+                        <button class="delete-selected">delete selected</button>
+                    </div>
+                    <div class="second-tables">
+                        <!-- dynamic tables here -->
+                    </div>
+                </div>
+                <div class="context" id="eventTableSelector">
+                    <div class="tabs-bar"></div>
+                    <div class="parameter-box" style="display:none;">
+                        <select id="variable-lists">
+                            <option value="" disabled selected>parameter</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="table-box">
-                <div class="menu-bar">
-                    <button class="all-tabs">all tables</button>
-                    <button class="update">update</button>
-                    <button class="clear-selected">clear selection</button>
-                    <button class="delete-selected">delete selected</button>
-                </div>
-                <div class="second-tables">
-                    <!-- dynamic tables here -->
-                </div>
-            </div>
-            <div class="context" id="eventTableSelector">
-                <div class="tabs-bar"></div>
-                <div class="parameter-box" style="display:none;">
-                    <select id="variable-lists">
-                        <option value="" disabled selected>parameter</option>
+        </div>
+            <div id="parameter">
+                <div class="flex">
+                <div class="context" id="paramContext">
+                    <p>
+                        <button id="generate">Generate?</button>
+                    </p>
+                    <p> Current file path:</p>
+                    <p> {{ file_folder }}</p>
+                    <p>Select file</p>
+                    <select id="jsonSelector" onchange="Sijax.request('get_json', [this.value]);">
+                        {% for item in files %}
+                        <option>{{ item }}</option>
+                        {% endfor %}
                     </select>
+                    <pre id="jsonDisplay"></pre>
+                </div>
+                <div class="inner-element" id="paramSet">
+                    <div class="hoz-context">
+                        <button id="resetSort">sort by event</button>
+                        <button id="getSettables">settables only</button>
+                        <input id="paramSearch" placeholder="Search...">
+                    </div>
+                    <div class="pList">
+                        <table id="table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Sets</th>
+                                <th>Event Type</th>
+                                <th>subEvent</th>
+                                <th>Event</th>
+                                <th>value</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="context" id="paramRepo">
+                    <button>save</button>
+                    <div id="clearAll" style="margin: 5px;">get all </div>
                 </div>
             </div>
-        </div>
-        <div id="parameter">
-            <div class="context" id="paramContext">
-                <p>
-                    <button id="generate">Generate?</button>
-                </p>
-                <p> Current file path:</p>
-                <p> {{ file_folder }}</p>
-                <p>Select file</p>
-                <select id="jsonSelector" onchange="Sijax.request('get_json', [this.value]);">
-                    {% for item in files %}
-                    <option>{{ item }}</option>
-                    {% endfor %}
-                </select>
-                <pre id="jsonDisplay"></pre>
             </div>
-            <div class="inner-element" id="paramSet">
-                <div class="hoz-context">
-                    <button id="resetSort">sort by event</button>
-                    <button id="getSettables">settables only</button>
-                    <input id="paramSearch" placeholder="Search...">
-                </div>
-                <div class="pList">
-                    <table id="table">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Sets</th>
-                            <th>Event Type</th>
-                            <th>subEvent</th>
-                            <th>Event</th>
-                            <th>value</th>
-                        </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-            <div class="context" id="paramRepo">
-                <button>save</button>
-                <div id="clearAll" style="margin: 5px;">get all </div>
-            </div>
-        </div>
         <div id="visualizer">
             <div id="block-info">
                 <table>
