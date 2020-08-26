@@ -24,9 +24,11 @@ $(document).ready(function () {
         activate: function(event, ui) {
             var old_tab_id = ui.oldTab.children().attr("id");
             var new_tab_id = ui.newTab.children().attr("id");
-            if (new_tab_id === "visualizer-tab" && old_tab_id !== "visualizer-tab") {
-                1+1;
-                // Glitch -- in process of fixing
+            if (new_tab_id === "visualizer-tab") {
+                var selected_json_id = $("#json-select").find(".selected").val();
+                if (selected_json_id) {
+                    select_json(selected_json_id);
+                }
             }
         }
     });

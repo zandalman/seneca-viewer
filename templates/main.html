@@ -3,7 +3,7 @@
     <div id="json-options">
         <button onclick="$('#file-upload').trigger('click');">Upload JSON</button>
         <form id="upload-json" name="upload-json" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" id="file-upload" style="display: none;" onchange="form.submit();"/>
+            <input type="file" name="file" id="file-upload" style="display: none;" onchange="form.submit(); form.reset();"/>
         </form>
         <button id="remove-json">Remove JSON</button>
         <button id="view-code">View Code</button>

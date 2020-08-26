@@ -292,6 +292,8 @@ def create_app():
             with open(os.path.join(app.config["JSON_FILES_PATH"], file_name), 'w') as file:
                 try:
                     json.dump(logic, file, indent=2)
+                    #obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
+                    #obj_response.call("refresh_json_options")
                 except Exception as err:
                     print(err)
 
