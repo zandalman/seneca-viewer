@@ -248,6 +248,13 @@ def create_app():
     )
     flask_sijax.Sijax(app)  # initialize flask-sijax
 
+    @flask_sijax.route(app, '/visualize')
+    def visualize():
+
+        if g.sijax.is_sijax_request:
+            return g.sijax.process_request()
+        return render_template("visualizer.html")
+
     @flask_sijax.route(app, '/')
     def main():
         """
