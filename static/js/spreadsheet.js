@@ -416,9 +416,6 @@ $(document).ready(function () {
 	};
 
     $(document).on("click", ".addEvent", addEvent);
-    //Add a single event table on load
-    $('.addEvent').click();
-
 
 	$("#sort").sortable();
 
@@ -561,42 +558,43 @@ $(document).ready(function () {
 
 
 	$(".save").on('click', function (e) {
-	    var allTables = $('.sort-box').find('table');
-		var finalData = {};
-		var eventsMerged ={};
-		var validSubmit = true;
-	    var groupList = $('#sort').find('.groupSorter');
-		var eventList = $('#sort').find('li');
-		$.each(eventList, function (index, value) {
-			var id = $(this).attr("eventID");
-			var $sortBox = $(".sort-box[boxID=" + id + "]");
-			var sequenceType = $sortBox.find('.sequence').children('select').val();
-			if (sequenceType == null) {
-				alert('Events must be assigned sequence type');
-				validSubmit = false;
-				return false;
-			}
+        var validSubmit = true;
 
-			if ($('#fileName').val() == '') {
+        if ($('#fileName').val() == '') {
 				alert('missing file name');
 				validSubmit = false;
 				return false;
 			}
 
-			var $table = $("table[sortTableID=" + id + "]").DataTable();
-			data = $table.buttons.exportData();
-			var eventName = $sortBox.find('.event-name').val();
-			var eventData = {};
-			eventData["sequenceType"] = sequenceType;
-			eventData["data"] = JSON.stringify(data);
-			eventsMerged[eventName] = eventData;
+	    var allTables = $('.sort-box').find('table');
+		var groupsMerged ={};
+	    var groupList = $('#event-list').find('.groupSorter');
 
+		$.each(groupList, function(index, group){
+		    var groupName = $(this).find('span').html();
+            var eventList = $(this).find('li');
+            var groupData = [];
+            $.each(eventList, function (index, value) {
+                var id = $(this).attr("eventID");
+                var $sortBox = $(".sort-box[boxID=" + id + "]");
+                /*var sequenceType = $sortBox.find('.sequence').children('select').val();
+                if (sequenceType == null) {
+                    alert('Events must be assigned sequence type');
+                    validSubmit = false;
+                    return false;*/
+                var $table = $("table[sortTableID=" + id + "]").DataTable();
+                data = $table.buttons.exportData();
+                //var eventName = $sortBox.find('.event-name').val();
+
+                //eventData["sequenceType"] = sequenceType;
+                //eventData["data"] = JSON.stringify(data);
+                groupData.push(JSON.stringify(data));
+			});
+            groupsMerged[groupName] = groupData;
 		})
-
 		if (validSubmit == true) {
-            finalData["fileName"] = $('#fileName').val();
-		    finalData["fileData"] = eventsMerged;
-			$.ajax({
+		    Sijax.request('save_json', [groupsMerged, $('#fileName').val()]);
+			/*$.ajax({
 					url: "/main",
 					type: "POST",
 					data: JSON.stringify(finalData),
@@ -605,7 +603,7 @@ $(document).ready(function () {
 				})
 				.done(function (data) {
 					console.log("After " + data["word"]);
-				});
+				});*/
 		}
 
 	});

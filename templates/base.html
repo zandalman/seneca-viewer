@@ -27,9 +27,10 @@
     <script type="text/javascript">
         var configuration=JSON.parse({{config | tojson | safe}});
     </script>
+    <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/spreadsheet.js') }}"></script>
     <title>Seneca Viewer</title>
-    <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
+
 </head>
 <body onload="remove_loader()">
     <div id="loader">
