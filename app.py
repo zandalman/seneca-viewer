@@ -188,6 +188,8 @@ class SijaxHandlers(object):
         data = logic_json
         file_name = file_name + ".json"
         groups = data.keys()
+        #the columns (keys/event aspects) could also be loaded from config_file
+        #but if col-reorder is enabled they must be loaded from the exported data
         columns = json.loads(data[list(groups)[0]][0])["header"]
         logic = {}
         for group in groups:
