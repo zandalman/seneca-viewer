@@ -74,16 +74,16 @@ class Event(object):
         self.blocks = {}
         self.length = 0
         self.channels = channels
-        self.event_channels = list(dict.fromkeys([subevent["name"] for step in self.subevents for subevent in step]))
+        self.event_channels = list(dict.fromkeys([subevent["channel"] for step in self.subevents for subevent in step]))
 
     def calc_block_lengths(self):
         """Calculate the relative length of the signal block for each subevent."""
         indices = {ch: [] for ch in self.channels}
-        prev_events = {ch: dict(eventType=None) for ch in self.channels}
+        prev_events = {ch: dict(eventType=None, channel=ch) for ch in self.channels}
         step_cnt = 0
         for i, step in enumerate(self.subevents):
             for j, subevent in enumerate(step):
-                channel = subevent["name"]
+                channel = subevent["channel"]
                 # use parameters from last subevent on channel if same event type
                 if subevent["eventType"] == prev_events[channel]["eventType"]:
                     self.subevents[i][j] = dict(prev_events[channel], **subevent)
@@ -93,7 +93,7 @@ class Event(object):
         for channel in self.channels:
             if not indices[channel] or indices[channel][0] > 0:
                 indices[channel] = [0] + indices[channel]
-                self.subevents[0] += [dict(name=channel, eventType="none")]
+                self.subevents[0] += [dict(channel=channel, eventType="none")]
         self.blocks = {ch: [j - i for i, j in zip(ch_indices, ch_indices[1:] + [step_cnt + 1])] for ch, ch_indices in indices.items()}
         self.length = step_cnt + 1
 
@@ -106,7 +106,7 @@ class Event(object):
         """
         for step in self.subevents:
             for subevent in step:
-                length = self.blocks[subevent["name"]].pop(0)
+                length = self.blocks[subevent["channel"]].pop(0)
                 obj_response.call("create_block", [subevent, length, self.name])
 
 
@@ -273,8 +273,8 @@ def show_signals(obj_response, filename):
     """
     # Read JSON file
     with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
-        json_obj = json.load(f)
-    channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
+        json_obj = json.load(f, object_pairs_hook=OrderedDict)
+    channels = list(dict.fromkeys([subevent["channel"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
     for channel in channels:
         obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
     for name, data in json_obj.items():

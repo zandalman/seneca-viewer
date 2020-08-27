@@ -116,14 +116,16 @@ $(document).on("dblclick", ".block", function () {
         $(this).addClass("selected");
         var data = $(this).data("info");
         var info = $("#block-info");
-        info.dialog({
-            title: data.eventType
-        });
+        if (data.name !== "") {
+            info.dialog({title: data.name + " (" + data.eventType + ")"});
+        } else {
+            info.dialog({title: "untitled (" + data.eventType + ")"});
+        }
         info.empty();
         for (var param in data) {
             if (param === "values") {
                 info.append("<tr><td>num pnts</td><td>" + data[param].length + "</td></tr>");
-            } else if (!(["eventType", "name", "times"].includes(param) || data[param].toString() === "")) {
+            } else if (!(["eventType", "name", "times", "channel"].includes(param) || data[param].toString() === "")) {
                 info.append("<tr><td>" + param + "</td><td>" + data[param] + "</td></tr>");
             }
         }
@@ -351,10 +353,10 @@ function create_block(data, length, event_name) {
         return this.id;
     }).get();
     var channel;
-    if (channel_ids.includes(data.name)) {
-        channel = $("#" + data.name);
+    if (channel_ids.includes(data.channel)) {
+        channel = $("#" + data.channel);
     } else {
-        channel = init_channel(data.name);
+        channel = init_channel(data.channel);
     }
     inc_block_cnt(channel);
     var block = init_block(channel, data, length, event_name);
