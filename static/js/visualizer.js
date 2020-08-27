@@ -406,6 +406,7 @@ function enable_select(enable) {
     if (enable === "true") {
         $("#ch-select, #ev-select").prop("disabled", false);
     } else {
+        $("#ev-select, #ch-select, #event-names").empty();
         $("#ch-select, #ev-select").prop("disabled", "disabled");
     }
 }
