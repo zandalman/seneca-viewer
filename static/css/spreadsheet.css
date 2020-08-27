@@ -160,7 +160,7 @@ td input[type="text"], textarea {
 }
 
 #sort-boxes{
-    max-height: 50%;
+    max-height: 100%;
     overflow: auto;
 }
 
@@ -239,10 +239,9 @@ span{
 .sort-box{
     background-color: white;
     border: 1px solid #99c7e0;
-    padding: 10px;
     border-radius: 0px;
     margin-bottom: 10px;
-    width: 100%;
+    width: 99%;
 }
 
 .sort-menu{
