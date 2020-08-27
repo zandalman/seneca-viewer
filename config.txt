@@ -168,6 +168,11 @@
       "TTL":{
         "eventType": "locked",	
         "name": "locked",
-        "channels": "locked"
+        "channels": "locked",
+        "VCC": "set",
+        "VOH": "set",
+        "VIH": "set",
+        "VIL": "set",
+        "VOL": "set"
       }
 }
