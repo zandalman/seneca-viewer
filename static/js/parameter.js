@@ -4,6 +4,7 @@ $(document).ready(function(){
     $("#paramSearch").hide();
     $("#clearAll").hide();
 
+
     $(document).on('click', "#generate", function(e){
        //remove existing table elements and parameter lists
        $('#table').DataTable().destroy();

@@ -262,7 +262,7 @@ $(document).ready(function () {
 	$.each(eventTypes, function (index, value) {
 		var newTab = $("<div class='tab'>" + value + "</div>");
 		newTab.attr("tabID", value);
-		$(".context .tabs-bar").append(newTab);
+		$("#eventTableSelector").children('.tabs-bar').append(newTab);
 
 		var newTableRow = $('<div class="table-row"></div>');
 		var tableButtons = $('<div class="table-buttons"></div>');
