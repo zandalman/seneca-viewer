@@ -221,27 +221,6 @@ class SijaxHandlers(object):
                 for count, line in enumerate(f.readlines()):
                     obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
 
-
-def show_signals(obj_response, filename):
-    """
-    Display signals for the selected JSON file.
-
-    Args:
-        obj_response: Sijax object response.
-        filename (str): Filename of the selected JSON file.
-    """
-    # Read JSON file
-    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
-        json_obj = json.load(f)
-    channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
-    for channel in channels:
-        obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
-    for name, data in json_obj.items():
-        event = Event(name, data, channels)
-        event.calc_block_lengths()
-        obj_response.call("add_event", [event.name, event.length])
-        event.create_blocks(obj_response)
-
     def save_json(self, obj_response, logic_json, file_name):
         '''
         Saves #spreadsheet logic to a JSON file in "UPLOAD_FOLDER"
@@ -277,10 +256,31 @@ def show_signals(obj_response, filename):
         with open(os.path.join(app.config["UPLOAD_FOLDER"], file_name), 'w') as file:
             try:
                 json.dump(logic, file, indent=2)
-                # obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
-                # obj_response.call("refresh_json_options")
+                obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
+                obj_response.call("refresh_json_options")
             except Exception as err:
                 print(err)
+
+
+def show_signals(obj_response, filename):
+    """
+    Display signals for the selected JSON file.
+
+    Args:
+        obj_response: Sijax object response.
+        filename (str): Filename of the selected JSON file.
+    """
+    # Read JSON file
+    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+        json_obj = json.load(f)
+    channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
+    for channel in channels:
+        obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
+    for name, data in json_obj.items():
+        event = Event(name, data, channels)
+        event.calc_block_lengths()
+        obj_response.call("add_event", [event.name, event.length])
+        event.create_blocks(obj_response)
 
 
 class SijaxCometHandlers(object):
