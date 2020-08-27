@@ -6,6 +6,7 @@ import os
 import json
 import uuid
 from collections import OrderedDict
+import time
 
 # Initialize global variables
 current_json_id = "none"
@@ -169,6 +170,7 @@ class SijaxHandlers(object):
         """
         filename = get_json_options()[selected_json_id]
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        obj_response.call("refresh_json_options")
 
     def get_json(self, obj_response, file):
         """
@@ -290,6 +292,9 @@ class SijaxCometHandlers(object):
 
     Encapsulation allows all handlers to be registered simultaneously.
     """
+    def __init__(self, app):
+        self.app = app
+
     def update(self, obj_response):
          """
          Check if selected JSON file in main page has changed and update visualization window if necessary.
@@ -298,19 +303,18 @@ class SijaxCometHandlers(object):
              obj_response: Sijax object response.
          """
          json_id = None
+         # Note to self - update signals if json has been modified!!!
          while True:
-            new_json_id = current_json_id
-            if new_json_id != json_id:
-                json_id = new_json_id
-                filename = get_json_options()[json_id]
-                if filename:
-                    show_signals(obj_response, filename)
-                    obj_response.call("enable_select", ["true"])
-                    yield obj_response
-                else:
-                    obj_response.html("#ev-select, #ch-select, #event-names", "")
-                    obj_response.call("enable_select", ["false"])
-                    yield obj_response
+             if json_id != current_json_id:
+                 json_id = current_json_id
+                 filename = get_json_options()[json_id]
+                 if filename:
+                     show_signals(obj_response, filename)
+                     obj_response.call("enable_select", ["true"])
+                     yield obj_response
+                 else:
+                     obj_response.call("enable_select", ["false"])
+                     yield obj_response
 
 
 def jsonProcess(config_json):
@@ -353,7 +357,7 @@ def create_app():
     def visualize():
 
         if g.sijax.is_sijax_request:
-            g.sijax.register_comet_object(SijaxCometHandlers())
+            g.sijax.register_comet_object(SijaxCometHandlers(app))
             return g.sijax.process_request()
         return render_template("visualizer.html")
 
