@@ -5,7 +5,7 @@
     <link rel="icon" href="../static/favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='css/visualizer.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/jquery-ui-ext.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/select2.min.css') }}" rel="stylesheet">
@@ -13,9 +13,9 @@
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_comet.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/selectableScroll.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/select2.min.js') }}"></script>
+    <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
     <title>Seneca Visualizer</title>
 </head>
 <body>

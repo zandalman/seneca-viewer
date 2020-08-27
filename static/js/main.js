@@ -1,3 +1,4 @@
+// Initialize visualization window
 var visualize_window;
 
 $(document).ready(function () {
@@ -5,7 +6,8 @@ $(document).ready(function () {
     $("#main-tabs").tabs();
     // Initialize buttons
     $("#json-options button").button();
-    $("#remove-json, #view-code").button("disable");
+    $("#remove-json, #view-code, #visualize").button("disable");
+    // Initialize json select
     $("#json-select").select2({
         placeholder: {
             id: "none",
@@ -22,20 +24,15 @@ $(document).ready(function () {
     });
 });
 
-function select_json(selected_json_id) {
+$("#json-select").on("select2:select", function (e) {
+    var selected_json_id = e.params.data.id;
     $("#channel-container, #channel-label-container, #event-names").empty();
     $(".channel-label-container").children().remove();
     $("#json-code").empty();
     $("#json-select option").removeClass("selected");
-    $("#remove-json, #view-code").button("enable");
-    $("#ev-select, #ch-select").prop("disabled", false);
+    $("#remove-json, #view-code, #visualize").button("enable");
     $("#json-select").find("[value=" + selected_json_id + "]").addClass("selected");
-    sjxComet.request("show_signals", [selected_json_id]);
-}
-
-$("#json-select").on("select2:select", function (e) {
-    var selected_json_id = e.params.data.id;
-    select_json(selected_json_id);
+    Sijax.request("update_vis", [selected_json_id]);
 });
 
 $("#json-select").on("select2:clear", function () {
@@ -65,11 +62,8 @@ $("#view-code").on("click", function () {
 
 // Remove options if no JSON is selected.
 function select_none() {
-    var selects = $("#ev-select, #ch-select");
-    $("#remove-json, #view-code").button("disable");
-    selects.empty();
-    $("#event-names").empty();
-    selects.prop("disabled", true);
+    $("#remove-json, #view-code, #visualize").button("disable");
+    Sijax.request("update_vis", ["none"]);
 }
 
 function refresh_json_options() {
@@ -77,10 +71,12 @@ function refresh_json_options() {
 }
 
 $("#visualize").on("click", function () {
-    var window_settings = "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=800,height=400";
+    var window_settings = "toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1000,height=400";
     visualize_window = window.open("/visualize", "visualize", window_settings);
 });
 
-(function (global) {
-    global.localStorage.setItem("test", "test");
-} (window));
+$(window).on("unload", function () {
+    if (visualize_window) {
+        visualize_window.close();
+    }
+});

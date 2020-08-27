@@ -19,7 +19,7 @@ var defined_events = [
 ];
 
 $(document).ready(function () {
-    alert("test");
+    // Initialize channel and event filter selects
     $("#ev-select").select2({
         placeholder: "None",
         disabled: true
@@ -51,11 +51,14 @@ $(document).ready(function () {
     });
 });
 
-$("#ev-select").on("change", function () {
+// Stream updates to selected JSON from main page
+sjxComet.request("update");
+
+// Filter out unselected events
+function select_events() {
     var selected_events = $("#ev-select").select2("data").map(function (event) {
         return event.id;
     });
-    $(".channel, .channel-label, .block, .event-title").show();
     if (selected_events.length > 0) {
         $(".event-title").each(function () {
             if (!selected_events.includes($(this).text())) {
@@ -74,6 +77,10 @@ $("#ev-select").on("change", function () {
             }
         });
     }
+}
+
+// Filter out unselected channels
+function select_channels() {
     var selected_channels = $("#ch-select").select2("data").map(function (ch) {
         return ch.id;
     });
@@ -86,23 +93,20 @@ $("#ev-select").on("change", function () {
             }
         });
     }
+}
+
+$("#ev-select").on("change", function () {
+    $(".channel, .channel-label, .block, .event-title").show();
+    select_events();
+    select_channels();
+    $("#block-info").dialog("close");
 });
 
 $("#ch-select").on("change", function () {
-    var selected_channels = $("#ch-select").select2("data").map(function (ch) {
-        return ch.id;
-    });
-    $(".channel").show();
-    $(".channel-label").show();
-    if (selected_channels.length > 0) {
-        $(".channel").each(function () {
-            var chid = this.id;
-            if (!selected_channels.includes(chid)) {
-                $(this).hide();
-                $("#" + $(this).data("labelid")).hide();
-            }
-        });
-    }
+    $(".channel, .channel-label").show();
+    select_channels();
+    select_events();
+    $("#block-info").dialog("close");
 });
 
 // Display block info on double click
@@ -394,15 +398,12 @@ function add_event(name, length) {
     $("#ev-select").append("<option val='" + name + "'>" + name + "</option>");
 }
 
-// Remove options if no JSON is selected.
-function select_none() {
-    var selects = $("#ev-select, #ch-select");
-    $("#remove-json, #view-code").button("disable");
-    selects.empty();
-    $("#event-names").empty();
-    selects.prop("disabled", true);
+// Enable or disable filter selects
+function enable_select(enable) {
+    $("#block-info").dialog("close");
+    if (enable === "true") {
+        $("#ch-select, #ev-select").prop("disabled", false);
+    } else {
+        $("#ch-select, #ev-select").prop("disabled", "disabled");
+    }
 }
-
-//(function (global) {
-//    alert(global.localStorage.getItem("test"));
-//} (window));

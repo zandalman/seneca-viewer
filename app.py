@@ -1,11 +1,14 @@
 # Import modules
-from flask import Flask, render_template, g, request
+from flask import Flask, render_template, g, request, session
 import flask_sijax
 from werkzeug.utils import secure_filename
 import os
 import json
 import uuid
 from collections import OrderedDict
+
+# Initialize global variables
+current_json_id = "none"
 
 def gen_id(marker, seed):
     """
@@ -29,7 +32,9 @@ def get_json_options():
     Returns:
         Dictionary with ids as keys and filenames as values for each file in the upload folder.
     """
-    return {gen_id("j", filename): filename for filename in os.listdir(app.config["UPLOAD_FOLDER"])}
+    json_options = {gen_id("j", filename): filename for filename in os.listdir(app.config["UPLOAD_FOLDER"])}
+    json_options["none"] = None
+    return json_options
 
 
 def to_float(val):
@@ -112,6 +117,14 @@ class SijaxUploadHandlers(object):
     Encapsulation allows all handlers to be registered simultaneously.
     """
     def upload_json(self, obj_response, files, form_values):
+        """
+        Upload a JSON file.
+
+        Args:
+            obj_response: Sijax object response.
+            files: A list containing the Werkzeug FileStorage object for the uploaded file.
+            form_values: Dictionary of form values. Unused here.
+        """
         if "file" not in files:
             obj_response.alert("Upload unsuccessful.")
             return
@@ -158,12 +171,13 @@ class SijaxHandlers(object):
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
     def get_json(self, obj_response, file):
-        '''
-        Updates #jsonDisplay to contain the selected JSON input, if valid.
+        """
+        Update #jsonDisplay to contain the selected JSON input, if valid.
 
-                Parameters:
-                        file (string): File name
-        '''
+        Args:
+            obj_response: Sijax object response.
+            file (str): File name.
+        """
         with open(os.path.join(self.app.config["JSON_FILE_PATH"], file), "r") as json_file:
             try:
                 textCallback = json.dumps(json.load(json_file), indent=2)
@@ -175,6 +189,43 @@ class SijaxHandlers(object):
         obj_response.html("#jsonDisplay", textCallback)
         json_file.close()
 
+    def update_vis(self, obj_response, selected_json_id):
+        """
+        Update the visualization window.
+
+        Args:
+            obj_response: Sijax object response.
+            selected_json_id (str): Id of the selected JSON file.
+        """
+        global current_json_id
+        current_json_id = selected_json_id
+        filename = get_json_options()[selected_json_id]
+        if filename:
+            with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+                for count, line in enumerate(f.readlines()):
+                    obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
+
+
+def show_signals(obj_response, filename):
+    """
+    Display signals for the selected JSON file.
+
+    Args:
+        obj_response: Sijax object response.
+        filename (str): Filename of the selected JSON file.
+    """
+    # Read JSON file
+    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+        json_obj = json.load(f)
+    channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
+    for channel in channels:
+        obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
+    for name, data in json_obj.items():
+        event = Event(name, data, channels)
+        event.calc_block_lengths()
+        obj_response.call("add_event", [event.name, event.length])
+        event.create_blocks(obj_response)
+
 
 class SijaxCometHandlers(object):
     """
@@ -182,36 +233,28 @@ class SijaxCometHandlers(object):
 
     Encapsulation allows all handlers to be registered simultaneously.
     """
-    def show_signals(self, obj_response, selected_json_id):
-        """
-        Display signals for the selected JSON file.
+    def update(self, obj_response):
+         """
+         Check if selected JSON file in main page has changed and update visualization window if necessary.
 
-        Args:
-            obj_response: Sijax object response.
-            selected_json_id (str): Id of the selected JSON file.
+         Args:
+             obj_response: Sijax object response.
+         """
+         json_id = None
+         while True:
+            new_json_id = current_json_id
+            if new_json_id != json_id:
+                json_id = new_json_id
+                filename = get_json_options()[json_id]
+                if filename:
+                    show_signals(obj_response, filename)
+                    obj_response.call("enable_select", ["true"])
+                    yield obj_response
+                else:
+                    obj_response.html("#ev-select, #ch-select, #event-names", "")
+                    obj_response.call("enable_select", ["false"])
+                    yield obj_response
 
-        Yields:
-            Sijax object response.
-        """
-        filename = get_json_options()[selected_json_id]
-        # Read JSON file
-        with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
-            json_obj = json.load(f)
-            # Write JSON to code dialog
-            f.seek(0, 0)
-            for count, line in enumerate(f.readlines()):
-                obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
-        yield obj_response
-        channels = list(dict.fromkeys([subevent["name"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
-        for channel in channels:
-            obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
-        for name, data in json_obj.items():
-            event = Event(name, data, channels)
-            event.calc_block_lengths()
-            obj_response.call("add_event", [event.name, event.length])
-            yield obj_response
-            event.create_blocks(obj_response)
-            yield obj_response
 
 def jsonProcess(config_json):
     event_config = {
@@ -246,12 +289,14 @@ def create_app():
         UPLOAD_FOLDER=os.path.join(app.root_path, "uploads"),
         JSON_FILES_PATH = os.path.join(app.root_path, "json_files")
     )
+    app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
     flask_sijax.Sijax(app)  # initialize flask-sijax
 
     @flask_sijax.route(app, '/visualize')
     def visualize():
 
         if g.sijax.is_sijax_request:
+            g.sijax.register_comet_object(SijaxCometHandlers())
             return g.sijax.process_request()
         return render_template("visualizer.html")
 
@@ -263,11 +308,9 @@ def create_app():
         Returns:
             The rendered html template for the main page.
         """
-
         form_init_js = g.sijax.register_upload_callback("upload-json", SijaxUploadHandlers().upload_json)  # Register Sijax upload handlers
         if g.sijax.is_sijax_request:
             g.sijax.register_object(SijaxHandlers(app))
-            g.sijax.register_comet_object(SijaxCometHandlers())
             return g.sijax.process_request()
 
         savedFiles = [f for f in os.listdir(app.config["JSON_FILES_PATH"]) if os.path.isfile(os.path.join(app.config["JSON_FILES_PATH"], f))]
