@@ -226,6 +226,46 @@ def show_signals(obj_response, filename):
         obj_response.call("add_event", [event.name, event.length])
         event.create_blocks(obj_response)
 
+    def save_json(self, obj_response, logic_json, file_name):
+        '''
+        Saves #spreadsheet logic to a JSON file in "UPLOAD_FOLDER"
+
+                Parameters:
+                        logic_obj (application/json): #spreadsheet JSON file output
+                        file_name (String): user inputted file name
+        '''
+        #if file_name in os.listdir(app.config["UPLOAD_FOLDER"]):
+        #    obj_response.alert("json file '%s' exists. Do you wish to overwrite?" % filename)
+        data = logic_json
+        file_name = file_name + ".json"
+        groups = data.keys()
+        #the columns (keys/event aspects) could also be loaded from config_file
+        #but if col-reorder is enabled they must be loaded from the exported data
+        columns = json.loads(data[list(groups)[0]][0])["header"]
+        logic = {}
+        for group in groups:
+            logic[group] = {"subEvents": []}
+            for event in data[group]:
+                eventList = []
+                subEventsObj = json.loads(event)["body"]
+                for subEvent in subEventsObj:
+                    subEventType = subEvent[2]
+                    subColumns = config_json[subEventType].keys()
+                    frmtSubEvent = {}
+                    # the first two columns do not contain data
+                    for key in subColumns:
+                        columnIndex = columns.index(key)
+                        frmtSubEvent[key] = subEvent[columnIndex]
+                    eventList.append(frmtSubEvent)
+                logic[group]["subEvents"].append(eventList)
+        with open(os.path.join(app.config["UPLOAD_FOLDER"], file_name), 'w') as file:
+            try:
+                json.dump(logic, file, indent=2)
+                # obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
+                # obj_response.call("refresh_json_options")
+            except Exception as err:
+                print(err)
+
 
 class SijaxCometHandlers(object):
     """
@@ -313,46 +353,17 @@ def create_app():
             g.sijax.register_object(SijaxHandlers(app))
             return g.sijax.process_request()
 
-        savedFiles = [f for f in os.listdir(app.config["JSON_FILES_PATH"]) if os.path.isfile(os.path.join(app.config["JSON_FILES_PATH"], f))]
-        with open(os.path.join(app.root_path, "config.txt"), "r") as config_file:
-            config_json = json.load(config_file)
+        savedFiles = [f for f in os.listdir(app.config["UPLOAD_FOLDER"]) if
+                      os.path.isfile(os.path.join(app.config["UPLOAD_FOLDER"], f))]
+
         event_config = jsonProcess(config_json)
-        if request.method == 'POST':
-            data = request.get_json()["fileData"]
-            file_name = request.get_json()["fileName"] + ".json"
-            events = data.keys()
-            columns = json.loads(data[list(events)[0]]["data"])["header"]
-            logic = {}
-            for event in events:
-                subEventsObj = json.loads(data[event]["data"])["body"]
-                eventData = {}
-                eventData["seqType"] = data[event]["sequenceType"]
-                frmtData = []
-                for subEvent in subEventsObj:
-                    subEventType = subEvent[2]
-                    subColumns = config_json[subEventType].keys()
-                    frmtSubEvent = {}
-                    # the first two columns do not contain data
-                    for key in subColumns:
-                        columnIndex = columns.index(key)
-                        frmtSubEvent[key] = subEvent[columnIndex]
-                    frmtData.append(frmtSubEvent)
-                eventData["subEvents"] = frmtData
-                logic[event] = eventData
-            with open(os.path.join(app.config["JSON_FILES_PATH"], file_name), 'w') as file:
-                try:
-                    json.dump(logic, file, indent=2)
-                    #obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
-                    #obj_response.call("refresh_json_options")
-                except Exception as err:
-                    print(err)
 
         return render_template("main.html",
                                form_init_js=form_init_js,
                                json_options=get_json_options(),
                                files=savedFiles,
                                logic="",
-                               file_folder=app.config["JSON_FILES_PATH"],
+                               file_folder=app.config["UPLOAD_FOLDER"],
                                configfile=os.path.join(app.root_path, "config.txt"),
                                config=json.dumps(event_config))  # Render template
     return app
@@ -360,4 +371,7 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
+    with open(os.path.join(app.root_path, "config.txt"), "r") as config_file:
+        config_json = json.load(config_file)
     app.run(threaded=True, debug=True)  # run the flask app
+
