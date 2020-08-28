@@ -213,7 +213,7 @@ span{
     display: flex;
     flex-direction: row;
     margin-bottom: 10px;
-
+    font-size: 12px;
 }
 
 
@@ -444,7 +444,7 @@ ul{
     background-color: #dceef7;
     box-sizing: border-box;
     padding: 3px;
-    margin-right: 5px;
+    margin-right: 2px;
     border: none;
 }
 

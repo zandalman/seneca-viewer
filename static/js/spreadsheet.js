@@ -77,7 +77,7 @@ var groupCount = 0;
  *Adds a corresponding entry to the sortable group list
  */
 function addGroup(){
-    var newSorter = $('<ul class="groupSorter"><span> Group ' + groupCount + '</span></ul>');
+    var newSorter = $('<ul class="groupSorter"><span> Event ' + groupCount + '</span></ul>');
     newSorter.attr('groupID', groupCount);
     $(".groupSorter").filter(".active").removeClass("active");
     $(".groupSorter").children().filter(".active").removeClass("active");
@@ -86,7 +86,7 @@ function addGroup(){
     var newGroup = $('<div class="group"></div>');
     newGroup.appendTo("#sort-boxes");
     newGroup.attr("groupID", groupCount);
-    newGroup.html('<input class="groupName" placeholder="group name">');
+    newGroup.html('<div class="flex"><input class="groupName" placeholder="event name"></div>');
     setActive(undefined, undefined, newGroup, "group", true);
     groupCount++;
 

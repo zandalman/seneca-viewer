@@ -30,12 +30,10 @@
 
                 <div class="inner-element" id="sort-container">
                     <div class="menu-bar">
-                        <button class="upload">upload selected</button>
-                    </div>
-                    <div class="menu-bar">
+                        <button class="upload" style="background-color: white;">upload selected</button>
                         <button class="config">configuration</button>
                         <button id="toggleSorter">toggle sorter</button>
-
+                        <button class="save">save JSON</button>
                     </div>
                     <div class="config-popup" style="display:none">
                         <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
@@ -46,9 +44,8 @@
                     </div>
                     <div class="menu-bar">
                         <button class="all">toggle all</button>
-                        <button class="addEvent">add event</button>
-                        <button class="addGroup">add group</button>
-                        <button class="save">save JSON</button>
+                        <button class="addGroup">add event</button>
+                        <button class="addEvent">add event subgroup</button>
                         <input id='upload-json' type='file' hidden/>
                     </div>
                     <div class="hoz-context">
