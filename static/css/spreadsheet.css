@@ -94,7 +94,7 @@ td input[type="text"], textarea {
   margin-right: 0px;
   margin-left: auto;
   text-align: center;
-  padding: 20px;
+  padding: 10px;
   border: 0px solid #98a5ab;
   border-radius: 0px;
   background-color: #EEF9FD;
@@ -117,9 +117,7 @@ td input[type="text"], textarea {
 }
 
 #eventTableSelector{
-   min-width: 100px;
    height:auto;
-   width: 10%;
    overflow: auto;
    display:flex;
    flex-direction: column;
@@ -285,11 +283,11 @@ span br{
 
 
 .tabs-bar .tab {
-  width: 100%;
   min-height: 20px;
   margin-right: 0px;
   margin-top: 0px;
   margin-bottom: 5px;
+  width: fit-content;
   background-color: #EFEFEF;
   border: 0px solid #7F7F7F;
   display:flex;
@@ -323,6 +321,7 @@ ul{
     margin:auto;
     margin-top: 10px;
     padding: 0;
+    overflow: hidden;
 }
 
 .sorter{
@@ -365,7 +364,8 @@ ul{
     flex-direction: row;
     text-align: center;
     height: 100%;
-    padding: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .groupBox{
@@ -520,6 +520,9 @@ tr{
     height:30px
 }
 
+.selected{
+    color: red;
+}
 #paramContext{
     width: 40%;
 }

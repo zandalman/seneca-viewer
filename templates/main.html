@@ -27,18 +27,22 @@
         <div id="spreadsheet">
             <div class="flex">
                 <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span></div>
+
                 <div class="inner-element" id="sort-container">
+                    <div class="menu-bar">
+                        <button class="upload">upload selected</button>
+                    </div>
+                    <div class="menu-bar">
+                        <button class="config">configuration</button>
+                        <button id="toggleSorter">toggle sorter</button>
+
+                    </div>
                     <div class="config-popup" style="display:none">
                         <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
                         <div class="flex">
                             <button>edit file</button>
                             <button>choose new file</button>
                         </div>
-                    </div>
-                    <div class="menu-bar">
-                        <button class="config">configuration</button>
-                        <button id="toggleSorter">toggle sorter</button>
-                        <button class="upload">generate selected</button>
                     </div>
                     <div class="menu-bar">
                         <button class="all">toggle all</button>
@@ -48,7 +52,7 @@
                         <input id='upload-json' type='file' hidden/>
                     </div>
                     <div class="hoz-context">
-                        <input type="text" id="fileName" placeholder="file name">
+                        <input type="text" id="fileName" placeholder="file name" style="height:15px;">
                     </div>
                     <div id="sort-boxes"></div>
                 </div>

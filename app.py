@@ -178,7 +178,7 @@ class SijaxHandlers(object):
             obj_response: Sijax object response.
             file (str): File name.
         """
-        with open(os.path.join(self.app.config["JSON_FILE_PATH"], file), "r") as json_file:
+        with open(os.path.join(self.app.config["UPLOAD_FOLDER"], file), "r") as json_file:
             try:
                 textCallback = json.dumps(json.load(json_file), indent=2)
                 obj_response.script('$("#jsonDisplay").attr("validity","True")')
@@ -188,6 +188,22 @@ class SijaxHandlers(object):
             json_file.close()
         obj_response.html("#jsonDisplay", textCallback)
         json_file.close()
+
+    def pass_json(self, obj_response, selected_json_id):
+        """
+        Returns selected JSON file as string.
+
+        Args:
+            obj_response: Sijax object response.
+            file (str): File name.
+        """
+        global current_json_id
+        current_json_id = selected_json_id
+        filename = get_json_options()[selected_json_id]
+        if filename:
+            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename), "r") as json_file:
+                json_string =  json.dumps(json.load(json_file))
+                obj_response.call('uploadJson', [json_string])
 
     def update_vis(self, obj_response, selected_json_id):
         """

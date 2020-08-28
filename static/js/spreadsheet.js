@@ -29,7 +29,264 @@ var columnGenerate = [{
 
 ]
 
+/*
+     *Sets the selected element as the single active element
+     *@param {String} attribute Attr. used to identify the selected element
+     *@param {String} value The value of the attribute
+     *@param {Node} $node Alternatively, directly pass the selected node
+     *@param {String} elementClass Class assigned to element group
+     *@param {Bool} hide True to hide previously active element
+     */
+function setActive(attribute, value, $node, elementClass, hide){
+    //set currently active member of the elementClass as inactive and hide
+    var elements = document.getElementsByClassName(elementClass);
+    if (!$node) {
+        if (!attribute || !value) {
+            console.log('No selector was provided.')
+            return;
+        }
+        var $selected = $(elements).filter("[" + attribute +
+                             "=" + value + "]");
+        if (!$selected) {
+            console.log('Selected element does not exist.')
+            return;
+        }
+        if (hide){
+            $(elements).filter(".active").hide();
+        }
+       $(elements).filter(".active").removeClass("active");
+       $selected.addClass("active");
+       $selected.show();
+       return $selected;
+    }
+
+    if ($node) {
+        if (hide){
+            $(elements).filter(".active").hide();
+        }
+        $(elements).filter(".active").removeClass("active");
+        $node.addClass("active");
+        $node.show();
+    }
+
+}
+
+var groupCount = 0;
+/*
+ *Creates a new event table group
+ *Adds a corresponding entry to the sortable group list
+ */
+function addGroup(){
+    var newSorter = $('<ul class="groupSorter"><span> Group ' + groupCount + '</span></ul>');
+    newSorter.attr('groupID', groupCount);
+    $(".groupSorter").filter(".active").removeClass("active");
+    $(".groupSorter").children().filter(".active").removeClass("active");
+    newSorter.addClass("active");
+    newSorter.appendTo($('#event-list'));
+    var newGroup = $('<div class="group"></div>');
+    newGroup.appendTo("#sort-boxes");
+    newGroup.attr("groupID", groupCount);
+    newGroup.html('<input class="groupName" placeholder="group name">');
+    setActive(undefined, undefined, newGroup, "group", true);
+    groupCount++;
+
+}
+/*
+     *Creates a new DIV containing an empty event table
+     *Adds a corresponding entry to the sortable event list
+     *Returns the new .sort-box containing the event table node
+     */
+
+function addEvent() {
+    /*define a new entry in the event list
+    var newSorter = $('<li class="sorter"><span> Event ' + eventCount + '</span></li>');
+
+    //link the entry to the event page through the shared eventID/eventTableID value
+    newSorter.attr('eventID', eventCount);
+
+    $(".sorter").filter(".active").removeClass("active");
+
+    newSorter.addClass("active");
+    newSorter.appendTo($('.groupSorter').filter('.active'));*/
+
+    var newSortBox = $('<div class="sort-box">' +
+                           '<div class="flex" width="100%">' +
+                           '</div>' +
+                       '</div>');
+    var newTable = $('<table class="display" width="100%"><thead><tr></tr></thead></table>');
+    newSortBox.appendTo($(".group").filter('.active'));
+    newSortBox.attr("boxID", eventCount);
+
+    var $deleteButton = $('<div class="deleteEventTable">X</div>');
+
+    newSortBox.children(".flex").append($deleteButton);
+    /*
+
+    var sequenceTypeSelect = $('<div class="sequence">' +
+        '<select><option disabled selected>sequence</option>' +
+        '<option value="parallel">parallel</option>' +
+        '<option value="serial">serial</option>' +
+        '</select></div>');
+    sequenceTypeSelect.appendTo(newSortBox.children(".flex"));*/
+
+    //newSortBox.children(".flex").append('<input type="checkbox">');
+
+    newTable.attr("sortTableID", eventCount);
+    newTable.appendTo(newSortBox);
+    /*
+    $('.sort-box').filter('.active').hide();
+    $('.sort-box').filter('.active').removeClass("active");
+    newSortBox.addClass("active");
+    newSortBox.show();*/
+
+    setActive("","", newSortBox, "sort-box", false);
+    newTable.find('tr').append("<th>sequence</th>");
+    newTable.find('tr').append("<th>X</th>");
+
+    $.each(allParameters, function (index, value) {
+        newTable.find('tr').append("<th>" + value + "</th>");
+    });
+
+
+    $("th:contains('eventType')").addClass('initVisible');
+    $("th:contains('name')").addClass('initVisible');
+    $("th:contains('delay')").addClass('initVisible');
+
+    var newDataTable = newTable.DataTable({
+        "columnDefs": [{
+                "defaultContent": "",
+                "targets": "_all"
+            },
+            {
+                "type": "num",
+                "targets": 0
+            },
+            {
+                "className": "cell-border",
+                "targets": "_all"
+            },
+            {
+                "visible": true,
+                "targets": ["initVisible", 1]
+            },
+            {
+                "visible": false,
+                "targets": '_all'
+            },
+            {
+                orderable: true,
+                className: 'reorder',
+                targets: 0
+            },
+            {
+                orderable: false,
+                targets: '_all'
+            }
+        ],
+
+        "columns": columnGenerate,
+        "data": [],
+        "dom": 'Bt',
+        buttons: [],
+        "order": [
+            [0, "asc"]
+        ],
+        "bSort": true,
+        "scrollX": "400px",
+        "scrollY": "400px",
+        "deferRender": true,
+        "scrollCollapse": true,
+        "rowReorder": {
+            dataSrc: 'sequence',
+            update: true,
+            selector: 'tr td:not(:first-child)'
+        },
+        "scrollCollapse": true,
+        serverSide: false,
+        colReorder: true,
+        "paging": false,
+    });
+    newDataTable.buttons().containers().addClass('flex');
+    newDataTable.clear().draw();
+    eventCount++;
+    return newSortBox;
+};
+
+function uploadJson(jsonString) {
+    //preventDefault stops the page from reloading
+    //event.preventDefault();
+    $.fn.dataTable
+        .tables({
+            api: true
+        })
+        .clear();
+    $('.group').find('table').DataTable().destroy();
+    $('.group').remove();
+    $('.groupSorter').remove();
+    eventCount = 0;
+    var rowIDCount = 0;
+    var jsonObj = JSON.parse(jsonString);
+        for (var event in jsonObj) {
+            addGroup();
+            $('.groupSorter').last().html(event);
+            var subEvents = jsonObj[event]["subEvents"]
+            for (var i in subEvents) {
+                var parentSortBox = addEvent();
+                eventTable = parentSortBox.find('table').DataTable();
+                parentSortBox.find('.event-name').val(eventCount);
+                /*$('.sort-box').last().find('select').val(jsonObj[event]["seqType"]);*/
+                $('.sorter').last().html(eventCount);
+                var subEventList = jsonObj[event]["subEvents"][i];
+                for (var j in subEventList){
+                    var subEventObj = subEventList[j];
+                    var eventType = subEventObj["eventType"];
+                    var row = $("#" + eventType).DataTable().row.add(subEventObj);
+                    var $rowNode = $(row.node());
+                    $rowNode.attr('id', eventCount);
+                    eventCount = eventCount + 1;
+
+                    var newSortRow = eventTable.row.add(subEventObj);
+					eventTable.cell(newSortRow.node(), 2).data(eventType);
+					eventTable.cell(newSortRow.node(), 0).data(eventCount);
+					$(newSortRow.node()).attr('rowID', eventCount);
+                }
+                eventTable.draw();
+                /*$(".second-tables").find("tr").addClass('updated');
+                $('.table-row').addClass('active');
+                $('.update').click();*/
+            }
+            $('.table-row').removeClass('active');
+            $('.table-row').eq(0).addClass('active');
+            $('.table-row').eq(0).find('table').DataTable().draw();
+            $.each($('datalist'), function (index, value) {
+                var $datalist = $(this);
+                var datalist=this;
+
+                var listID = datalist.id;
+                var parameter = listID.split('-')[0];
+
+                $('#sort').append($datalist.options);
+                var newOption = true;
+                $("#"+ eventType).DataTable().cells(undefined, parameter + ":name").every( function(){
+                    for (var j = 0; j < datalist.options.length; j++) {
+                        if (this.data() == datalist.options[j].value) {
+                            newOption = false;
+                            break;
+                        }
+                    }
+                    if (newOption) {
+                        $("#" + datalist.id).append("<option>" + this.data() + "</option>");
+                    }
+
+                });
+            });
+
+        }
+
+};
+
 $(document).ready(function () {
+
   $("#spreadsheet").addClass("active");
   $("#jsonSelector").val($("#target option:first").val());
 
@@ -49,6 +306,7 @@ $(document).ready(function () {
 		});
 	});
 
+
     /*
      *Toggles between a DataTable() search filter and no filtering
      *@param {Node} $node Alternatively, directly pass the selected node
@@ -57,73 +315,12 @@ $(document).ready(function () {
     function toggleSearch(attribute, value, $node, elementClass){
     }
 
-    /*
-     *Sets the selected element as the single active element
-     *@param {String} attribute Attr. used to identify the selected element
-     *@param {String} value The value of the attribute 
-     *@param {Node} $node Alternatively, directly pass the selected node
-     *@param {String} elementClass Class assigned to element group
-     *@param {Bool} hide True to hide previously active element
-     */
-    function setActive(attribute, value, $node, elementClass, hide){
-        //set currently active member of the elementClass as inactive and hide
-        var elements = document.getElementsByClassName(elementClass);
-        if (!$node) {
-            if (!attribute || !value) {
-                console.log('No selector was provided.')
-                return;
-            }
-            var $selected = $(elements).filter("[" + attribute +
-                                 "=" + value + "]");
-            if (!$selected) {
-                console.log('Selected element does not exist.')
-                return;
-            }
-            if (hide){
-                $(elements).filter(".active").hide();
-            }
-           $(elements).filter(".active").removeClass("active");
-           $selected.addClass("active");
-           $selected.show();
-           return $selected;
-        }
-        
-        if ($node) {
-            if (hide){
-                $(elements).filter(".active").hide();
-            }
-            $(elements).filter(".active").removeClass("active");
-            $node.addClass("active");
-            $node.show();
-        }          
-                
-    }
-
-    var groupCount = 0;
-    /*
-     *Creates a new event table group
-     *Adds a corresponding entry to the sortable group list
-     */
-    function addGroup(){
-        var newSorter = $('<ul class="groupSorter"><span> Group ' + groupCount + '</span></ul>');
-        newSorter.attr('groupID', groupCount);
-        $(".groupSorter").filter(".active").removeClass("active");
-        $(".groupSorter").children().filter(".active").removeClass("active");
-		newSorter.addClass("active");
-		newSorter.appendTo($('#event-list'));
-		var newGroup = $('<div class="group"></div>');
-		newGroup.appendTo("#sort-boxes");
-		newGroup.attr("groupID", groupCount);
-		newGroup.html('<input class="groupName" placeholder="group name">');
-		setActive(undefined, undefined, newGroup, "group", true);
-		addEvent();
-        groupCount++;
-    }
-
     addGroup();
+    addEvent();
 
     $(document).on('click', '.addGroup', function(e){
         addGroup();
+        addEvent();
     });
 
     $(document).on('click', '.groupSorter', function(e) {
@@ -131,127 +328,10 @@ $(document).ready(function () {
         var $group = setActive('groupID', groupIDVal, undefined, "group", true);
         setActive(undefined, undefined, $(this), "groupSorter", false);
         setActive(undefined, undefined, $group.children().first(), "sort-box", false);
+        $group.find('table').DataTable().columns.adjust().draw();
         setActive(undefined, undefined, $(this).find('.sorter').first(), "sorter", false);
     });
-    /*
-     *Creates a new DIV containing an empty event table
-     *Adds a corresponding entry to the sortable event list
-     *Returns the new .sort-box containing the event table node
-     */
-    
-	function addEvent() {
-    	//define a new entry in the event list
-		var newSorter = $('<li class="sorter"><span> Event ' + eventCount + '</span></li>');
-		
-		//link the entry to the event page through the shared eventID/eventTableID value 
-		newSorter.attr('eventID', eventCount);
-	
-		$(".sorter").filter(".active").removeClass("active");
-		newSorter.addClass("active");
-		newSorter.appendTo($('.groupSorter').filter('.active'));
 
-		var newSortBox = $('<div class="sort-box">' +
-                        	   '<div class="flex" width="100%">' + 
-                        	   '</div>' + 
-                    	   '</div>');
-		var newTable = $('<table class="display" width="100%"><thead><tr></tr></thead></table>');
-		newSortBox.appendTo($(".group").filter('.active'));
-		newSortBox.attr("boxID", eventCount);
-
-        var $name = $('<input class="event-name">');
-        $name.val("Event "+ eventCount);
-        
-        newSortBox.children(".flex").append($name);
-        /*
-
-		var sequenceTypeSelect = $('<div class="sequence">' +
-			'<select><option disabled selected>sequence</option>' +
-			'<option value="parallel">parallel</option>' +
-			'<option value="serial">serial</option>' +
-			'</select></div>');
-		sequenceTypeSelect.appendTo(newSortBox.children(".flex"));*/
-        
-		//newSortBox.children(".flex").append('<input type="checkbox">');
-
-		newTable.attr("sortTableID", eventCount);
-		newTable.appendTo(newSortBox);
-		/*
-		$('.sort-box').filter('.active').hide();
-		$('.sort-box').filter('.active').removeClass("active");
-		newSortBox.addClass("active");
-		newSortBox.show();*/
-		
-		setActive("","", newSortBox, "sort-box", false);
-		newTable.find('tr').append("<th>sequence</th>");
-		newTable.find('tr').append("<th>X</th>");
-
-		$.each(allParameters, function (index, value) {
-			newTable.find('tr').append("<th>" + value + "</th>");
-		});
-
-
-		$("th:contains('eventType')").addClass('initVisible');
-		$("th:contains('name')").addClass('initVisible');
-		$("th:contains('delay')").addClass('initVisible');
-
-		var newDataTable = newTable.DataTable({
-			"columnDefs": [{
-					"defaultContent": "",
-					"targets": "_all"
-				},
-				{
-					"type": "num",
-					"targets": 0
-				},
-				{
-					"className": "cell-border",
-					"targets": "_all"
-				},
-				{
-					"visible": true,
-					"targets": ["initVisible", 1]
-				},
-				{
-					"visible": false,
-					"targets": '_all'
-				},
-				{
-					orderable: true,
-					className: 'reorder',
-					targets: 0
-				},
-				{
-					orderable: false,
-					targets: '_all'
-				}
-			],
-
-			"columns": columnGenerate,
-			"data": [],
-			"dom": 'Bt',
-			buttons: [],
-			"order": [
-				[0, "asc"]
-			],
-			"bSort": true,
-			"scrollX": "400px",
-			"scrollY": "400px",
-			"scrollCollapse": true,
-			"rowReorder": {
-				dataSrc: 'sequence',
-				update: true,
-				selector: 'tr td:not(:first-child)'
-			},
-			"scrollCollapse": true,
-			serverSide: false,
-			colReorder: true,
-			"paging": false,
-		});
-		newDataTable.buttons().containers().addClass('flex');
-		newDataTable.clear().draw();
-		eventCount++;
-		return newSortBox;
-	};
 
     $(document).on("click", ".addEvent", addEvent);
 
@@ -363,6 +443,7 @@ $(document).ready(function () {
 			"scrollCollapse": true,
 			rowReorder: false,
 			fixedHeader: true,
+			"deferRender": true,
 			select: {
 				style: 'multi',
 				selector: 'td:first-child'
@@ -384,11 +465,12 @@ $(document).ready(function () {
 
 
 		for (var i = 0; i < 10; i++) {
-			var newRow = newTable.row.add([]);
+			var newRow = newTable.row.add([]).draw();
 			newTable.cell(newRow, 0).data(rowIDCount);
 			$(newRow.node()).attr('id', rowIDCount);
 			rowIDCount++;
 		}
+
 		newTable.columns.adjust();
 		newTable.draw();
 
@@ -451,16 +533,15 @@ $(document).ready(function () {
          $(".sort-box").filter('.active').find('table').DataTable().columns.adjust().draw();
     });
 
-
-	$(document).on('click', '.upload', function (e) {
-		$("#upload-json").click();
-	});
+    $(document).on('dblclick', '.sort-box', function(e){
+        setActive("","", $(this), "sort-box", false);
+    })
 
 
 	$(document).on('click', '.add-rows', function (e) {
 		var parentTable = $(this).closest('.table-row').find('table').DataTable();
 		for (var i = 0; i < 5; i++) {
-			var newRow = parentTable.row.add([]);
+			var newRow = parentTable.row.add([]).draw();
 			parentTable.cell(newRow, 0).data(rowIDCount);
 			$(newRow.node()).attr('id', rowIDCount);
 			rowIDCount++;
@@ -618,7 +699,12 @@ $(document).ready(function () {
 		$("#" + rowID).removeClass('blue');
 		$("#" + rowID).removeClass('logged');
 		row.remove().draw();
+	});
 
+	$(document).on('click', '.deleteEventTable', function (e) {
+		var parentTable = $(this).closest('table');
+		parentTable.DataTable().destroy();
+		parentTable.remove();
 	});
 
 	$(document).on('click', '.select-all', function (e) {
@@ -720,7 +806,7 @@ $(document).ready(function () {
 			if (parentTable.cell(rowIdx, "name:name").data() != '') {
 				//criteria for getting into the sorter is having a name
 				$(this.node()).removeClass('updated');
-				//the row ID links DataTable row to sorter row
+				//the row ID links the row to sorter row
 				var rowID = $(parentTable.row(rowIdx).node()).attr('id');
 				var nameData = this.data().name;
 				var tableID = parentTable.table().node().id;
@@ -734,6 +820,8 @@ $(document).ready(function () {
 					$(this.node()).addClass('logged');
 					var newSortRow = eventTable.row.add(this.data());
 					eventTable.cell(newSortRow.node(), 2).data(tableID).draw();
+					console.log(tableID);
+					console.log(rowID);
 					eventTable.cell(newSortRow.node(), 0).data(rowID).draw();
 					$(newSortRow.node()).attr('rowID', rowID);
 					newSortRow.draw();
@@ -754,77 +842,12 @@ $(document).ready(function () {
         });
 	});
 
-	$(document).on('change', "#upload-json", function (event) {
-		//preventDefault stops the page from reloading
-		//event.preventDefault();
-		$.fn.dataTable
-			.tables({
-				api: true
-			})
-			.clear();
-		$('.group').remove();
-		$('.groupSorter').remove();
-		eventCount = 0;
-		var rowIDCount = 0;
-		var reader = new FileReader();
-		reader.onload = function (event) {
-			var jsonObj = JSON.parse(event.target.result);
-			for (var event in jsonObj) {
-			    addGroup();
-			    $('.groupSorter').last().html(event);
-				var subEvents = jsonObj[event]["subEvents"]
-				for (var i in subEvents) {
-				    var parentSortBox = addEvent();
-                    parentSortBox.find('.event-name').val(eventCount);
-                    /*$('.sort-box').last().find('select').val(jsonObj[event]["seqType"]);*/
-                    $('.sorter').last().html(eventCount);
-                    var subEventList = jsonObj[event]["subEvents"][i];
-				    for (var j in subEventList){
-                        var subEventObj = subEventList[j];
-				        var eventType = subEventObj["eventType"];
-                        var row = $("#" + eventType).DataTable().row.add(subEventObj);
-                        var $rowNode = $(row.node());
-                        $rowNode.attr('id', eventCount);
-                        eventCount = eventCount + 1;
-                        row.draw();
-				    }
-                    $(".second-tables").find("tr").addClass('updated');
-                    $('.table-row').addClass('active');
-                    $('.update').click();
-                    $('.table-row').removeClass('active');
-                    $('.table-row').eq(0).addClass('active');
-				}
 
-				$.each($('datalist'), function (index, value) {
-					var $datalist = $(this);
-					var datalist=this;
-
-					var listID = datalist.id;
-					var parameter = listID.split('-')[0];
-
-                    $('#sort').append($datalist.options);
-					var newOption = true;
-					$("#"+ eventType).DataTable().cells(undefined, parameter + ":name").every( function(){
-					    for (var j = 0; j < datalist.options.length; j++) {
-                            if (this.data() == datalist.options[j].value) {
-                                newOption = false;
-                                break;
-                            }
-                        }
-                        if (newOption) {
-                            $("#" + datalist.id).append("<option>" + this.data() + "</option>");
-                        }
-
-					});
-				});
-
-			}
-
-		};
+    $(document).on('click', '.upload', function(e){
+        Sijax.request('pass_json', [$('#json-select').val()]);
+    });
 
 
-		reader.readAsText(event.target.files[0]);
-	});
 
 	$(document).on('change', "#variable-lists", function (e) {
 		$(".parameter-box").children("option").hide();
