@@ -5,7 +5,6 @@
     <link rel="icon" href="../static/favicon.svg">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
@@ -25,8 +24,9 @@
     <script>{{ form_init_js|safe }}</script>
     <script type="text/javascript"> var configuration=JSON.parse({{config | tojson | safe}});</script>
     <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/spreadsheet.js') }}"></script>
+
     <script type="text/javascript" src="{{ url_for('static', filename='js/parameter.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/spreadsheet.js') }}"></script>
     <title>Seneca Viewer</title>
 
 </head>
