@@ -401,9 +401,9 @@ function add_event(name, length) {
 }
 
 // Enable or disable filter selects
-function enable_select(enable) {
+function update(signals) {
     $("#block-info").dialog("close");
-    if (enable === "true") {
+    if (signals === "show") {
         $("#ch-select, #ev-select").prop("disabled", false);
     } else {
         $("#ev-select, #ch-select, #event-names, #channel-container, #channel-label-container").empty();
