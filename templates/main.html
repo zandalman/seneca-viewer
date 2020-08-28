@@ -24,7 +24,7 @@
             <li><a href="#parameter">Set variables</a></li>
             <li><a href="#translator">Translate</a></li>
         </ul>
-        <div id="spreadsheet">
+        <div id="spreadsheet" style="display:hidden;">
             <div class="flex">
                 <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span></div>
 
@@ -37,7 +37,7 @@
                     </div>
                     <div class="config-popup" style="display:none">
                         <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
-                        <div class="flex">
+                        <div class="menu-bar">
                             <button>edit file</button>
                             <button>choose new file</button>
                         </div>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="table-box">
                     <div class="menu-bar">
-                        <button class="all-tabs">all tables</button>
+                        <button class="all-tabs" style="display:none;">all tables</button>
                         <button class="update">update</button>
                         <button class="clear-selected">clear selection</button>
                         <button class="delete-selected">delete selected</button>
