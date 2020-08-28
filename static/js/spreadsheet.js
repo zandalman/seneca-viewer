@@ -30,192 +30,191 @@ var columnGenerate = [{
     }
 ];
 
-$(document).ready(function() {
-     /*
-     *Sets the selected element as the single active element
-     *@param {String} attribute Attr. used to identify the selected element
-     *@param {String} value The value of the attribute
-     *@param {Node} $node Alternatively, directly pass the selected node
-     *@param {String} elementClass Class assigned to element group
-     *@param {Bool} hide True to hide previously active element
-     */
-    function setActive(attribute, value, $node, elementClass, hide) {
-        //set currently active member of the elementClass as inactive and hide
-        var elements = document.getElementsByClassName(elementClass);
-        if (!$node) {
-            if (!attribute || !value) {
-                console.log("No selector was provided.");
-                return;
-            }
-            var $selected = $(elements).filter("[" + attribute +
-                "=" + value + "]");
-            if (!$selected) {
-                console.log("Selected element does not exist.");
-                return;
-            }
-            if (hide) {
-                $(elements).filter(".active").hide();
-            }
-            $(elements).filter(".active").removeClass("active");
-            $selected.addClass("active");
-            $selected.show();
-            return $selected;
+ /*
+ *Sets the selected element as the single active element
+ *@param {String} attribute Attr. used to identify the selected element
+ *@param {String} value The value of the attribute
+ *@param {Node} $node Alternatively, directly pass the selected node
+ *@param {String} elementClass Class assigned to element group
+ *@param {Bool} hide True to hide previously active element
+ */
+function setActive(attribute, value, $node, elementClass, hide) {
+    //set currently active member of the elementClass as inactive and hide
+    var elements = document.getElementsByClassName(elementClass);
+    if (!$node) {
+        if (!attribute || !value) {
+            console.log("No selector was provided.");
+            return;
         }
-        if ($node) {
-            if (hide) {
-                $(elements).filter(".active").hide();
-            }
-            $(elements).filter(".active").removeClass("active");
-            $node.addClass("active");
-            $node.show();
-            return $node;
+        var $selected = $(elements).filter("[" + attribute +
+            "=" + value + "]");
+        if (!$selected) {
+            console.log("Selected element does not exist.");
+            return;
         }
+        if (hide) {
+            $(elements).filter(".active").hide();
+        }
+        $(elements).filter(".active").removeClass("active");
+        $selected.addClass("active");
+        $selected.show();
+        return $selected;
     }
-
-    /*
-     *Sets the selected element as active
-     *@param {String} attribute Attr. used to identify the selected element
-     *@param {String} value The value of the attribute
-     *@param {Node} $node Alternatively, directly pass the selected node
-     *@param {String} elementClass Class assigned to element group
-     */
-    function addActive(attribute, value, $node, elementClass) {
-        //set currently active member of the elementClass as inactive and hide
-        var elements = document.getElementsByClassName(elementClass);
-        if (!$node) {
-            if (!attribute || !value) {
-                console.log("No selector was provided.");
-                return;
-            }
-            var $selected = $(elements).filter("[" + attribute +
-                "=" + value + "]");
-            if (!$selected) {
-                console.log("Selected element does not exist.");
-                return;
-            }
-            $selected.addClass("active");
-            return $selected;
+    if ($node) {
+        if (hide) {
+            $(elements).filter(".active").hide();
         }
-        if ($node) {
-            $node.addClass("active");
-            return $node;
+        $(elements).filter(".active").removeClass("active");
+        $node.addClass("active");
+        $node.show();
+        return $node;
+    }
+}
+
+/*
+ *Sets the selected element as active
+ *@param {String} attribute Attr. used to identify the selected element
+ *@param {String} value The value of the attribute
+ *@param {Node} $node Alternatively, directly pass the selected node
+ *@param {String} elementClass Class assigned to element group
+ */
+function addActive(attribute, value, $node, elementClass) {
+    //set currently active member of the elementClass as inactive and hide
+    var elements = document.getElementsByClassName(elementClass);
+    if (!$node) {
+        if (!attribute || !value) {
+            console.log("No selector was provided.");
+            return;
         }
+        var $selected = $(elements).filter("[" + attribute +
+            "=" + value + "]");
+        if (!$selected) {
+            console.log("Selected element does not exist.");
+            return;
+        }
+        $selected.addClass("active");
+        return $selected;
     }
-
-    /*
-     *Creates a new event table group
-     *Adds a corresponding entry to the sortable group list
-     *Returns the new group
-     */
-    function addGroup() {
-        var newSorter = $("<ul class='groupSorter'><span> Event " +
-            groupCount +
-            "</span></ul>");
-        newSorter.attr("groupID", groupCount);
-        newSorter.appendTo($("#event-list"));
-        setActive("", "", newSorter, "groupSorter", false);
-        var newGroup = $("<div class='group'></div>");
-        newGroup.appendTo("#sort-boxes");
-        newGroup.attr("groupID", groupCount);
-        newGroup.html("<div class='flex'>" +
-            "<input class='groupName' placeholder='event name'></div>");
-        setActive(undefined, undefined, newGroup, "group", true);
-        groupCount++;
-        return newGroup;
+    if ($node) {
+        $node.addClass("active");
+        return $node;
     }
+}
 
-    /*
-     *Creates a new .sort-box containing an empty event table
-     *Adds a corresponding entry to the sortable event list
-     *Returns the new .sort-box containing the event table node
-     */
-    function addEvent() {
-        var newSortBox = $("<div class='sort-box'>" +
-            "<div class='flex' width='100%'></div>" +
-            "</div>");
-        var newTable = $("<table class='display width='100%'>" +
-            "<thead><tr></tr></thead></table>");
-        newSortBox.appendTo($(".group").filter(".active"));
-        newSortBox.attr("boxID", eventCount);
+/*
+ *Creates a new event table group
+ *Adds a corresponding entry to the sortable group list
+ *Returns the new group
+ */
+function addGroup() {
+    var newSorter = $("<ul class='groupSorter'><span> Event " +
+        groupCount +
+        "</span></ul>");
+    newSorter.attr("groupID", groupCount);
+    newSorter.appendTo($("#event-list"));
+    setActive("", "", newSorter, "groupSorter", false);
+    var newGroup = $("<div class='group'></div>");
+    newGroup.appendTo("#sort-boxes");
+    newGroup.attr("groupID", groupCount);
+    newGroup.html("<div class='flex'>" +
+        "<input class='groupName' placeholder='event name'></div>");
+    setActive(undefined, undefined, newGroup, "group", true);
+    groupCount++;
+    return newGroup;
+}
 
-        var $deleteButton = $("<div class='deleteEventTable'>X</div>");
+/*
+ *Creates a new .sort-box containing an empty event table
+ *Adds a corresponding entry to the sortable event list
+ *Returns the new .sort-box containing the event table node
+ */
+function addEvent() {
+    var newSortBox = $("<div class='sort-box'>" +
+        "<div class='flex' width='100%'></div>" +
+        "</div>");
+    var newTable = $("<table class='display width='100%'>" +
+        "<thead><tr></tr></thead></table>");
+    newSortBox.appendTo($(".group").filter(".active"));
+    newSortBox.attr("boxID", eventCount);
 
-        newSortBox.children(".flex").append($deleteButton);
+    var $deleteButton = $("<div class='deleteEventTable'>X</div>");
 
-        newTable.attr("sortTableID", eventCount);
-        newTable.appendTo(newSortBox);
-        setActive("", "", newSortBox, "sort-box", false);
-        newTable.find("tr").append("<th>sequence</th>");
-        newTable.find("tr").append("<th>X</th>");
+    newSortBox.children(".flex").append($deleteButton);
 
-        $.each(allParameters, function(index, value) {
-            newTable.find("tr").append("<th>" + value + "</th>");
-        });
+    newTable.attr("sortTableID", eventCount);
+    newTable.appendTo(newSortBox);
+    setActive("", "", newSortBox, "sort-box", false);
+    newTable.find("tr").append("<th>sequence</th>");
+    newTable.find("tr").append("<th>X</th>");
 
-        $("th:contains('eventType')").addClass("initVisible");
-        $("th:contains('name')").addClass("initVisible");
-        $("th:contains('delay')").addClass("initVisible");
+    $.each(allParameters, function(index, value) {
+        newTable.find("tr").append("<th>" + value + "</th>");
+    });
 
-        var newDataTable = newTable.DataTable({
-            "columnDefs": [{
-                    "defaultContent": "",
-                    "targets": "_all"
-                },
-                {
-                    "type": "num",
-                    "targets": 0
-                },
-                {
-                    "className": "cell-border",
-                    "targets": "_all"
-                },
-                {
-                    "visible": true,
-                    "targets": ["initVisible", 1]
-                },
-                {
-                    "visible": false,
-                    "targets": "_all"
-                },
-                {
-                    orderable: true,
-                    className: "reorder",
-                    targets: 0
-                },
-                {
-                    orderable: false,
-                    targets: "_all"
-                }
-            ],
+    $("th:contains('eventType')").addClass("initVisible");
+    $("th:contains('name')").addClass("initVisible");
+    $("th:contains('delay')").addClass("initVisible");
 
-            "columns": columnGenerate,
-            "data": [],
-            "dom": "Bt",
-            buttons: [],
-            "order": [
-                [0, "asc"]
-            ],
-            "bSort": true,
-            "scrollX": "400px",
-            "scrollY": "400px",
-            "deferRender": true,
-            "scrollCollapse": true,
-            "rowReorder": {
-                dataSrc: "sequence",
-                update: true,
-                selector: "tr td:not(:first-child)"
+    var newDataTable = newTable.DataTable({
+        "columnDefs": [{
+                "defaultContent": "",
+                "targets": "_all"
             },
-            serverSide: false,
-            colReorder: true,
-            "paging": false
-        });
-        newDataTable.buttons().containers().addClass("flex");
-        newDataTable.clear().draw();
-        eventCount++;
-        return newSortBox;
-    }
+            {
+                "type": "num",
+                "targets": 0
+            },
+            {
+                "className": "cell-border",
+                "targets": "_all"
+            },
+            {
+                "visible": true,
+                "targets": ["initVisible", 1]
+            },
+            {
+                "visible": false,
+                "targets": "_all"
+            },
+            {
+                orderable: true,
+                className: "reorder",
+                targets: 0
+            },
+            {
+                orderable: false,
+                targets: "_all"
+            }
+        ],
 
-    function uploadJson(jsonString) {
+        "columns": columnGenerate,
+        "data": [],
+        "dom": "Bt",
+        buttons: [],
+        "order": [
+            [0, "asc"]
+        ],
+        "bSort": true,
+        "scrollX": "400px",
+        "scrollY": "400px",
+        "deferRender": true,
+        "scrollCollapse": true,
+        "rowReorder": {
+            dataSrc: "sequence",
+            update: true,
+            selector: "tr td:not(:first-child)"
+        },
+        serverSide: false,
+        colReorder: true,
+        "paging": false
+    });
+    newDataTable.buttons().containers().addClass("flex");
+    newDataTable.clear().draw();
+    eventCount++;
+    return newSortBox;
+}
+
+function uploadJson(jsonString) {
         //preventDefault stops the page from reloading
         //event.preventDefault();
         $.fn.dataTable
@@ -236,6 +235,7 @@ $(document).ready(function() {
         var row;
         var $rowNode;
         var newSortRow;
+        var subEventList;
         for (event in jsonObj) {
             if (jsonObj.hasOwnProperty(event)) {
                 addGroup();
@@ -246,7 +246,7 @@ $(document).ready(function() {
                     eventTable = parentSortBox.find("table").DataTable();
                     parentSortBox.find(".event-name").val(eventCount);
                     $(".sorter").last().html(eventCount);
-
+                    subEventList = subEvents[i];
                     for (var j in subEventList) {
                         subEventObj = subEventList[j];
                         eventType = subEventObj.eventType;
@@ -299,6 +299,10 @@ $(document).ready(function() {
             }
         }
     }
+
+$(document).ready(function() {
+
+
     /**
      * This function will restore the order in which data was read into a DataTable
      * (for example from an HTML source). Although you can set `dt-api order()` to
@@ -495,7 +499,7 @@ $(document).ready(function() {
         setActive(undefined, undefined,
             $(this), "groupSorter", false);
         setActive(undefined, undefined,
-            $group.children().first(), "sort-box", false);
+            $group.find(".sort-box").first(), "sort-box", false);
         $group.find("table").DataTable().columns.adjust().draw();
         setActive(undefined, undefined,
             $(this).find(".sorter").first(), "sorter", false);
@@ -686,9 +690,11 @@ $(document).ready(function() {
     });
 
     $(document).on("click", ".deleteEventTable", function(e) {
-        var parentTable = $(this).closest("table");
+        var parentTable = $(this)
+                            .closest(".sort-box")
+                            .find("table");
         parentTable.DataTable().destroy();
-        parentTable.remove();
+        $(this).closest(".sort-box").remove();
     });
 
     $(document).on("click", ".select-all", function(e) {
