@@ -121,6 +121,7 @@ td input[type="text"], textarea {
    overflow: auto;
    display:flex;
    flex-direction: column;
+   width: fit-content;
 }
 
 #sort-container{
@@ -134,7 +135,7 @@ td input[type="text"], textarea {
 }
 
 #event-list{
-   min-width: 80px;
+   width: 100px;
    background-color: #53616e;
    border: 0px solid #98a5ab;
    box-shadow: none;
