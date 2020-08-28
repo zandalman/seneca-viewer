@@ -6,7 +6,7 @@ $(document).ready(function () {
     $("#main-tabs").tabs();
     // Initialize buttons
     $("#json-options button").button();
-    $("#remove-json, #view-code, #visualize").button("disable");
+    $("#remove-json, #view-code").button("disable");
     // Initialize json select
     $("#json-select").select2({
         placeholder: {
@@ -30,7 +30,7 @@ $("#json-select").on("select2:select", function (e) {
     $(".channel-label-container").children().remove();
     $("#json-code").empty();
     $("#json-select option").removeClass("selected");
-    $("#remove-json, #view-code, #visualize").button("enable");
+    $("#remove-json, #view-code").button("enable");
     $("#json-select").find("[value=" + selected_json_id + "]").addClass("selected");
     Sijax.request("update_vis", [selected_json_id]);
 });
@@ -62,7 +62,7 @@ $("#view-code").on("click", function () {
 
 // Remove options if no JSON is selected.
 function select_none() {
-    $("#remove-json, #view-code, #visualize").button("disable");
+    $("#remove-json, #view-code").button("disable");
     Sijax.request("update_vis", ["none"]);
 }
 

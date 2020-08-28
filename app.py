@@ -302,19 +302,29 @@ class SijaxCometHandlers(object):
          Args:
              obj_response: Sijax object response.
          """
-         json_id = None
-         # Note to self - update signals if json has been modified!!!
+         json_id = "none"
+         m_time = time.time()
          while True:
+             filename = get_json_options()[json_id]
              if json_id != current_json_id:
                  json_id = current_json_id
                  filename = get_json_options()[json_id]
                  if filename:
+                     obj_response.call("update", ["hide"])
+                     yield obj_response
                      show_signals(obj_response, filename)
-                     obj_response.call("enable_select", ["true"])
+                     obj_response.call("update", ["show"])
                      yield obj_response
                  else:
-                     obj_response.call("enable_select", ["false"])
+                     obj_response.call("update", ["hide"])
                      yield obj_response
+             elif filename and os.path.getmtime(os.path.join(app.config["UPLOAD_FOLDER"], filename)) != m_time:
+                 m_time = os.path.getmtime(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                 obj_response.call("update", ["hide"])
+                 yield obj_response
+                 show_signals(obj_response, filename)
+                 obj_response.call("update", ["show"])
+                 yield obj_response
 
 
 def jsonProcess(config_json):
