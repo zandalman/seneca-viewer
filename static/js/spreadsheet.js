@@ -389,6 +389,7 @@ $(document).ready(function() {
         newTableRow.attr("boxID", value);
     });
 
+    $(".table-row").hide();
     setActive("", "", $(".table-row").eq(0), "table-row", true);
     //initialize first tab as the active one
     $(".tabs-bar .tab").eq(0).addClass("active");
