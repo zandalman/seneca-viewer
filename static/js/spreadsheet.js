@@ -197,7 +197,7 @@ function addEvent() {
         "bSort": true,
         "scrollX": "400px",
         "scrollY": "400px",
-        "deferRender": true,
+        "deferRender": false,
         "scrollCollapse": true,
         "rowReorder": {
             dataSrc: "sequence",
@@ -255,15 +255,16 @@ function uploadJson(jsonString) {
                             .row
                             .add(subEventObj);
                         $rowNode = $(row.node());
-                        $rowNode.attr("ID", eventCount);
-                        eventCount = eventCount + 1;
+                        $rowNode.attr("ID", rowIDCount);
+
 
                         newSortRow = eventTable.row.add(subEventObj);
                         eventTable
                             .cell(newSortRow.node(), 2).data(eventType);
                         eventTable
-                            .cell(newSortRow.node(), 0).data(eventCount);
-                        $(newSortRow.node()).attr("rowID", eventCount);
+                            .cell(newSortRow.node(), 0).data(rowIDCount);
+                        $(newSortRow.node()).attr("rowID", rowIDCount);
+                        rowIDCount = rowIDCount + 1;
                     }
                     eventTable.draw();
                     /*$(".second-tables").find("tr").addClass("updated");
@@ -299,42 +300,40 @@ function uploadJson(jsonString) {
             }
         }
     }
+/**
+ * This function will restore the order in which data was read into a DataTable
+ * (for example from an HTML source). Although you can set `dt-api order()` to
+ * be an empty array (`[]`) in order to prevent sorting during initialisation,
+ * it can sometimes be useful to restore the original order after sorting has
+ * already occurred - which is exactly what this function does.
+ *
+ * @name order.neutral()
+ * @summary Change ordering of the table to its data load order
+ * @author [Allan Jardine](http://datatables.net)
+ * @requires DataTables 1.10+
+ *
+ * @returns {DataTables.Api} DataTables API instance
+ *
+ * @example
+ *    // Return table to the loaded data order
+ *    table.order.neutral().draw();
+ */
+
+$.fn.dataTable.Api.register("order.neutral()", function() {
+    return this.iterator("table", function(s) {
+        s.aaSorting.length = 0;
+        s.aiDisplay.sort(function(a, b) {
+            return a - b;
+        });
+        s.aiDisplayMaster.sort(function(a, b) {
+            return a - b;
+        });
+    });
+});
 
 $(document).ready(function() {
 
-
-    /**
-     * This function will restore the order in which data was read into a DataTable
-     * (for example from an HTML source). Although you can set `dt-api order()` to
-     * be an empty array (`[]`) in order to prevent sorting during initialisation,
-     * it can sometimes be useful to restore the original order after sorting has
-     * already occurred - which is exactly what this function does.
-     *
-     * @name order.neutral()
-     * @summary Change ordering of the table to its data load order
-     * @author [Allan Jardine](http://datatables.net)
-     * @requires DataTables 1.10+
-     *
-     * @returns {DataTables.Api} DataTables API instance
-     *
-     * @example
-     *    // Return table to the loaded data order
-     *    table.order.neutral().draw();
-     */
-
-    $.fn.dataTable.Api.register("order.neutral()", function() {
-        return this.iterator("table", function(s) {
-            s.aaSorting.length = 0;
-            s.aiDisplay.sort(function(a, b) {
-                return a - b;
-            });
-            s.aiDisplayMaster.sort(function(a, b) {
-                return a - b;
-            });
-        });
-    });
-
-
+    $("#event-list").sortable();
     $("#spreadsheet").addClass("active");
     $("#jsonSelector").val($("#target option:first").val());
 
@@ -356,7 +355,6 @@ $(document).ready(function() {
 
     addGroup();
     addEvent();
-    $("#sort").sortable();
 
     //generate the containers + buttons for new tables
     $.each(eventTypes, function(index, value) {
@@ -466,7 +464,7 @@ $(document).ready(function() {
             "scrollCollapse": true,
             rowReorder: false,
             fixedHeader: true,
-            "deferRender": true,
+            "deferRender": false,
             select: {
                 style: "multi",
                 selector: "td:first-child"
@@ -668,8 +666,7 @@ $(document).ready(function() {
     $(document).on("input", ".groupName", function() {
         var $this = $(this);
         var id = $this.closest(".group").attr("groupID");
-        $("groupSorter[groupID=" + id + "]")
-            .children().first().html($this.val());
+        $(".groupSorter[groupID=" + id + "]").children('span').html($this.val());
     });
 
     $(document).on("click", ".second-tables th", function(e) {

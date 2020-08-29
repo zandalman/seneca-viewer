@@ -9,7 +9,7 @@
       "cycles":"set",
       "rectified":"locked",
       "offset":"set",
-      "channels":"locked"
+      "channel":"locked"
    },
    "saw":{
       "eventType":"locked",
@@ -21,7 +21,7 @@
       "cycles":"set",
       "rectified":"locked",
       "offset":"set",
-      "channels":"locked"
+      "channel":"locked"
    },
    "square":{
       "eventType":"locked",
@@ -54,14 +54,14 @@
       "rising":"set",
       "rectified":"locked",
       "falling":"set",
-      "channels":"locked"
+      "channel":"locked"
    },
    "constant":{
       "eventType":"locked",
       "name":"locked",
       "delay":"set",
       "amplitude":"set",
-      "channels":"locked",
+      "channel":"locked",
       "recitified":"locked",
       "offset":"set"
    },
@@ -70,14 +70,14 @@
       "name":"locked",
       "times":"set",
       "value(s)":"set",
-      "channels":"locked"
+      "channel":"locked"
    },
    "function":{
       "eventType":"locked",
       "name":"locked",
       "delay":"set",
       "latex":"set",
-      "channels":"locked"
+      "channel":"locked"
    },
    "ramp":{
       "eventType":"locked",
@@ -87,7 +87,7 @@
       "ramp_time":"set",
       "rectified":"locked",
       "offset":"set",
-      "channels":"locked"
+      "channel":"locked"
    },
    "step":{
 	"eventType":"locked",
@@ -97,7 +97,19 @@
         "steps": "set",
         "rectified": "locked",
         "offset": "set",
-        "channels":"locked"
+        "channel":"locked"
+      },
+  "step_triangle":{
+	"eventType":"locked",
+      "name":"locked",
+      "delay":"set",
+      "phase": "set",
+      "frequency": "set",
+      "amplitude": "set",
+        "steps": "set",
+        "rectified": "locked",
+        "offset": "set",
+        "channel":"locked"
       },
  "Lorentzian":{
 	"eventType":"locked",
@@ -109,7 +121,7 @@
         "height": "set",
         "offset": "set",
         "rectified": "locked",
-        "channels": "locked"
+        "channel": "locked"
       },
       "Gaussian":{
 "eventType":"locked",
@@ -120,9 +132,9 @@
         "height": "set",
         "offset": "set",
         "rectified": "locked",
-        "channels": "locked"
+        "channel": "locked"
       },
-      "Exponential":{
+      "exponential":{
 "eventType":"locked",
       "name":"locked",
         "delay": "set",
@@ -130,9 +142,9 @@
         "decay": "set",
         "offset": "set",
         "rectified": "locked",
-        "channels": "locked"
+        "channel": "locked"
       },
-      "Log":{
+      "log":{
 "eventType":"locked",
       "name":"locked",
         "delay": "set",
@@ -141,9 +153,9 @@
         "value_stop": "set",
         "offset": "set",
         "rectified": "locked",
-        "channels": "locked"
+        "channel": "locked"
       },
-      "Chirp":{
+      "chirp":{
 "eventType":"locked",
       "name":"locked",
         "delay": "set",
@@ -153,22 +165,22 @@
         "type": "locked",
         "offset": "set",
         "rectified": "locked",
-        "channels":"locked"
+        "channel":"locked"
       },
       "AM":{
 "eventType":"locked",
       "name":"locked",
-        "channels": "locked"
+        "channel": "locked"
       },
       "FM":{
         "eventType": "locked",
         "name": "locked",
-        "channels": "locked"
+        "channel": "locked"
       },
       "TTL":{
         "eventType": "locked",	
         "name": "locked",
-        "channels": "locked",
+        "channel": "locked",
         "VCC": "set",
         "VOH": "set",
         "VIH": "set",

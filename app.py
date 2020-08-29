@@ -193,7 +193,7 @@ class SijaxHandlers(object):
 
     def pass_json(self, obj_response, selected_json_id):
         """
-        Returns selected JSON file as string.
+        Calls uploadJson().
 
         Args:
             obj_response: Sijax object response.

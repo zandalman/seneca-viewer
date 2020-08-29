@@ -57,7 +57,7 @@ p{
 
 .config-popup{
     position: absolute;
-    top: 50px;
+    top: 100px;
     left: 0px;
     right: 0px;
     bottom: 0px;
@@ -521,18 +521,15 @@ tr{
     height:30px
 }
 
-.selected{
-    color: red;
-}
 #paramContext{
-    width: 40%;
+    width: 400px;
 }
 #paramSet{
     overflow: auto;
-    min-width: 50%;
+    width: 500px;
 }
 #paramRepo{
-    width: 40%;
+    width: 300px;
     display:flex;
     flex-direction: column;
 }

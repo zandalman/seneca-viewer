@@ -20,6 +20,7 @@ $(document).ready(function(){
                 {"name": "sets"},
                 {"name": "eventType"},
                 {"name": "subEvent"},
+                {"name": "subEvent Group"},
                 {"name": "Event"},
                 {
                     "name": "value",
@@ -38,7 +39,7 @@ $(document).ready(function(){
 				},
 				{
 				    "visible": false,
-				    "targets": [2,3,4]
+				    "targets": [2,3,4,5]
 				},
 				{
 					"className": "cell-border",
@@ -51,31 +52,43 @@ $(document).ready(function(){
 			serverSide: false,
 			"paging": false,
              rowGroup: {
-                dataSrc: [4,3]
+                dataSrc: [5, 4,3]
             },
             colReorder: true,
-            order: [[4]]
+            order: [[5, "asc"]]
 		});
+		var subEvents;
+		var variables;
         var jsonText = $("#jsonDisplay").html();
 		var activeFile= JSON.parse(jsonText);
-        $.each(activeFile, function (index, event) {
-            var subEvents=event["subEvents"];
-            var variables =[];
-            $.each(subEvents, function(index2, subEvent){
-                $.each(subEvent, function(key, value){
-                    var eventType=subEvent["eventType"];
-                    var inputType = configuration["original"][eventType][key];
-                    var newRow = table.row.add([value, key, subEvent["eventType"], subEvent["name"], index, undefined]);
-                    if (key != "eventType" && inputType == "set"){
-                        if (!variables.includes(value)){
-                            var $variableInput = $("<span>" + value + " <input></span>");
-                            $variableInput.attr('varName', value);
-                            $("#paramRepo").append($variableInput);
-                            variables.push(value);
+        $.each(activeFile, function (eventName, eventObj) {
+            subEventLists=eventObj["subEvents"];
+            variables =[];
+            $.each(subEventLists, function(index, subEventList){
+                subEventGroup = eventName + " " + index;
+                $.each(subEventList, function(index2, subEvent){
+                    eventType = subEvent.eventType;
+                    if (subEvent.name == ""){
+                            subEventName = subEventGroup + " " + index2;
                         }
+                     else {
+                        subEventName = subEvent.name;
+                     }
+                    $.each(subEvent, function(key, value){
 
-                        $(newRow.node()).addClass("selected");
-                    }
+                        var inputType = configuration["original"][eventType][key];
+                        var newRow = table.row.add([value, key, eventType, subEventName, subEventGroup, eventName, undefined]);
+                        if (key != "eventType" && inputType == "set"){
+                            if (!variables.includes(value)){
+                                var $variableInput = $("<span>" + value + " <input></span>");
+                                $variableInput.attr('varName', value);
+                                $("#paramRepo").append($variableInput);
+                                variables.push(value);
+                            }
+                            $(newRow.node()).addClass("selected");
+                        }
+                    });
+
                 });
             });
 	    });
@@ -112,7 +125,7 @@ $(document).ready(function(){
                 true : false;
             })
             .every(function ( rowIdx, tableLoop, rowLoop ) {
-                table.cell(rowIdx, "value:name").data(newValue).draw();
+                $(table.cell(rowIdx, "value:name").node()).html(newValue);
                 } );
     });
 
