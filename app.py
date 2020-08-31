@@ -10,12 +10,28 @@ import time
 
 
 def update_code_dialog(obj_response, app, filename):
+    """
+    Update the code dialog.
+
+    Args:
+        obj_response: Sijax object response.
+        app: Sijax app.
+        filename: Name of the selected json file.
+    """
     with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
         for count, line in enumerate(f.readlines()):
             obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
 
 
 def update_temp(app, filename):
+    """
+    Update the temporary json file for the visualizer.
+
+    Args:
+        app: Sijax app.
+        filename: Name of the selected json file.
+            None if no json file is selected.
+    """
     if filename:
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         with open(filepath, "r") as readfile:
@@ -279,11 +295,10 @@ class SijaxHandlers(object):
 
 def show_signals(obj_response):
     """
-    Display signals for the selected JSON file.
+    Display signals from temp.json.
 
     Args:
         obj_response: Sijax object response.
-        filename (str): Filename of the selected JSON file.
     """
     # Read JSON file
     with open(os.path.join(app.root_path, "temp.json"), "r") as f:
