@@ -188,7 +188,7 @@ function init_canvas(block) {
 }
 
 // Initialize a canvas plotting function
-function init_plot_func(block, canvas) {
+function init_plot_func(block, canvas, color) {
     function plot(func, range) {
         var scaled_width = (canvas.width / (range[1] - range[0]));
         var scaled_height = (canvas.height / (range[3] - range[2]));
@@ -207,15 +207,49 @@ function init_plot_func(block, canvas) {
                 canvas.ctx.lineTo(x, y);
             }
         }
-        canvas.ctx.strokeStyle = "limegreen";
+        canvas.ctx.strokeStyle = color;
         canvas.ctx.lineWidth = 3;
         canvas.ctx.stroke();
     }
     return plot;
 }
 
+var defaults = {
+    amplitude: 1,
+    frequency: 100,
+    value: 1,
+    start_frequency: 1,
+    end_frequency: 100,
+    steps: 5,
+    times: [0, 1, 2, 3, 3.5, 4],
+    values: [0, 1, 0, 0.5, -1.5, 0],
+    rectified: "false",
+    width: 0.2,
+    center: 0.5,
+    rising: 0.001,
+    falling: 0.001,
+    std: 0.2,
+    VCC: 5,
+    VOH: 2.7,
+    VIH: 2,
+    VIL: 0.8,
+    VOL: 0.4
+}
+
+function insert_defaults(data) {
+    Object.keys(data).forEach(function(key) {
+        if (Object.keys(defaults).includes(key)) {
+            data[key] = defaults[key];
+        }
+    });
+    return data;
+}
+
 // Initialize a plotting function
-function init_func (data, length) {
+function init_func (data, length, has_values) {
+    if (!has_values) {
+        data = insert_defaults(data);
+    }
     function func(x) {
         var res = 0;
         var amp_sign, value_sign, height_sign, dist_center;
@@ -348,7 +382,8 @@ function init_func (data, length) {
 }
 
 // Create a new block
-function create_block(data, length, event_name) {
+function create_block(data, length, event_name, has_values) {
+    var color = has_values ? "limegreen": "aqua";
     var channel_ids = $("#channel-container").children().map(function() {
         return this.id;
     }).get();
@@ -362,8 +397,8 @@ function create_block(data, length, event_name) {
     var block = init_block(channel, data, length, event_name);
     var canvas = init_canvas(block);
     if (defined_events.includes(data.eventType)) {
-        var plot = init_plot_func(block, canvas);
-        var func = init_func(data, length);
+        var plot = init_plot_func(block, canvas, color);
+        var func = init_func(data, length, has_values);
         plot(func, [0, 1, -1.2, 1.2]);
     } else if (data.eventType === "none") {
         block.addClass("empty");
@@ -373,13 +408,13 @@ function create_block(data, length, event_name) {
             canvas.ctx.moveTo(0, (1 - level / data.VCC) * canvas.height);
             canvas.ctx.lineTo(canvas.width, (1 - level / data.VCC) * canvas.height);
         });
-        canvas.ctx.strokeStyle = "limegreen";
+        canvas.ctx.strokeStyle = color;
         canvas.ctx.lineWidth = 2;
         canvas.ctx.setLineDash([5, 5]);
         canvas.ctx.stroke();
     } else {
         canvas.ctx.font="20px Arial";
-        canvas.ctx.fillStyle = "limegreen";
+        canvas.ctx.fillStyle = color;
         canvas.ctx.textAlign = "center";
         canvas.ctx.fillText(data.eventType, canvas.width / 2, canvas.height / 2);
     }

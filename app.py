@@ -100,13 +100,16 @@ class Event(object):
         channels (list): List of channels for all events.
         event_channels (list): List of channels for current event.
     """
-    def __init__(self, name, data, channels):
+    def __init__(self, name, data, channels, meta):
         self.name = name
         self.subevents = [[{key: to_float(value) for key, value in subevent.items()} for subevent in step] for step in data["subEvents"]]
         self.blocks = {}
         self.length = 0
         self.channels = channels
         self.event_channels = list(dict.fromkeys([subevent["channel"] for step in self.subevents for subevent in step]))
+        self.has_values = False
+        if meta["values"] == "true":
+            self.has_values = True
 
     def calc_block_lengths(self):
         """Calculate the relative length of the signal block for each subevent."""
@@ -139,7 +142,7 @@ class Event(object):
         for step in self.subevents:
             for subevent in step:
                 length = self.blocks[subevent["channel"]].pop(0)
-                obj_response.call("create_block", [subevent, length, self.name])
+                obj_response.call("create_block", [subevent, length, self.name, self.has_values])
 
 
 class SijaxUploadHandlers(object):
@@ -308,7 +311,7 @@ def show_signals(obj_response):
     for channel in channels:
         obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
     for name, data in content.items():
-        event = Event(name, data, channels)
+        event = Event(name, data, channels, json_obj["meta"])
         event.calc_block_lengths()
         obj_response.call("add_event", [event.name, event.length])
         event.create_blocks(obj_response)
