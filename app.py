@@ -11,6 +11,16 @@ import time
 # Initialize global variables
 current_json_id = "none"
 
+def update_temp(file):
+    if file:
+        with open(file, "r") as readfile:
+            with open("temp.json", "w") as writefile:
+                for line in readfile:
+                    writefile.write(line)
+    else:
+        with open("temp.json", "r+") as writefile:
+            writefile.truncate(0)
+
 def gen_id(marker, seed):
     """
     Generate a random id for use as a unique HTML id.
