@@ -303,10 +303,11 @@ def show_signals(obj_response):
     # Read JSON file
     with open(os.path.join(app.root_path, "temp.json"), "r") as f:
         json_obj = json.load(f, object_pairs_hook=OrderedDict)
-    channels = list(dict.fromkeys([subevent["channel"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
+    content = json_obj["content"]
+    channels = list(dict.fromkeys([subevent["channel"] for event_data in content.values() for step in event_data["subEvents"] for subevent in step]))
     for channel in channels:
         obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
-    for name, data in json_obj.items():
+    for name, data in content.items():
         event = Event(name, data, channels)
         event.calc_block_lengths()
         obj_response.call("add_event", [event.name, event.length])
