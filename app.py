@@ -8,17 +8,22 @@ import uuid
 from collections import OrderedDict
 import time
 
-# Initialize global variables
-current_json_id = "none"
 
-def update_temp(file):
-    if file:
-        with open(file, "r") as readfile:
-            with open("temp.json", "w") as writefile:
+def update_code_dialog(obj_response, app, filename):
+    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+        for count, line in enumerate(f.readlines()):
+            obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
+
+
+def update_temp(app, filename):
+    if filename:
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        with open(filepath, "r") as readfile:
+            with open(os.path.join(app.root_path, "temp.json"), "w") as writefile:
                 for line in readfile:
                     writefile.write(line)
     else:
-        with open("temp.json", "r+") as writefile:
+        with open(os.path.join(app.root_path, "temp.json"), "r+") as writefile:
             writefile.truncate(0)
 
 def gen_id(marker, seed):
@@ -225,13 +230,10 @@ class SijaxHandlers(object):
             obj_response: Sijax object response.
             selected_json_id (str): Id of the selected JSON file.
         """
-        global current_json_id
-        current_json_id = selected_json_id
         filename = get_json_options()[selected_json_id]
+        update_temp(self.app, filename)
         if filename:
-            with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
-                for count, line in enumerate(f.readlines()):
-                    obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
+            update_code_dialog(obj_response, self.app, filename)
 
     def save_json(self, obj_response, logic_json, file_name):
         '''
@@ -275,7 +277,7 @@ class SijaxHandlers(object):
                 print(err)
 
 
-def show_signals(obj_response, filename):
+def show_signals(obj_response):
     """
     Display signals for the selected JSON file.
 
@@ -284,7 +286,7 @@ def show_signals(obj_response, filename):
         filename (str): Filename of the selected JSON file.
     """
     # Read JSON file
-    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+    with open(os.path.join(app.root_path, "temp.json"), "r") as f:
         json_obj = json.load(f, object_pairs_hook=OrderedDict)
     channels = list(dict.fromkeys([subevent["channel"] for event_data in json_obj.values() for step in event_data["subEvents"] for subevent in step]))
     for channel in channels:
@@ -312,29 +314,20 @@ class SijaxCometHandlers(object):
          Args:
              obj_response: Sijax object response.
          """
-         json_id = "none"
-         m_time = time.time()
+         mtime = time.time()
          while True:
-             filename = get_json_options()[json_id]
-             if json_id != current_json_id:
-                 json_id = current_json_id
-                 filename = get_json_options()[json_id]
-                 if filename:
+             filepath = os.path.join(self.app.root_path, "temp.json")
+             if os.path.getmtime(filepath) != mtime:
+                 mtime = os.path.getmtime(filepath)
+                 if os.path.getsize(filepath) == 0:
                      obj_response.call("update", ["hide"])
-                     yield obj_response
-                     show_signals(obj_response, filename)
-                     obj_response.call("update", ["show"])
                      yield obj_response
                  else:
                      obj_response.call("update", ["hide"])
                      yield obj_response
-             elif filename and os.path.getmtime(os.path.join(app.config["UPLOAD_FOLDER"], filename)) != m_time:
-                 m_time = os.path.getmtime(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-                 obj_response.call("update", ["hide"])
-                 yield obj_response
-                 show_signals(obj_response, filename)
-                 obj_response.call("update", ["show"])
-                 yield obj_response
+                     show_signals(obj_response)
+                     obj_response.call("update", ["show"])
+                     yield obj_response
 
 
 def jsonProcess(config_json):
@@ -396,8 +389,9 @@ def create_app():
 
         savedFiles = [f for f in os.listdir(app.config["UPLOAD_FOLDER"]) if
                       os.path.isfile(os.path.join(app.config["UPLOAD_FOLDER"], f))]
-
         event_config = jsonProcess(config_json)
+
+        update_temp(app, None)
 
         return render_template("main.html",
                                form_init_js=form_init_js,
