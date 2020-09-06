@@ -429,6 +429,14 @@ $.fn.dataTable.Api.register("order.neutral()", function() {
 
 $(document).ready(function() {
 
+    Mousetrap.bind("ctrl+a", function(e) {
+      updateTables();
+    });
+
+    Mousetrap.bind("ctrl+q", function(e){
+        $('table').filter(".display").find('input').eq(1).focus();
+    });
+
     $("#event-list").sortable();
     $("#spreadsheet").addClass("active");
     $("#jsonSelector").val($("#target option:first").val());
@@ -601,12 +609,6 @@ $(document).ready(function() {
 
 
     $(document).on("click", ".addEvent", addEvent);
-
-
-
-    Mousetrap.bind('ctrl+a', function(e) {
-      updateTables();
-    });
 
     $(".save").on("click", function(e) {
         validSubmit = true;
