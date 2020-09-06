@@ -254,17 +254,18 @@ class SijaxHandlers(object):
         if filename:
             update_code_dialog(obj_response, self.app, filename)
 
-    def save_json(self, obj_response, logic_json, file_name):
+    def save_json(self, obj_response, logic_json, file_name, temp):
         '''
         Saves #spreadsheet logic to a JSON file in "UPLOAD_FOLDER"
 
                 Parameters:
                         logic_obj (application/json): #spreadsheet JSON file output
-                        file_name (String): user inputted file name
+                        file_name (String): file_name
+                        temp (bool): true if saving to temp.json
         '''
         #if file_name in os.listdir(app.config["UPLOAD_FOLDER"]):
         #    obj_response.alert("json file '%s' exists. Do you wish to overwrite?" % filename)
-        data = logic_json
+        data = logic_json["content"]
         file_name = file_name + ".json"
         groups = data.keys()
         #the columns (keys/event aspects) could also be loaded from config_file
@@ -286,12 +287,18 @@ class SijaxHandlers(object):
                         frmtSubEvent[key] = subEvent[columnIndex]
                     eventList.append(frmtSubEvent)
                 logic[group]["subEvents"].append(eventList)
-        with open(os.path.join(app.config["UPLOAD_FOLDER"], file_name), 'w') as file:
+        logic_json["content"] = logic
+        if temp:
+            file_folder = app.config["TEMP_FOLDER"]
+        if not temp:
+            file_folder = app.config["UPLOAD_FOLDER"]
+        with open(os.path.join(file_folder, file_name), 'w') as file:
             try:
-                json.dump(logic, file, indent=2)
-                if file_name not in os.listdir(app.config["UPLOAD_FOLDER"]):
-                    obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
-                    obj_response.call("refresh_json_options")
+                json.dump(logic_json, file, indent=2)
+                if not temp:
+                    if file_name not in os.listdir(app.config["UPLOAD_FOLDER"]):
+                        obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
+                        obj_response.call("refresh_json_options")
             except Exception as err:
                 print(err)
 
@@ -380,7 +387,7 @@ def create_app():
         SIJAX_STATIC_PATH=os.path.join('.', os.path.dirname(__file__), "static/js/sijax/"),
         SIJAX_JSON_URI="/static/js/sijax/json2.js",
         UPLOAD_FOLDER=os.path.join(app.root_path, "uploads"),
-        JSON_FILES_PATH = os.path.join(app.root_path, "json_files")
+        TEMP_FOLDER= app.root_path
     )
     app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
     flask_sijax.Sijax(app)  # initialize flask-sijax

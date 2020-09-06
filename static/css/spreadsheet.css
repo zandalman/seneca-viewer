@@ -206,6 +206,9 @@ span{
     border: none;
 }
 
+.eventList{
+    display: none;
+}
 .groupName{
     margin-bottom: 5px;
 }
@@ -264,7 +267,7 @@ span{
 }
 
 .sort-box.active{
-    background-color: #edf6ff;
+    background-color: #90d1e0;
 }
 
 .sort-box th{
@@ -511,6 +514,11 @@ table.dataTable thead th {
 .blue input {
     background-color: #dbf6ff !important;
 }
+
+.tab.blue{
+    background-color: #7fbbc9;
+}
+
 
 td select{
     width: 100%;

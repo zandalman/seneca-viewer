@@ -109,7 +109,7 @@ function addActive(attribute, value, $node, elementClass) {
 function addGroup() {
     var newSorter = $("<ul class='groupSorter'><span> Event " +
         groupCount +
-        "</span></ul>");
+        "</span><div class='eventList'></div></ul>");
     newSorter.attr("groupID", groupCount);
     newSorter.appendTo($("#event-list"));
     setActive("", "", newSorter, "groupSorter", false);
@@ -136,7 +136,9 @@ function addEvent() {
         "<thead><tr></tr></thead></table>");
     newSortBox.appendTo($(".group").filter(".active"));
     newSortBox.attr("boxID", eventCount);
-
+    var $newSorter = $("<li></li>");
+    $newSorter.attr("eventID", eventCount);
+    $(".groupSorter").filter(".active").find(".eventList").append($newSorter);
     var $deleteButton = $("<div class='deleteEventTable'>X</div>");
 
     newSortBox.children(".flex").append($deleteButton);
@@ -227,7 +229,7 @@ function uploadJson(jsonString) {
         $(".groupSorter").remove();
         eventCount = 0;
         var rowIDCount = 0;
-        var jsonObj = JSON.parse(jsonString);
+        var jsonObj = JSON.parse(jsonString).content;
         var parentSortBox;
         var subEvents;
         var subEventObj;
@@ -239,7 +241,7 @@ function uploadJson(jsonString) {
         for (event in jsonObj) {
             if (jsonObj.hasOwnProperty(event)) {
                 addGroup();
-                $(".groupSorter").last().html(event);
+                $(".groupSorter").last().children("span").html(event);
                 subEvents = jsonObj[event].subEvents;
                 for (var i in subEvents) {
                     parentSortBox = addEvent();
@@ -300,6 +302,100 @@ function uploadJson(jsonString) {
             }
         }
     }
+var groupsMerged = {};
+var dataSubmit = {};
+var validSubmit = true;
+
+function tableParse(){
+    $.each($("#event-list").find(".groupSorter"), function(index, group) {
+        var groupName = $(this).find("span").html();
+        var eventList = $(this).find("li");
+        var groupData = [];
+        dataSubmit = {};
+        $.each(eventList, function(index, value) {
+            var id = $(this).attr("eventID");
+            var $table = $("table[sortTableID=" + id + "]").DataTable();
+            data = $table.buttons.exportData();
+            groupData.push(JSON.stringify(data));
+        });
+        groupsMerged[groupName] = groupData;
+    });
+    dataSubmit["content"] = groupsMerged;
+    dataSubmit["meta"] = {"values": "false"};
+    return dataSubmit;
+}
+
+function updateTemp(){
+     Sijax.request("save_json", [tableParse(), 'temp', true]);
+}
+
+function updateTables(){
+    var activeTables = $(".table-row").filter(".active").has(".updated");
+        var eventTable = $(".sort-box")
+            .filter(".active")
+            .find("table")
+            .DataTable();
+        //transfer the updated rows' data into sorter table
+        $.each(activeTables, function(index, tableRow) {
+            parentTable = $(this).find("table").DataTable();
+            parentTable
+                .rows(".updated")
+                .every(function(rowIdx, tableLoop, rowLoop) {
+                    var tableType = parentTable.table().node().id;
+                    if (parentTable.cell(rowIdx, "name:name").data() != "") {
+                        //criteria for getting into the sorter is having a name
+                        $(this.node()).removeClass("updated");
+                        //the row ID links the row to sorter row
+                        var rowID = $(parentTable.row(rowIdx).node())
+                            .attr("ID");
+                        var nameData = this.data().name;
+                        var tableID = parentTable.table().node().id;
+
+                        if ($(this.node()).hasClass("saved")) {
+                            $("option[value=" + rowID + "]").html(nameData);
+                        }
+
+                        //if there is no sorter element corresponding to the row, make one
+                        if (!$("[rowID=" + rowID + "]").length) {
+                            $(this.node()).addClass("logged");
+                            var newSortRow = eventTable.row.add(this.data());
+                            eventTable
+                                .cell(newSortRow.node(), 2)
+                                .data(tableID)
+                                .draw();
+                            eventTable
+                                .cell(newSortRow.node(), 0)
+                                .data(rowID)
+                                .draw();
+                            $(newSortRow.node()).attr("rowID", rowID);
+                            newSortRow.draw();
+
+                            //else, update the existing sorter element
+                        } else if ($("[rowID=" + rowID + "]").length) {
+                            var sortTable = $("[rowID=" + rowID + "]")
+                                .closest("table")
+                                .DataTable();
+                            var sortRow = sortTable
+                                .row($("[rowID=" + rowID + "]"));
+                            sortRow.data(this.data()).draw();
+                            sortTable
+                                .cell(sortRow.node(), 0)
+                                .data(rowID)
+                                .draw();
+                            sortTable
+                                .cell(sortRow.node(), 2)
+                                .data(tableID)
+                                .draw();
+                            $(sortRow.node()).attr("rowID", rowID);
+
+                        }
+                    }
+                });
+            parentTable.draw();
+        });
+        updateTemp();
+        console.log('updated');
+}
 /**
  * This function will restore the order in which data was read into a DataTable
  * (for example from an HTML source). Although you can set `dt-api order()` to
@@ -506,35 +602,25 @@ $(document).ready(function() {
 
     $(document).on("click", ".addEvent", addEvent);
 
+
+
+    Mousetrap.bind('ctrl+a', function(e) {
+      updateTables();
+    });
+
     $(".save").on("click", function(e) {
-        var validSubmit = true;
+        validSubmit = true;
         if ($("#fileName").val() == "") {
             alert("missing file name");
             validSubmit = false;
             return false;
         }
-
-        var allTables = $(".sort-box").find("table");
-        var groupsMerged = {};
-        var groupList = $("#event-list").find(".groupSorter");
-
-        $.each(groupList, function(index, group) {
-            var groupName = $(this).find("span").html();
-            var eventList = $(this).find("li");
-            var groupData = [];
-            $.each(eventList, function(index, value) {
-                var id = $(this).attr("eventID");
-                var $sortBox = $(".sort-box[boxID=" + id + "]");
-                var $table = $("table[sortTableID=" + id + "]").DataTable();
-                data = $table.buttons.exportData();
-                groupData.push(JSON.stringify(data));
-            });
-            groupsMerged[groupName] = groupData;
-        });
         if (validSubmit == true) {
-            Sijax.request("save_json", [groupsMerged, $("#fileName").val()]);
+            Sijax.request("save_json", [tableParse(), $("#fileName").val(), false]);
         }
     });
+
+
 
     $(document).on("click", "#toggleSorter", function(e) {
         $("#event-list").toggle();
@@ -558,6 +644,8 @@ $(document).ready(function() {
         }
         parentTable.draw();
     });
+
+    $(".add-rows").eq(0).click();
 
     $(".tabs-bar").on("click", "span", function() {
         var $parentTab = $(this).closest(".tab");
@@ -614,12 +702,9 @@ $(document).ready(function() {
         mouseenter: function() {
             var rowID = $(this).closest("tr").attr("rowID");
             $("#" + rowID).addClass("blue");
-            if (true) {
-                if (!$("#" + rowID).closest(".table-row").hasClass("active")) {
-                    var boxID = $("[rowID=" + rowID + "]")
-                        .closest(".table-row").attr("boxID");
-                    $(".tab[tabID=" + boxID + "]").addClass("blue");
-                }
+            if (!$("#" + rowID).closest(".table-row").hasClass("active")) {
+                var boxID = $("#" + rowID).closest(".table-row").attr("boxID");
+                $(".tab[tabID=" + boxID + "]").addClass("blue");
             }
         },
         mouseleave: function() {
@@ -627,9 +712,8 @@ $(document).ready(function() {
             $("#" + rowID).removeClass("blue");
             if (true) {
                 if (!$("#" + rowID).closest(".table-row").hasClass("active")) {
-                    var boxID = $("[rowID=" + rowID + "]")
-                        .closest(".table-row").attr("boxID");
-                    $(".tab[tabID=" + boxID + "]").removeClass("blue");
+                    var boxID = $("#" + rowID).closest(".table-row").attr("boxID");
+                $(".tab[tabID=" + boxID + "]").removeClass("blue");
                 }
             }
         }
@@ -793,71 +877,7 @@ $(document).ready(function() {
     });
 
     $(document).on("click", ".update", function(e) {
-        var activeTables = $(".table-row").filter(".active").has(".updated");
-        var eventTable = $(".sort-box")
-            .filter(".active")
-            .find("table")
-            .DataTable();
-        //transfer the updated rows' data into sorter table
-        $.each(activeTables, function(index, tableRow) {
-            parentTable = $(this).find("table").DataTable();
-            parentTable
-                .rows(".updated")
-                .every(function(rowIdx, tableLoop, rowLoop) {
-                    var tableType = parentTable.table().node().id;
-                    if (parentTable.cell(rowIdx, "name:name").data() != "") {
-                        //criteria for getting into the sorter is having a name
-                        $(this.node()).removeClass("updated");
-                        //the row ID links the row to sorter row
-                        var rowID = $(parentTable.row(rowIdx).node())
-                            .attr("ID");
-                        var nameData = this.data().name;
-                        var tableID = parentTable.table().node().id;
-
-                        if ($(this.node()).hasClass("saved")) {
-                            $("option[value=" + rowID + "]").html(nameData);
-                        }
-
-                        //if there is no sorter element corresponding to the row, make one
-                        if (!$("[rowID=" + rowID + "]").length) {
-                            $(this.node()).addClass("logged");
-                            var newSortRow = eventTable.row.add(this.data());
-                            eventTable
-                                .cell(newSortRow.node(), 2)
-                                .data(tableID)
-                                .draw();
-                            console.log(tableID);
-                            console.log(rowID);
-                            eventTable
-                                .cell(newSortRow.node(), 0)
-                                .data(rowID)
-                                .draw();
-                            $(newSortRow.node()).attr("rowID", rowID);
-                            newSortRow.draw();
-
-                            //else, update the existing sorter element
-                        } else if ($("[rowID=" + rowID + "]").length) {
-                            var sortTable = $("[rowID=" + rowID + "]")
-                                .closest("table")
-                                .DataTable();
-                            var sortRow = sortTable
-                                .row($("[rowID=" + rowID + "]"));
-                            sortRow.data(this.data()).draw();
-                            sortTable
-                                .cell(sortRow.node(), 0)
-                                .data(rowID)
-                                .draw();
-                            sortTable
-                                .cell(sortRow.node(), 2)
-                                .data(tableID)
-                                .draw();
-                            $(sortRow.node()).attr("rowID", rowID);
-
-                        }
-                    }
-                });
-            parentTable.draw();
-        });
+        updateTables();
     });
 
     $(document).on("click", ".upload", function(e) {
