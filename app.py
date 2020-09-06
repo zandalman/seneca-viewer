@@ -225,9 +225,9 @@ class SijaxHandlers(object):
         obj_response.html("#jsonDisplay", textCallback)
         json_file.close()
 
-    def pass_json(self, obj_response, selected_json_id):
+    def pass_json(self, obj_response, selected_json_id, page_name):
         """
-        Calls uploadJson().
+        Calls uploadJson() to upload selected json file to #spreadsheet or #parameter.
 
         Args:
             obj_response: Sijax object response.
@@ -235,11 +235,15 @@ class SijaxHandlers(object):
         """
         global current_json_id
         current_json_id = selected_json_id
-        filename = get_json_options()[selected_json_id]
-        if filename:
-            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename), "r") as json_file:
-                json_string =  json.dumps(json.load(json_file))
-                obj_response.call('uploadJson', [json_string])
+        if current_json_id:
+            filename = get_json_options()[selected_json_id]
+            if filename:
+                with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename), "r") as json_file:
+                    json_string = json.dumps(json.load(json_file))
+                    if page_name == "spreadsheet":
+                        obj_response.call('uploadJson', [json_string])
+                    if page_name == "parameter":
+                        obj_response.call('uploadJsonTemplate', [json_string])
 
     def update_vis(self, obj_response, selected_json_id):
         """

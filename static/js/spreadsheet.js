@@ -884,7 +884,7 @@ $(document).ready(function() {
 
     $(document).on("click", ".upload", function(e) {
         if ($("#json-select").val() != null) {
-            Sijax.request("pass_json", [$("#json-select").val()]);
+            Sijax.request("pass_json", [$("#json-select").val(), "spreadsheet"]);
         }
     });
 

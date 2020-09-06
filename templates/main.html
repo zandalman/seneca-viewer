@@ -86,12 +86,6 @@
                     </p>
                     <p> Current file path:</p>
                     <p> {{ file_folder }}</p>
-                    <p>Select file</p>
-                    <select id="jsonSelector" onchange="Sijax.request('get_json', [this.value]);">
-                        {% for item in files %}
-                        <option>{{ item }}</option>
-                        {% endfor %}
-                    </select>
                     <pre id="jsonDisplay"></pre>
                 </div>
                 <div class="inner-element" id="paramSet">

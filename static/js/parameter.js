@@ -1,11 +1,9 @@
-$(document).ready(function(){
-    //hide the table controls until data is supplied and the DataTable is generated
-    $("#table").find('th').hide();
-    $("#paramSearch").hide();
-    $("#clearAll").hide();
+/*
+ *Uploads json to variable setter
+ *@param {String} logicJson json file contents
+ */
 
-
-    $(document).on('click', "#generate", function(e){
+function uploadJsonTemplate(logicJson){
        //remove existing table elements and parameter lists
        $('#table').DataTable().destroy();
        $('#table').find('tbody').remove();
@@ -59,9 +57,8 @@ $(document).ready(function(){
 		});
 		var subEvents;
 		var variables;
-        var jsonText = $("#jsonDisplay").html();
-		var activeFile= JSON.parse(jsonText);
-        $.each(activeFile, function (eventName, eventObj) {
+		var data= JSON.parse(logicJson).content;
+        $.each(data, function (eventName, eventObj) {
             subEventLists=eventObj["subEvents"];
             variables =[];
             $.each(subEventLists, function(index, subEventList){
@@ -93,8 +90,18 @@ $(document).ready(function(){
             });
 	    });
         table.draw();
-    });
+}
 
+$(document).ready(function(){
+    //hide the table controls until data is supplied and the DataTable is generated
+    $("#table").find('th').hide();
+    $("#paramSearch").hide();
+    $("#clearAll").hide();
+
+
+    $(document).on('click', "#generate", function(e){
+        Sijax.request("pass_json", [$("#json-select").val(), "parameter"]);
+    });
 
     $(document).on('input', "#paramSearch", function(e){
          var table=$('#table').DataTable();
