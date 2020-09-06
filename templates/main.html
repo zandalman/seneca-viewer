@@ -27,47 +27,60 @@
         <div id="spreadsheet" style="display:hidden;">
             <div class="flex">
                 <div class="inner-element" id="event-list" style="text-align:center;"><span>drag + drop</span></div>
-
-                <div class="inner-element" id="sort-container">
-                    <div class="menu-bar">
-                        <button class="upload" style="background-color: white;">upload selected</button>
-                        <button class="config">help</button>
-                        <button id="toggleSorter">toggle sorter</button>
-                        <button class="save">save JSON</button>
-                    </div>
-                    <div class="config-popup" style="display:none">
-                        <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
-                        <div style="text-align: left; margin-left: 30px; margin-bottom: 10px;">keyboard shortcuts:
-                            <li>ctrl + a: update</li>
-                            <li>ctrl + q: focus on spreadsheet </li>
-                        </div>
+                <div class="colFlex">
+                    <div class="inner-element" style="width: 100%;" id="sort-container">
                         <div class="menu-bar">
-                            <button>edit file</button>
-                            <button>choose new file</button>
+                            <button class="upload" style="background-color: white;">upload selected</button>
+                            <button class="config">help</button>
+                            <button id="toggleSorter">toggle sorter</button>
+                            <button class="save">save JSON</button>
+                            <button class="all">toggle all</button>
+                            <button class="addGroup">add event</button>
+                            <button class="addEvent">add event subgroup</button>
+                            <input id='upload-json' type='file' hidden/>
                         </div>
+                        <div class="config-popup" style="display:none">
+                            <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
+                            <div style="text-align: left; margin-left: 30px; margin-bottom: 10px;">keyboard shortcuts:
+                                <li>alt + s: update</li>
+                                <li>alt + a: add sub-event box to event</li>
+                                <li>alt + r: add event </li>
+                                <li>alt + c: focus on spreadsheet </li>
+                                <li>alt + w: tab through event types </li>
+                                <li>alt + q: tab through sub-event boxes </li>
+                            </div>
+                            <div class="menu-bar">
+                                <button>edit file</button>
+                                <button>choose new file</button>
+                            </div>
+                        </div>
+                        <div class="hoz-context">
+                            <input type="text" id="fileName" placeholder="file name" style="height:15px;">
+                        </div>
+                        <div id="sort-boxes"></div>
                     </div>
-                    <div class="menu-bar">
-                        <button class="all">toggle all</button>
-                        <button class="addGroup">add event</button>
-                        <button class="addEvent">add event subgroup</button>
-                        <input id='upload-json' type='file' hidden/>
-                    </div>
-                    <div class="hoz-context">
-                        <input type="text" id="fileName" placeholder="file name" style="height:15px;">
-                    </div>
-                    <div id="sort-boxes"></div>
-                </div>
-                <div class="table-box">
+                     <div class="table-box" style="width: 100%;">
                     <div class="menu-bar">
                         <button class="all-tabs" style="display:none;">all tables</button>
                         <button class="update">update</button>
                         <button class="clear-selected">clear selection</button>
                         <button class="delete-selected">delete selected</button>
+                        <button class='save-selected'>save selected</button>
+                        <button class='fill-selected'>"fill selected</button>
+                        <button class='fill-options'>
+                            <select class='fill-selector'>
+                                <option disabled selected>fill options</option>
+                            </select>
+                        </button>
+                        <button class='add-rows'>add rows</button>
+
                     </div>
                     <div class="second-tables">
                         <!-- dynamic tables here -->
                     </div>
                 </div>
+                </div>
+
                 <div class="inner-element" id="eventTableSelector">
                     <div class="tabs-bar"></div>
                     <div class="parameter-box" style="display:none;">

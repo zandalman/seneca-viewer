@@ -116,8 +116,7 @@ function addGroup() {
     var newGroup = $("<div class='group'></div>");
     newGroup.appendTo("#sort-boxes");
     newGroup.attr("groupID", groupCount);
-    newGroup.html("<div class='flex'>" +
-        "<input class='groupName' placeholder='event name'></div>");
+    newGroup.html("<input class='groupName' placeholder='event name'></div>");
     setActive(undefined, undefined, newGroup, "group", true);
     groupCount++;
     return newGroup;
@@ -130,7 +129,7 @@ function addGroup() {
  */
 function addEvent() {
     var newSortBox = $("<div class='sort-box'>" +
-        "<div class='flex' width='100%'></div>" +
+        "<div class='flex' style='height: 15px'></div>" +
         "</div>");
     var newTable = $("<table class='display width='100%'>" +
         "<thead><tr></tr></thead></table>");
@@ -429,13 +428,41 @@ $.fn.dataTable.Api.register("order.neutral()", function() {
 
 $(document).ready(function() {
 
-    Mousetrap.bind("ctrl+a", function(e) {
+    Mousetrap.bind("alt+s", function(e) {
       updateTables();
-    });
+    })
 
-    Mousetrap.bind("ctrl+q", function(e){
+    Mousetrap.bind("alt+c", function(e){
         $('table').filter(".display").find('input').eq(1).focus();
-    });
+    })
+
+    Mousetrap.bind("alt+q", function(e){
+        index = $(".sort-box").index($(".sort-box").filter(".active"));
+        length = $('.sort-box:visible').length;
+        setActive('','', $(".sort-box:visible").eq((index + 1 ) % length), "sort-box", false);
+    })
+
+    Mousetrap.bind("alt+w", function(e){
+        index = $(".tab").index($(".tab").filter(".active"));
+        setActive('','', $(".tab").eq((index + 1 ) % $(".table-row").length), "tab", false);
+        activeTable = setActive("", "", $(".table-row").eq((index +1) %$(".table-row").length), "table-row", true);
+        activeTable.find("table").DataTable().columns.adjust().draw();
+    })
+
+      Mousetrap.bind("alt+a", function(e){
+        addEvent();
+    })
+
+    Mousetrap.bind("alt+r", function(e){
+        addGroup();
+        addEvent();
+    })
+
+
+    Mousetrap.bind("esc", function(e){
+        $('.focus').blur();
+    })
+
 
     $("#event-list").sortable();
     $("#spreadsheet").addClass("active");
@@ -479,7 +506,7 @@ $(document).ready(function() {
             "<option disabled selected>fill options</option></select>" +
             "</button>");
         tableButtons.append("<button class='add-rows'>add rows</button>");
-        tableButtons.appendTo(newTableRow);
+        //tableButtons.appendTo(newTableRow);
 
         newTableRow.append("<div class='row-subset'>" +
             "<table class='display' width='100%'></table></div>");
@@ -584,15 +611,17 @@ $(document).ready(function() {
         });
         $("div." + type).html("<div style='text-align:right;'>" + type +
             "</div>");
-                //the dataTable initially has to be supplied with a data format
-        //now, clear the data
-        //newTable.row.add(events.find(event => event.eventType===type)).draw();
+        var tableRow = $("#"+type).closest(".table-row");
+        tableRow.find(".dataTables_filter").css("margin-bottom", "5px");
+        tableRow.find(".dataTables_filter").insertBefore(tableRow.find(".dataTables_scroll"));
     });
 
     $(document).on("click", ".addGroup", function(e) {
         addGroup();
         addEvent();
     });
+
+
 
     $(document).on("click", ".groupSorter", function(e) {
         var groupIDVal = $(this).attr("groupID");
@@ -636,8 +665,7 @@ $(document).ready(function() {
 
 
     $(document).on("click", ".add-rows", function(e) {
-        var parentTable = $(this).closest(".table-row")
-            .find("table").DataTable();
+        var parentTable = $(".table-row").filter(".active").find("table").DataTable();
         for (var i = 0; i < 5; i++) {
             var newRow = parentTable.row.add([]).draw();
             parentTable.cell(newRow, 0).data(rowIDCount);
@@ -796,13 +824,16 @@ $(document).ready(function() {
             var parentTable = $(this).find("table").DataTable();
             parentTable.rows(".selected")
                 .every(function(rowIdx, tableLoop, rowLoop) {
-                    var rowID = parentTableRow.find($(".fill-selector")).val();
-                    this.data(parentTable.row($("#" + rowID)).data()).draw();
+                    var rowID = $(".fill-selector").val();
+                    var tableID = $(".table-row").filter(".active").attr("boxID");
+                    this.data($("#"+tableID).DataTable().row($("#" + rowID)).data()).draw();
                 });
             $(parentTable.rows(".selected").nodes()).addClass("updated");
             $(parentTable.rows(".selected").nodes()).removeClass("selected");
         });
     });
+
+
 
     $(document).on("click", ".save-selected", function(e) {
         var activeTables = $(".table-row").filter(".active").has(".selected");
@@ -819,8 +850,7 @@ $(document).ready(function() {
                         var $newFillOption = $("<option></option>");
                         $newFillOption.val(rowID);
                         $newFillOption.html(this.data().name);
-                        $newFillOption.appendTo($cell.closest(".table-row")
-                            .find("select"));
+                        $newFillOption.appendTo($(".fill-selector"));
                     }
 
                 });

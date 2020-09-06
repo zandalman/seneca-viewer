@@ -8,7 +8,7 @@
     display: flex;
     flex-direction: column;
     font-family: Roboto;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 p{
@@ -90,7 +90,7 @@ td input[type="text"], textarea {
 .inner-element{
   position: relative;
   max-height: 100%;
-  width: auto;
+  flex-grow: 1;
   margin-right: 0px;
   margin-left: auto;
   text-align: center;
@@ -126,6 +126,7 @@ td input[type="text"], textarea {
 
 #sort-container{
     width: 40%;
+    height: 50%;
     margin-left: 0px;
     border: 1px none black;
     margin-right: 0px;
@@ -159,7 +160,7 @@ td input[type="text"], textarea {
 }
 
 #sort-boxes{
-    max-height: 100%;
+    height: 100%;
     overflow: auto;
 }
 
@@ -204,6 +205,9 @@ span{
 .groupName, .event-name{
     background-color: transparent;
     border: none;
+    position: absolute;
+    top: 50px;
+    right: 50px;
 }
 
 .eventList{
@@ -211,8 +215,14 @@ span{
 }
 .groupName{
     margin-bottom: 5px;
+    width: 100px;
 }
 
+.group{
+    display:flex;
+    flex-direction: row;
+    height: 100%;
+}
 .menu-bar{
     display: flex;
     flex-direction: row;
@@ -242,8 +252,8 @@ span{
     background-color: white;
     border: 1px solid #99c7e0;
     border-radius: 0px;
-    margin-bottom: 10px;
-    width: 99%;
+    margin-bottom: 5px;
+    margin-right: 5px;
 }
 
 .sort-menu{
@@ -349,7 +359,6 @@ ul{
 .sort-box table {
     border: 1px solid #ddd;
     -webkit-user-modify: read-only;
-    width: 100% !important;
 }
 
 .sort-box table td.readonly{
@@ -399,10 +408,14 @@ ul{
     text-align: right;
 }
 
+table.dataTable thead th, table.dataTable thead td{
+    padding: 5px 10px;
+}
+
 .table-box{
     width: 50%;
     position: relative;
-    height: 90%;
+    height: 50%;
     margin-top: 0px;
     overflow-y: hidden;
     resize: horizontal;
@@ -443,7 +456,7 @@ ul{
 }
 
 #spreadsheet button, #parameter button{
-    width: 100%;
+    min-width: 100px;
     font-family: Roboto;
     background-color: #dceef7;
     box-sizing: border-box;
@@ -481,7 +494,6 @@ table.dataTable td {
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
   box-sizing: content-box;
-  font-size: 13px;
 }
 
 .table-row thead{
@@ -495,7 +507,7 @@ table.dataTable td {
 
 table.dataTable thead th {
     font-weight: normal;
-    width: 100px;
+    width: 50px;
 }
 
 
@@ -530,7 +542,7 @@ tr{
 }
 
 #paramContext{
-    width: 400px;
+    width: 200px;
 }
 #paramSet{
     overflow: auto;
@@ -546,9 +558,17 @@ tr{
     width: 50px;
 }
 
+.colFlex{
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1000;
+    width: 80%;
+    height: 100%;
+}
 .pList{
     display: flex;
     flex-direction: column;
     height: 90%;
     overflow: auto;
 }
+
