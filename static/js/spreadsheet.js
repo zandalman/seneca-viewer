@@ -429,6 +429,7 @@ $.fn.dataTable.Api.register("order.neutral()", function() {
 $(document).ready(function() {
 
     Mousetrap.bind("alt+s", function(e) {
+      $(":focus").blur();
       updateTables();
     })
 
@@ -460,7 +461,7 @@ $(document).ready(function() {
 
 
     Mousetrap.bind("esc", function(e){
-        $('.focus').blur();
+        $(':focus').blur();
     })
 
 
@@ -554,7 +555,7 @@ $(document).ready(function() {
                         data = "";
                     }
                     if (type === "display") {
-                        var $in = $("<input name='' type='text' list=" +
+                        var $in = $("<input name='' type='text' class='mousetrap' list=" +
                             value + "-list value=" + data + ">");
                         return $in.prop("outerHTML");
                     } else {

@@ -1,0 +1,38 @@
+{
+  "content": {
+    " Event 0": {
+      "subEvents": [
+        [],
+        [
+          {
+            "eventType": "sine",
+            "name": "sdfsdfsd",
+            "delay": "",
+            "phase": "",
+            "period": "",
+            "amplitude": "",
+            "cycles": "",
+            "rectified": "",
+            "offset": "",
+            "channel": ""
+          },
+          {
+            "eventType": "sine",
+            "name": "sdfsd",
+            "delay": "",
+            "phase": "",
+            "period": "",
+            "amplitude": "",
+            "cycles": "",
+            "rectified": "",
+            "offset": "",
+            "channel": ""
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "values": "false"
+  }
+}
