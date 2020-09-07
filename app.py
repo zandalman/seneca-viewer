@@ -296,11 +296,12 @@ class SijaxHandlers(object):
             file_folder = app.config["TEMP_FOLDER"]
         if not temp:
             file_folder = app.config["UPLOAD_FOLDER"]
+        json_list = os.listdir(app.config["UPLOAD_FOLDER"])
         with open(os.path.join(file_folder, file_name), 'w') as file:
             try:
                 json.dump(logic_json, file, indent=2)
                 if not temp:
-                    if file_name not in os.listdir(app.config["UPLOAD_FOLDER"]):
+                    if file_name not in json_list:
                         obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
                         obj_response.call("refresh_json_options")
             except Exception as err:

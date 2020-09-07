@@ -2,31 +2,21 @@
   "content": {
     " Event 0": {
       "subEvents": [
-        [],
         [
           {
-            "eventType": "sine",
-            "name": "sdfsdfsd",
-            "delay": "",
-            "phase": "",
-            "period": "",
-            "amplitude": "",
-            "cycles": "",
+            "frequency": "1",
+            "eventType": "pulse",
+            "falling": "1",
+            "duty_cycles": "1",
+            "rising": "11",
             "rectified": "",
-            "offset": "",
-            "channel": ""
-          },
-          {
-            "eventType": "sine",
-            "name": "sdfsd",
-            "delay": "",
-            "phase": "",
-            "period": "",
+            "name": "1",
+            "cycles": "1",
+            "width": "1",
             "amplitude": "",
-            "cycles": "",
-            "rectified": "",
-            "offset": "",
-            "channel": ""
+            "delay": "1",
+            "period": "11",
+            "channel": "1"
           }
         ]
       ]
