@@ -57,10 +57,11 @@ p{
 
 .config-popup{
     position: absolute;
-    top: 100px;
-    left: 0px;
+    top: 40px;
+    left: 10px;
     right: 0px;
     bottom: 0px;
+    width: 400px;
     background-color: #EEF9FD;
     z-index: 100;
     display: flex;
