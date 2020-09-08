@@ -214,7 +214,7 @@ function init_plot_func(block, canvas, color) {
     return plot;
 }
 
-var defaults = {
+var DEFAULTS = {
     amplitude: 1,
     frequency: 100,
     value: 1,
@@ -238,8 +238,8 @@ var defaults = {
 
 function insert_defaults(data) {
     Object.keys(data).forEach(function(key) {
-        if (Object.keys(defaults).includes(key)) {
-            data[key] = defaults[key];
+        if (Object.keys(DEFAULTS).includes(key)) {
+            data[key] = DEFAULTS[key];
         }
     });
     return data;
@@ -247,9 +247,7 @@ function insert_defaults(data) {
 
 // Initialize a plotting function
 function init_func (data, length, has_values) {
-    if (!has_values) {
-        data = insert_defaults(data);
-    }
+    data = has_values ? data: insert_defaults(data);
     function func(x) {
         var res = 0;
         var amp_sign, value_sign, height_sign, dist_center;
@@ -387,12 +385,7 @@ function create_block(data, length, event_name, has_values) {
     var channel_ids = $("#channel-container").children().map(function() {
         return this.id;
     }).get();
-    var channel;
-    if (channel_ids.includes(data.channel)) {
-        channel = $("#" + data.channel);
-    } else {
-        channel = init_channel(data.channel);
-    }
+    var channel = channel_ids.includes(data.channel) ? $("#" + data.channel): init_channel(data.channel);
     inc_block_cnt(channel);
     var block = init_block(channel, data, length, event_name);
     var canvas = init_canvas(block);

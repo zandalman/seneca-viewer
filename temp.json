@@ -1,0 +1,25 @@
+{
+  "content": {
+    " Event 0": {
+      "subEvents": [
+        [
+          {
+            "name": "sine_ex",
+            "phase": "0",
+            "rectified": "half",
+            "offset": "0",
+            "amplitude": "1",
+            "delay": "0",
+            "period": "1000",
+            "channel": "ch1",
+            "eventType": "sine",
+            "cycles": "10"
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "values": "false"
+  }
+}
