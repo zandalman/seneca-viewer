@@ -573,3 +573,16 @@ tr{
     overflow: auto;
 }
 
+.addEvent {
+    width: 300px;
+    height: 100%;
+    font-size: 144px;
+    border-radius: 20px;
+    text-align: center;
+    opacity: 0;
+}
+
+.addEvent:hover {
+    background: rgba(144, 238, 144, 0.3);
+    opacity: 1;
+}

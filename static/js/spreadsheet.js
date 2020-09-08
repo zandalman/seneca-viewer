@@ -117,6 +117,7 @@ function addGroup() {
     newGroup.appendTo("#sort-boxes");
     newGroup.attr("groupID", groupCount);
     newGroup.html("<input class='groupName' placeholder='event name'></div>");
+    newGroup.append("<div id='add-group' class='addEvent'>+</div>");
     setActive(undefined, undefined, newGroup, "group", true);
     groupCount++;
     return newGroup;
@@ -133,7 +134,9 @@ function addEvent() {
         "</div>");
     var newTable = $("<table class='display width='100%'>" +
         "<thead><tr></tr></thead></table>");
-    newSortBox.appendTo($(".group").filter(".active"));
+    var activeGroup = $(".group").filter(".active");
+    newSortBox.appendTo(activeGroup);
+    activeGroup.append(activeGroup.find(".addEvent"));
     newSortBox.attr("boxID", eventCount);
     var $newSorter = $("<li></li>");
     $newSorter.attr("eventID", eventCount);

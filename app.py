@@ -9,7 +9,7 @@ from collections import OrderedDict
 import time
 
 
-def update_code_dialog(obj_response, app, filename):
+def update_code_dialog(obj_response, app):
     """
     Update the code dialog.
 
@@ -18,7 +18,7 @@ def update_code_dialog(obj_response, app, filename):
         app: Sijax app.
         filename: Name of the selected json file.
     """
-    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as f:
+    with open(os.path.join(app.root_path, "temp.json"), "r") as f:
         for count, line in enumerate(f.readlines()):
             obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))
 
@@ -256,7 +256,7 @@ class SijaxHandlers(object):
         filename = get_json_options()[selected_json_id]
         update_temp(self.app, filename)
         if filename:
-            update_code_dialog(obj_response, self.app, filename)
+            update_code_dialog(obj_response, self.app)
 
     def save_json(self, obj_response, logic_json, file_name, temp):
         '''
@@ -300,7 +300,9 @@ class SijaxHandlers(object):
         with open(os.path.join(file_folder, file_name), 'w') as file:
             try:
                 json.dump(logic_json, file, indent=2)
-                if not temp:
+                if temp:
+                    update_code_dialog(obj_response, self.app)
+                else:
                     if file_name not in json_list:
                         obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
                         obj_response.call("refresh_json_options")
