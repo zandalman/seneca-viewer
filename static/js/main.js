@@ -4,6 +4,7 @@ var visualize_window;
 $(document).ready(function () {
     // Initialize tabs
     $("#main-tabs").tabs();
+    $("#translator-tabs").tabs();
     // Initialize buttons
     $("#json-options button").button();
     $("#remove-json, #view-code").button("disable");
@@ -79,4 +80,9 @@ $(window).on("unload", function () {
     if (visualize_window) {
         visualize_window.close();
     }
+});
+
+var code_mirror = CodeMirror(document.getElementById("code-editor"), {
+  value: "x = 2\n",
+  mode:  "python"
 });
