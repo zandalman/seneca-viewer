@@ -19,14 +19,26 @@ function uploadJsonTemplate(logicJson){
                 {"name": "name"},
                 {"name": "sets"},
                 {"name": "eventType"},
-                {"name": "subEvent"},
+                {
+                    "data": null,
+                    "name": "subEvent",
+                },
                 {"name": "subEvent Group"},
                 {"name": "Event"},
                 {
                     "name": "value",
+                    "data": null,
                     "render": function (data, type, row) {
                         if (type === 'display') {
-                            return data;
+                            var sets=row[1];
+                            //if the parameter is keyed as settable, display as an input field
+                            if (configuration["original"][eventType][sets] == "set"){
+                                var inputVal = $("<input class='mousetrap' type='text'>");
+                                return inputVal.prop("outerHTML");
+                            }
+                            else {
+                                return data;
+                            }
                         } else {
                             return data;
                         }
@@ -52,18 +64,28 @@ function uploadJsonTemplate(logicJson){
 			serverSide: false,
 			"paging": false,
              rowGroup: {
-                dataSrc: [5, 4,3]
+                dataSrc: [5, 4,3],
+                startRender: function (rows, group, level){
+                    if (level == 0){
+                        return group;
+                    }
+                    if (level == 1){
+                        return "Event Group " + (group + 1);
+                    }
+                    if (level == 2){
+                        return "subEvent " + group;
+                    }
+                }
             },
             colReorder: true,
             order: [[5, "asc"]]
 		});
 		var subEvents;
-		var variables;
+		var variables =[];
 		uploadedJSON = JSON.parse(logicJson);
 		var data= uploadedJSON.content;
         $.each(data, function (eventName, eventObj) {
             subEventLists=eventObj["subEvents"];
-            variables =[];
             $.each(subEventLists, function(index, subEventList){
                 subEventGroup = index;
                 //subEventGroup = eventName + " " + index;
@@ -77,11 +99,11 @@ function uploadJsonTemplate(logicJson){
                         subEventName = subEvent.name;
                      }
                     $.each(subEvent, function(key, value){
-
                         var inputType = configuration["original"][eventType][key];
                         var newRow = table.row.add([value, key, eventType, subEventName, subEventGroup, eventName, undefined]);
                         if (key != "eventType" && inputType == "set"){
                             if (!variables.includes(value)){
+                                console.log(value);
                                 var $variableInput = $("<span>" + value + " <input></span>");
                                 $variableInput.attr('varName', value);
                                 $("#paramRepo").append($variableInput);
@@ -122,7 +144,7 @@ $(document).ready(function(){
             var subEventName = data[3];
             var subEventGroup = data[4];
             var event = data[5];
-            var value = $($("#table").DataTable().cell(this, "value:name").node()).html();
+            var value = $($("#table").DataTable().cell(this, "value:name").node()).children("input").val();
             var subEventObj =  uploadedJSON.content[event].subEvents[subEventGroup][subEventName];
             subEventObj[parameter] = value;
         } );
@@ -159,7 +181,21 @@ $(document).ready(function(){
                 true : false;
             })
             .every(function ( rowIdx, tableLoop, rowLoop ) {
-                $(table.cell(rowIdx, "value:name").node()).html(newValue);
+                $(table.cell(rowIdx, "value:name").node()).children("input").val(newValue);
+                } );
+    });
+
+    $('#parameter').on('change', 'td input', function(e){
+        var table=$('#table').DataTable();
+         var varName = table.row($(this).closest('tr')).data()[0];
+         var newValue = $(this).val();
+         $("span[varName=" + varName + "]").children("input").val(newValue);
+         table.rows( function ( idx, data, node ) {
+            return data[0] === varName ?
+                true : false;
+            })
+            .every(function ( rowIdx, tableLoop, rowLoop ) {
+                $(table.cell(rowIdx, "value:name").node()).children("input").val(newValue);
                 } );
     });
 
@@ -174,7 +210,7 @@ $(document).ready(function(){
             if (showingSettables == false) {
                 $.fn.dataTable.ext.search.push(
                     function (settings, data, dataIndex) {
-                        return $(table.row(dataIndex).node()).hasClass('selected');
+                        return $(table.row(dataIndex).node()).hasClass("selected");
                     }
                 );
             } else if (showingSettables == true) {
