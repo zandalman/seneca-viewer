@@ -1,3 +1,5 @@
+var uploadedJSON;
+
 /*
  *Uploads json to variable setter
  *@param {String} logicJson json file contents
@@ -57,16 +59,19 @@ function uploadJsonTemplate(logicJson){
 		});
 		var subEvents;
 		var variables;
-		var data= JSON.parse(logicJson).content;
+		uploadedJSON = JSON.parse(logicJson);
+		var data= uploadedJSON.content;
         $.each(data, function (eventName, eventObj) {
             subEventLists=eventObj["subEvents"];
             variables =[];
             $.each(subEventLists, function(index, subEventList){
-                subEventGroup = eventName + " " + index;
+                subEventGroup = index;
+                //subEventGroup = eventName + " " + index;
                 $.each(subEventList, function(index2, subEvent){
                     eventType = subEvent.eventType;
                     if (subEvent.name == ""){
-                            subEventName = subEventGroup + " " + index2;
+                            subEventName = index2;
+                            //subEventName = subEventGroup + " " + index2;
                         }
                      else {
                         subEventName = subEvent.name;
@@ -98,9 +103,31 @@ $(document).ready(function(){
     $("#paramSearch").hide();
     $("#clearAll").hide();
 
-
     $(document).on('click', "#generate", function(e){
         Sijax.request("pass_json", [$("#json-select").val(), "parameter"]);
+    });
+
+    $(document).on('click', "#saveParameters", function(e){
+       if ($("#parameterFileName").val() == "") {
+            alert("missing file name");
+            return false;
+        }
+        console.log("ok");
+       $("#table").DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            var data = this.data();
+            //refer to "columns" option in the table definition for indices
+            var name = data[0];
+            var parameter = data[1];
+            var eventType = data[2];
+            var subEventName = data[3];
+            var subEventGroup = data[4];
+            var event = data[5];
+            var value = $($("#table").DataTable().cell(this, "value:name").node()).html();
+            var subEventObj =  uploadedJSON.content[event].subEvents[subEventGroup][subEventName];
+            subEventObj[parameter] = value;
+        } );
+        file_name = $("#parameterFileName").val();
+        Sijax.request("save_parameter_json", [uploadedJSON, file_name, false]);
     });
 
     $(document).on('input', "#paramSearch", function(e){

@@ -446,10 +446,23 @@ $(document).ready(function() {
         setActive('','', $(".sort-box:visible").eq((index + 1 ) % length), "sort-box", false);
     })
 
+    Mousetrap.bind("alt+shift+q", function(e){
+        index = $(".sort-box").index($(".sort-box").filter(".active"));
+        length = $('.sort-box:visible').length;
+        setActive('','', $(".sort-box:visible").eq((index - 1 ) % length), "sort-box", false);
+    })
+
     Mousetrap.bind("alt+w", function(e){
         index = $(".tab").index($(".tab").filter(".active"));
         setActive('','', $(".tab").eq((index + 1 ) % $(".table-row").length), "tab", false);
         activeTable = setActive("", "", $(".table-row").eq((index +1) %$(".table-row").length), "table-row", true);
+        activeTable.find("table").DataTable().columns.adjust().draw();
+    })
+
+    Mousetrap.bind("alt+shift+w", function(e){
+        index = $(".tab").index($(".tab").filter(".active"));
+        setActive('','', $(".tab").eq((index + 1 ) % $(".table-row").length), "tab", false);
+        activeTable = setActive("", "", $(".table-row").eq((index - 1) %$(".table-row").length), "table-row", true);
         activeTable.find("table").DataTable().columns.adjust().draw();
     })
 
@@ -618,14 +631,13 @@ $(document).ready(function() {
         var tableRow = $("#"+type).closest(".table-row");
         tableRow.find(".dataTables_filter").css("margin-bottom", "5px");
         tableRow.find(".dataTables_filter").insertBefore(tableRow.find(".dataTables_scroll"));
+        
     });
 
     $(document).on("click", ".addGroup", function(e) {
         addGroup();
         addEvent();
     });
-
-
 
     $(document).on("click", ".groupSorter", function(e) {
         var groupIDVal = $(this).attr("groupID");

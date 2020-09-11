@@ -32,24 +32,26 @@
                 <div class="colFlex">
                     <div class="inner-element" style="width: 100%;" id="sort-container">
                         <div class="menu-bar">
-                            <button class="upload" style="background-color: white;">upload selected</button>
+                            <button class="upload" style="background-color: white;">load selected</button>
                             <button class="config">help</button>
                             <button id="toggleSorter">toggle sorter</button>
                             <button class="save">save JSON</button>
                             <button class="addGroup">add event</button>
                             <input id='upload-json' type='file' hidden/>
                         </div>
-                        <div class="config-popup" style="display:none">
-                            <div style="text-align:left; margin-left: 30px; margin-bottom: 10px;">configuration file: {{configfile}}</div>
-                            <div style="text-align: left; margin-left: 30px; margin-bottom: 10px;">keyboard shortcuts:
+                        <div class="config-popup" style="display:none; padding: 30px;">
+                            <div style="text-align:left; margin-bottom: 10px;">configuration file: {{configfile}}</div>
+                            <div style="text-align: left; margin-bottom: 10px;">keyboard shortcuts:
                                 <li>alt + s: update</li>
                                 <li>alt + a: add sub-event box to event</li>
                                 <li>alt + r: add event </li>
                                 <li>alt + c: focus on spreadsheet </li>
                                 <li>alt + w: tab through event types </li>
+                                <li>alt + shift + w: tab back through event types </li>
                                 <li>alt + q: tab through sub-event boxes </li>
+                                <li>alt + shift + q: tab back through sub-event boxes </li>
                             </div>
-                            <div style="text-align: left; margin-left: 30px; margin-bottom: 10px;">
+                            <div style="text-align: left;margin-bottom: 10px;">
                                 - drag the square in the corner right of editor tables to select multiple cells
                                 <br> - more tips?
                             </div>
@@ -124,7 +126,12 @@
                     </div>
                 </div>
                 <div class="context" id="paramRepo">
-                    <button>save</button>
+                    <div class="menu-bar">
+                        <button id="updateParameter">update temp</button>
+                        <button id="saveParameters">save</button>
+                        <input id="parameterFileName" type="text">
+                    </div>
+
                     <div id="clearAll" style="margin: 5px;">get all </div>
                 </div>
                 <div class="inner-element" style="width: calc(100% - 1200px);">

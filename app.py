@@ -309,6 +309,32 @@ class SijaxHandlers(object):
             except Exception as err:
                 print(err)
 
+    def save_parameter_json(self, obj_response, logic_json, file_name, temp):
+        '''
+        Saves #parameter logic to a JSON file in "VALUE_FOLDER"
+
+                Parameters:
+                        logic_obj (application/json): #parameter JSON file output
+                        file_name (String): file_name
+                        temp (bool): true if saving to temp.json
+        '''
+        if temp:
+            file_folder = app.config["TEMP_FOLDER"]
+        if not temp:
+            file_folder = app.config["VALUE_FOLDER"]
+        json_list = os.listdir(app.config["VALUE_FOLDER"])
+        with open(os.path.join(file_folder, file_name), 'w') as file:
+            try:
+                json.dump(logic_json, file, indent=2)
+                if temp:
+                    update_code_dialog(obj_response, self.app)
+                else:
+                    if file_name not in json_list:
+                        obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", file_name), file_name))
+                        obj_response.call("refresh_json_options")
+            except Exception as err:
+                print(err)
+
 
 def show_signals(obj_response):
     """
@@ -394,6 +420,7 @@ def create_app():
         SIJAX_STATIC_PATH=os.path.join('.', os.path.dirname(__file__), "static/js/sijax/"),
         SIJAX_JSON_URI="/static/js/sijax/json2.js",
         UPLOAD_FOLDER=os.path.join(app.root_path, "uploads"),
+        VALUE_FOLDER=os.path.join(app.root_path, "valued_jsons"),
         TEMP_FOLDER= app.root_path
     )
     app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
