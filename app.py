@@ -245,9 +245,9 @@ class SijaxHandlers(object):
                     if page_name == "parameter":
                         obj_response.call('uploadJsonTemplate', [json_string])
 
-    def update_vis(self, obj_response, selected_json_id):
+    def update_temp(self, obj_response, selected_json_id):
         """
-        Update the visualization window.
+        Update the temporary JSON file.
 
         Args:
             obj_response: Sijax object response.

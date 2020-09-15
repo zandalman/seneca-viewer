@@ -33,7 +33,7 @@ $("#json-select").on("select2:select", function (e) {
     $("#json-select option").removeClass("selected");
     $("#remove-json, #view-code").button("enable");
     $("#json-select").find("[value=" + selected_json_id + "]").addClass("selected");
-    Sijax.request("update_vis", [selected_json_id]);
+    Sijax.request("update_temp", [selected_json_id]);
 });
 
 $("#json-select").on("select2:clear", function () {
@@ -64,7 +64,7 @@ $("#view-code").on("click", function () {
 // Remove options if no JSON is selected.
 function select_none() {
     $("#remove-json, #view-code").button("disable");
-    Sijax.request("update_vis", ["none"]);
+    Sijax.request("update_temp", ["none"]);
 }
 
 function refresh_json_options() {
