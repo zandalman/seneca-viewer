@@ -7,7 +7,7 @@ import json
 import uuid
 from collections import OrderedDict
 import time
-
+from sijax_handlers import SijaxCometHandlers
 
 def update_code_dialog(obj_response, app):
     """
@@ -336,59 +336,6 @@ class SijaxHandlers(object):
                 print(err)
 
 
-def show_signals(obj_response):
-    """
-    Display signals from temp.json.
-
-    Args:
-        obj_response: Sijax object response.
-    """
-    # Read JSON file
-    with open(os.path.join(app.root_path, "temp.json"), "r") as f:
-        json_obj = json.load(f, object_pairs_hook=OrderedDict)
-    content = json_obj["content"]
-    channels = list(dict.fromkeys([subevent["channel"] for event_data in content.values() for step in event_data["subEvents"] for subevent in step]))
-    for channel in channels:
-        obj_response.html_append("#ch-select", "<option val='" + channel + "'>" + channel + "</option>")
-    for name, data in content.items():
-        event = Event(name, data, channels, json_obj["meta"])
-        event.calc_block_lengths()
-        obj_response.call("add_event", [event.name, event.length])
-        event.create_blocks(obj_response)
-
-
-class SijaxCometHandlers(object):
-    """
-    Handlers object encapsulating Sijax comet handlers.
-
-    Encapsulation allows all handlers to be registered simultaneously.
-    """
-    def __init__(self, app):
-        self.app = app
-
-    def update(self, obj_response):
-         """
-         Check if selected JSON file in main page has changed and update visualization window if necessary.
-
-         Args:
-             obj_response: Sijax object response.
-         """
-         mtime = time.time()
-         while True:
-             filepath = os.path.join(self.app.root_path, "temp.json")
-             if os.path.getmtime(filepath) != mtime:
-                 mtime = os.path.getmtime(filepath)
-                 if os.path.getsize(filepath) == 0:
-                     obj_response.call("update", ["hide"])
-                     yield obj_response
-                 else:
-                     obj_response.call("update", ["hide"])
-                     yield obj_response
-                     show_signals(obj_response)
-                     obj_response.call("update", ["show"])
-                     yield obj_response
-
-
 def jsonProcess(config_json):
     event_config = {
         "types": list(config_json.keys()),
@@ -426,8 +373,8 @@ def create_app():
     app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
     flask_sijax.Sijax(app)  # initialize flask-sijax
 
-    @flask_sijax.route(app, '/visualize')
-    def visualize():
+    @flask_sijax.route(app, '/visualizer')
+    def visualizer():
 
         if g.sijax.is_sijax_request:
             g.sijax.register_comet_object(SijaxCometHandlers(app))

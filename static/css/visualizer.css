@@ -1,95 +1,130 @@
-* {
+body {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-}
-body {
     font-family: ubuntu;
+}
+caption {
+    font-size: 24px;
+}
+i {
+    background: grey;
+    border-radius: 2px;
+    color: white;
+    cursor: pointer;
+}
+.block {
+    height: 50px;
+    display: inline-block;
+    box-shadow: inset 0px 0px 0px 1px dimgray;
+    box-sizing: border-box;
+}
+.block.selected, .channel-label.selected, .group-label.selected {
+    box-shadow: inset 0px 0px 0px 3px indianred;
+    box-sizing: border-box;
+}
+.block canvas {
+    height: 50px;
+}
+.channel {
+    height: 50px;
+}
+.channel-label {
+    height: 50px;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px black;
+    box-sizing: border-box;
+    position: relative;
 }
 .column {
     float: left;
+    position: relative;
+}
+.down-arrow {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+.group-label {
+    display: inline-block;
+    box-shadow: inset 0 0 0 1px black;
+    box-sizing: border-box;
+    height: 50px;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.hidden {
+    display: none;
+}
+.redbold {
+    font-weight: bold;
+    color: indianred;
 }
 .row:after {
     content: "";
     display: table;
     clear: both;
 }
-label {
-    margin-left: 10px;
+.scrolling {
+    border-left: 2px solid blue;
 }
-.channel {
-    height: 90px;
-    width: auto;
+.up-arrow {
+    position: absolute;
+    top: 2px;
+    right: 2px;
 }
-.channel-label {
-    height: 90px;
-    box-shadow: inset 0 0 0 1px black;
+#ch-filter, #grp-filter {
+    width: 50%;
+}
+#dummy {
+    height: 50px;
+    width: 100%;
+    box-shadow: inset 0 0 0 1px dimgray;
     box-sizing: border-box;
-    text-align: center;
-}
-#channel-options select {
-    display: inline-block;
-    width: 300px;
+    position: relative;
 }
 #channel-container {
     background: black;
-    min-height: 90px;
-    width: auto;
     overflow-x: scroll;
     white-space: nowrap;
+    min-height: 50px;
 }
 #channel-label-container {
-    min-height: 90px;
+    min-height: 50px;
 }
-#channels {
-    margin-top: 20px;
-    border: 2px solid black;
-    background: lightgrey;
-    position: relative;
-}
-.block canvas {
-    height: 90px;
-}
-.block {
-    height: 90px;
-    box-shadow: inset 0px 0px 0px 1px dimgray;
+#event-info {
+    box-shadow: inset 0 0 0 1px black;
     box-sizing: border-box;
-    position: relative;
-    display: inline-block;
+    height: 200px;
 }
-.block.selected {
-    box-shadow: inset 0px 0px 0px 2px indianred;
-    box-sizing: border-box;
-}
-#block-info td:nth-of-type(2) {
-    padding-left: 50px;
-}
-.column.left {
-    box-shadow: inset 0px 0px 0px 1px black;
-    box-sizing: border-box;
-}
-.event-title {
+#event-info td, #event-info th {
+    width: 50%;
     text-align: center;
-    height: 3em;
-    margin: 0;
-    border-right: 2px solid black;
-    display: inline-block;
-    text-overflow: ellipsis;
-    overflow: hidden;
 }
-#signals {
-    overflow-y: scroll;
-}
-#event-names {
-    overflow-x: scroll;
-    white-space: nowrap;
-    height: 3em;
-    display: inline-block;
+#group-label-container {
+    height: 50px;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    overflow-x: scroll;
+    white-space: nowrap;
 }
-#event-names::-webkit-scrollbar {
+#group-label-container::-webkit-scrollbar {
     display: none;
 }
-
+#info-table {
+    width: 100%;
+}
+#params {
+    overflow-y: scroll;
+}
+#visualization {
+    position: relative;
+    border: 2px solid black;
+    width: 95%;
+    margin: 0 auto;
+    min-height: 100px;
+    overflow: auto;
+}

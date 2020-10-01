@@ -2,60 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="../static/favicon.svg">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Visualizer</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/visualizer.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/jquery-ui-ext.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/select2.min.css') }}" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='css/select2.min.css') }}" rel="stylesheet" type="text/css">
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_comet.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/selectableScroll.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/select2.min.js') }}"></script>
-    <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
-    <title>Seneca Visualizer</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_upload.js') }}"></script>
+    <link href="{{ url_for('static', filename='css/visualizer.css') }}" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/select2.min.js') }}"></script>
 </head>
 <body>
-    <div id="block-info">
-        <table>
-            <thead>
-                <tr>
-                    <th>Parameter</th>
-                    <th>Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <div id="block-params"></div>
-            </tbody>
-        </table>
-    </div>
-    <div class="row" id="channel-options">
-        <label for="ch-select">Channel select: </label>
-        <select id="ch-select" name="channels[]" multiple="multiple"></select>
-        <label for="ev-select">Event select: </label>
-        <select id="ev-select" name="events[]" multiple="multiple"></select>
-    </div>
-    <div id="channels">
-        <div class="row">
-            <div class="column left" style="width: 10%; height: 3em; text-align: center;">
-                <p>Events</p>
+    <div class="row">
+        <div class="column" style="width: 60%;">
+            <div id="filters">
+                <label for="ch-filter">Channel filter</label><br/>
+                <select id="ch-filter" name="channels[]" multiple="multiple"></select><br/><br/>
+                <label for="grp-filter">Group filter</label><br/>
+                <select id="grp-filter" name="groups[]" multiple="multiple"></select><br/><br/>
             </div>
-            <div class="column" style="width: 90%;" id="event-names"></div>
+            <button id="test">Test</button>
         </div>
-        <div id="signals">
-            <div class="row">
-                <div class="column left" style="width: 10%;">
-                    <div id="channel-label-container"></div>
-                </div>
-                <div class="column" style="width: 90%;">
-                    <div id="channel-container"></div>
-                </div>
+        <div class="column" style="width: 40%;">
+            <div id="event-info">
+                <table id="info-table">
+                    <caption id="caption">None</caption>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="params"></tbody>
+                </table>
             </div>
         </div>
+    </div><br/><br/>
+    <div id="visualization">
+        <div class="column" style="width: 20%;">
+            <div id="dummy">
+                <span style="position: absolute; left: 10%; bottom: 10%;">Channels</span>
+                <span style="position: absolute; right: 10%; top: 10%;">Groups</span>
+            </div>
+            <div id="channel-label-container"></div>
+        </div>
+        <div class="column" style="width: 80%;">
+            <div id="group-label-container"></div>
+            <div id="channel-container"></div>
+        </div>
     </div>
+    <script src="{{ url_for('static', filename='js/visualizer.js') }}"></script>
 </body>
-<script src="{{ url_for('static', filename='js/visualizer.js') }}"></script>
 </html>

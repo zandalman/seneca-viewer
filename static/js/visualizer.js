@@ -1,6 +1,6 @@
 // List of defined event types
 // Undefined event types will be displayed as text
-var defined_events = [
+var DEFINED_EVENTS = [
     "sine",
     "saw",
     "square",
@@ -18,155 +18,108 @@ var defined_events = [
     "step_triangle"
 ];
 
+// Dictionary of default parameter values
+var DEFAULTS = {
+    amplitude: 1,
+    frequency: 100,
+    value: 1,
+    start_frequency: 1,
+    end_frequency: 100,
+    steps: 5,
+    times: [0, 1, 2, 3, 3.5, 4],
+    values: [0, 1, 0, 0.5, -1.5, 0],
+    rectified: "false",
+    width: 0.2,
+    center: 0.5,
+    rising: 0.001,
+    falling: 0.001,
+    std: 0.2,
+    VCC: 5,
+    VOH: 2.7,
+    VIH: 2,
+    VIL: 0.8,
+    VOL: 0.4
+};
+
+// Dictionary of units
+var UNITS = {
+    amplitude: "V",
+    frequency: "Hz",
+    value: "V",
+    start_frequency: "Hz",
+    end_frequency: "Hz",
+    width: "s",
+    center: "s",
+    rising: "s",
+    falling: "s",
+    std: "s",
+    VCC: "V",
+    VOH: "V",
+    VIH: "V",
+    VIL: "V",
+    VOL: "V",
+    delay: "s"
+};
+
+// List of event parameters to not display
+HIDE_PARAMS = [
+    "len",
+    "eventType",
+    "group",
+    "alias"
+];
+
+// Initialize trace color
+var color = "red";
+
 $(document).ready(function () {
-    // Initialize channel and event filter selects
-    $("#ev-select").select2({
+    // Initialize event filter
+    $("#grp-filter").select2({
         placeholder: "None",
         disabled: true
     });
-    $("#ch-select").select2({
+    // Initialize channel filter
+    $("#ch-filter").select2({
         placeholder: "None",
         disabled: true
     });
-    // Initialize channel sortable
-    $("#channel-label-container").sortable({
-        containment: "#channel-label-container",
-        stop: function (event, ui) {
-            var channel = $("#" + ui.item.data("chid"));
-            var old_index = $(".channel:visible").index(channel);
-            var new_index = $(".channel-label:visible").index(ui.item);
-            if (new_index < old_index) {
-                channel.insertBefore($(".channel:visible").eq(new_index));
-            } else {
-                channel.insertAfter($(".channel:visible").eq(new_index));
-            }
-        }
-    });
-    // Initialize block info dialog
-    $("#block-info").dialog({
-        autoOpen: false,
-        close: function (event, ui) {
-            $(".block").removeClass("selected");
-        }
-    });
+    $(".select2-container").css("width", "90%");
 });
 
 // Stream updates to selected JSON from main page
 sjxComet.request("update");
 
-// Filter out unselected events
-function select_events() {
-    var selected_events = $("#ev-select").select2("data").map(function (event) {
-        return event.id;
-    });
-    if (selected_events.length > 0) {
-        $(".event-title").each(function () {
-            if (!selected_events.includes($(this).text())) {
-                $(this).hide();
-            }
-        });
-        $(".block").each(function () {
-            if (!selected_events.includes($(this).data("event"))) {
-                $(this).hide();
-            }
-        });
-        $(".channel").each(function () {
-            if ($(this).find(".block:visible").not(".empty").length === 0) {
-                $(this).hide();
-                $("#" + $(this).data("labelid")).hide();
-            }
-        });
-    }
+$("#test").on("click", function () {
+    sjxComet.request("test");
+});
+
+function disable_filters() {
+    $("#ch-filter, #grp-filter").prop("disabled", true);
 }
 
-// Filter out unselected channels
-function select_channels() {
-    var selected_channels = $("#ch-select").select2("data").map(function (ch) {
-        return ch.id;
-    });
-    if (selected_channels.length > 0) {
-        $(".channel").each(function () {
-            var chid = this.id;
-            if (!selected_channels.includes(chid)) {
-                $(this).hide();
-                $("#" + $(this).data("labelid")).hide();
-            }
-        });
-    }
+function enable_filters() {
+    $("#ch-filter, #grp-filter").prop("disabled", false);
 }
 
-$("#ev-select").on("change", function () {
-    $(".channel, .channel-label, .block, .event-title").show();
-    select_events();
-    select_channels();
-    $("#block-info").dialog("close");
-});
-
-$("#ch-select").on("change", function () {
-    $(".channel, .channel-label").show();
-    select_channels();
-    select_events();
-    $("#block-info").dialog("close");
-});
-
-// Display block info on double click
-$(document).on("dblclick", ".block", function () {
-    if (!$(this).hasClass("empty")) {
-        $(".block").removeClass("selected");
-        $(this).addClass("selected");
-        var data = $(this).data("info");
-        var info = $("#block-info");
-        if (data.name !== "") {
-            info.dialog({title: data.name + " (" + data.eventType + ")"});
-        } else {
-            info.dialog({title: "untitled (" + data.eventType + ")"});
-        }
-        info.empty();
-        for (var param in data) {
-            if (param === "values") {
-                info.append("<tr><td>num pnts</td><td>" + data[param].length + "</td></tr>");
-            } else if (!(["eventType", "name", "times", "channel"].includes(param) || data[param].toString() === "")) {
-                info.append("<tr><td>" + param + "</td><td>" + data[param] + "</td></tr>");
-            }
-        }
-        info.dialog("open");
+function set_color(stage0, stage1, stage2) {
+    if (stage0) {
+        color = "red";
+    } else if (stage1) {
+        color = "yellow";
+    } else if (stage2) {
+        color = "limegreen";
     }
-});
+}
 
 // Turn real frequency into a readable frequency for the signal display
 function readable_freq(freq, length) {
     return length * ((freq <= 1) ? 1: Math.floor(Math.max(3, Math.log10(freq) + 1)));
 }
 
-// Increment block count
-function inc_block_cnt(channel) {
-    var channel_label = $("#" + channel.data("labelid"));
-    var block_cnt = channel_label.find(".block-cnt");
-    block_cnt.text(parseInt(block_cnt.text()) + 1);
-}
-
-// Initialize a channel
-function init_channel(channel_name) {
-    var labelid = "label-" + channel_name;
-    $("#channel-container").append("<div class='channel' id='" + channel_name + "'></div>");
-    var channel = $("#" + channel_name);
-    channel.data("labelid", labelid);
-    $("#channel-label-container").append("<div class='channel-label' id='" + labelid + "'><br/>" + channel_name + "<br/>blocks: <span class='block-cnt'>0</span></p></div>")
-    $("#" + labelid).data("chid", channel_name);
-    return channel;
-}
-
 // Initialize a block
-function init_block(channel, data, length, event_name) {
-    var new_block_id = channel.attr("id") + "block" + channel.children().length;
-    channel.append("<div class='block' id='" + new_block_id + "'><canvas></canvas></div>");
-    var block = $("#" + new_block_id);
-    block.data({
-        "info": data,
-        "event": event_name
-    });
-    block.find("canvas").width(length * 100);
-    return block;
+function init_block(block, data) {
+    block.data("info", data);
+    block.find("canvas").width(data.len * 100);
 }
 
 // Initialize a canvas
@@ -214,31 +167,9 @@ function init_plot_func(block, canvas, color) {
     return plot;
 }
 
-var DEFAULTS = {
-    amplitude: 1,
-    frequency: 100,
-    value: 1,
-    start_frequency: 1,
-    end_frequency: 100,
-    steps: 5,
-    times: [0, 1, 2, 3, 3.5, 4],
-    values: [0, 1, 0, 0.5, -1.5, 0],
-    rectified: "false",
-    width: 0.2,
-    center: 0.5,
-    rising: 0.001,
-    falling: 0.001,
-    std: 0.2,
-    VCC: 5,
-    VOH: 2.7,
-    VIH: 2,
-    VIL: 0.8,
-    VOL: 0.4
-}
-
 function insert_defaults(data) {
     Object.keys(data).forEach(function(key) {
-        if (Object.keys(DEFAULTS).includes(key)) {
+        if (Object.keys(DEFAULTS).includes(key) && (typeof data[key]) === "string") {
             data[key] = DEFAULTS[key];
         }
     });
@@ -246,37 +177,37 @@ function insert_defaults(data) {
 }
 
 // Initialize a plotting function
-function init_func (data, length, has_values) {
-    data = has_values ? data: insert_defaults(data);
+function init_func (data) {
+    data = insert_defaults(data);
     function func(x) {
         var res = 0;
         var amp_sign, value_sign, height_sign, dist_center;
         switch (data.eventType) {
             case "sine":
                 amp_sign = Math.sign(data.amplitude);
-                x = x * readable_freq(data.frequency, length);
+                x = x * readable_freq(data.frequency, data.len);
                 res = amp_sign * Math.sin(2 * Math.PI * x);
                 break;
             case "saw":
                 amp_sign = Math.sign(data.amplitude);
-                x = x * readable_freq(data.frequency, length);
+                x = x * readable_freq(data.frequency, data.len);
                 res = amp_sign * 2 * (x - Math.floor(x)) - 1;
                 break;
             case "square":
                 amp_sign = Math.sign(data.amplitude);
-                x = x * readable_freq(data.frequency, length);
+                x = x * readable_freq(data.frequency, data.len);
                 res = amp_sign * 2 * (2 * Math.floor(x) - Math.floor(2 * x)) + 1;
                 break;
             case "triangle":
                 amp_sign = Math.sign(data.amplitude);
-                x = x * readable_freq(data.frequency, length);
+                x = x * readable_freq(data.frequency, data.len);
                 res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
                 break;
             case "constant":
                 res = Math.sign(data.value);
                 break;
             case "chirp":
-                var start_freq = readable_freq(data.start_frequency, length);
+                var start_freq = readable_freq(data.start_frequency, data.len);
                 var end_freq = Math.max(data.end_frequency / start_freq, 30) * start_freq;
                 var chirpiness;
                 if (data.chirp_type === "exponential") {
@@ -301,7 +232,7 @@ function init_func (data, length, has_values) {
                 break;
             case "pulse":
                 amp_sign = Math.sign(data.amplitude);
-                var freq = readable_freq(data.frequency, length);
+                var freq = readable_freq(data.frequency, data.len);
                 var rising = data.rising * data.frequency / freq;
                 var width = data.width * data.frequency / freq;
                 var falling = data.falling * data.frequency / freq;
@@ -354,7 +285,7 @@ function init_func (data, length, has_values) {
                 break;
             case "step_triangle":
                 amp_sign = Math.sign(data.amplitude);
-                x = x * readable_freq(data.frequency, length);
+                x = x * readable_freq(data.frequency, data.len);
                 res = amp_sign * 2 / Math.PI * Math.asin(Math.sin(2 * Math.PI * x));
                 res = res - res % (2 / data.steps);
                 break;
@@ -380,21 +311,19 @@ function init_func (data, length, has_values) {
 }
 
 // Create a new block
-function create_block(data, length, event_name, has_values) {
-    var color = has_values ? "limegreen": "aqua";
+function create_block(data, ch_id, ch_label_id, event_id) {
     var channel_ids = $("#channel-container").children().map(function() {
         return this.id;
     }).get();
-    var channel = channel_ids.includes(data.channel) ? $("#" + data.channel): init_channel(data.channel);
-    inc_block_cnt(channel);
-    var block = init_block(channel, data, length, event_name);
+    var channel = $("#" + ch_id);
+    var channel_label = $("#" + ch_label_id);
+    var block = $("#" + event_id);
+    init_block(block, data);
     var canvas = init_canvas(block);
-    if (defined_events.includes(data.eventType)) {
+    if (DEFINED_EVENTS.includes(data.eventType)) {
         var plot = init_plot_func(block, canvas, color);
-        var func = init_func(data, length, has_values);
+        var func = init_func(data);
         plot(func, [0, 1, -1.2, 1.2]);
-    } else if (data.eventType === "none") {
-        block.addClass("empty");
     } else if (data.eventType === "TTL") {
         canvas.ctx.beginPath();
         [data.VCC, data.VOH, data.VIH, data.VOL, data.VIL].forEach(function (level, index) {
@@ -413,28 +342,231 @@ function create_block(data, length, event_name, has_values) {
     }
 }
 
-// Link scrolling between event names and signals
-$("#event-names").on("scroll", function () {
+function reset() {
+    $("#channel-container, #channel-label-container, #group-label-container, #ch-filter, #grp-filter").empty();
+}
+
+function insert_channel_info(ch_label_id, info, ch_name) {
+    $("#" + ch_label_id).data("info", info);
+    $("#" + ch_label_id).data("ch_name", ch_name);
+}
+
+// Filter out unselected events
+function filter_groups() {
+    var selected_groups = $("#grp-filter").select2("val");
+    if (selected_groups.length > 0) {
+        $(".block, .group-label").each(function () {
+            if ($(this).hasClass("block")) {
+                var group = $(this).data("info").group;
+            } else {
+                var group = $(this).data("group");
+            }
+            if (!selected_groups.includes(group)) {
+                $(this).addClass("hidden");
+            }
+        });
+        $(".channel").each(function () {
+            if ($(this).find(".block").not(".hidden").length === 0) {
+                $(this).addClass("hidden");
+                $("#" + $(this).data("lid")).addClass("hidden");
+            }
+        });
+    }
+}
+
+// Filter out unselected channels
+function filter_channels() {
+    var selected_channels = $("#ch-filter").select2("val");
+    if (selected_channels.length > 0) {
+        $(".channel").each(function () {
+            var ch_id = this.id;
+            if (!selected_channels.includes(ch_id)) {
+                $(this).addClass("hidden");
+                $("#" + $(this).data("lid")).addClass("hidden");
+            }
+        });
+    }
+}
+
+$("#grp-filter").on("change", function () {
+    $(".channel, .channel-label, .block, .group-label").removeClass("hidden");
+    filter_groups();
+    filter_channels();
+    $("#block-info").dialog("close");
+});
+
+$("#ch-filter").on("change", function () {
+    $(".channel, .channel-label").removeClass("hidden");
+    filter_channels();
+    filter_groups();
+});
+
+// Display block info on click
+$(document).on("click", ".block", function () {
+    $(".block, .channel-label, .group-label").removeClass("selected");
+    $(this).addClass("selected");
+    var params = $(this).data("info");
+    var params_table = $("#params");
+    $("#caption").html("event: " + params.eventType);
+    params_table.empty();
+    for (var param in params) {
+        if (!HIDE_PARAMS.includes(param)) {
+            var unit = Object.keys(UNITS).includes(param) ? " " + UNITS[param]: "";
+            if (typeof params[param] === "object") {
+                params_table.append("<tr><td class='redbold'>" + param + "</td><td class='redbold'>" + params[param].length + unit + "</td></tr>");
+            } else if (typeof params[param] === "number" && Math.abs(Math.log10(params[param])) > 3) {
+                params_table.append("<tr><td>" + param + "</td><td>" + params[param].toExponential(2) + unit + "</td></tr>");
+            } else {
+                params_table.append("<tr><td>" + param + "</td><td>" + params[param] + unit + "</td></tr>");
+            }
+        }
+    }
+});
+
+// Display channel info on click
+$(document).on("click", ".channel-label", function () {
+    $(".block, .channel-label, .group-label").removeClass("selected");
+    $(this).addClass("selected");
+    var params = $(this).data("info");
+    var params_table = $("#params");
+    $("#caption").html("channel: " + $(this).data("ch_name"));
+    params_table.empty();
+    var num_blocks = $("#" + $(this).data("chid") + " .block").length;
+    params_table.append("<tr><td>blocks</td><td>" + num_blocks + "</td></tr>");
+    for (var param in params) {
+        params_table.append("<tr><td>" + param + "</td><td>" + params[param] + "</td></tr>");
+    }
+});
+
+// Display channel info on click
+$(document).on("click", ".group-label", function () {
+    $(".block, .channel-label, .group-label").removeClass("selected");
+    $(this).addClass("selected");
+    var params_table = $("#params");
+    var group_name = $(this).data("group");
+    $("#caption").html("group: " + group_name);
+    params_table.empty();
+    var num_blocks = $(".block").filter(function () {
+        return $(this).data("info").group === group_name;
+    }).length;
+    params_table.append("<tr><td>blocks</td><td>" + num_blocks + "</td></tr>");
+});
+
+function get_position(block) {
+    var pos = 0;
+    block.prevAll(":not(.hidden)").each(function () {
+        pos += $(this).data("info").len;
+    });
+    return pos;
+}
+
+function find_block(blocks, pos) {
+    var block = blocks.not(".hidden").last();
+    blocks.each(function () {
+        if (get_position($(this)) > pos) {
+            block = $(this).prevAll(":not(.hidden):last");
+        }
+    });
+    return block;
+}
+
+// add keydown listeners
+window.addEventListener("keydown", function (event) {
+    var selected = $(".selected");
+    if (event.key === "Escape") {
+        $(".block, .channel-label, .group-label").removeClass("selected");
+        event.preventDefault();
+    } else if (event.key === "ArrowDown") {
+        if (selected.hasClass("channel-label")) {
+            if (selected.nextAll(":not(.hidden):first").length > 0) {
+                selected.nextAll(":not(.hidden):first").trigger("click");
+            }
+        } else if (selected.hasClass("group-label")) {
+            var group_name = selected.data("group");
+            $(".channel").not(".hidden").first().find(".block").filter(function () {
+                return $(this).data("info").group === group_name;
+            }).trigger("click");
+        } else if (selected.parent().nextAll(":not(.hidden):first").length > 0) {
+            var pos = get_position(selected);
+            var blocks = selected.parent().nextAll(":not(.hidden):first").find(".block");
+            find_block(blocks, pos).trigger("click");
+        }
+        event.preventDefault();
+    } else if (event.key === "ArrowUp") {
+        if (selected.hasClass("channel-label")) {
+            if (selected.prevAll(":not(.hidden):last").length > 0) {
+                selected.prevAll(":not(.hidden):last").trigger("click");
+            }
+        } else if (selected.hasClass("block")) {
+            if (selected.parent().prevAll(":not(.hidden):last").length > 0) {
+                var pos = get_position(selected);
+                var blocks = $(selected.parent().prevAll(":not(.hidden):last")).find(".block");
+                find_block(blocks, pos).trigger("click");
+            } else {
+                var group_name = selected.data("info").group;
+                $(".group-label").filter(function () {
+                    return $(this).data("group") === group_name;
+                }).trigger("click");
+            }
+        }
+        event.preventDefault();
+    } else if (event.key === "ArrowLeft") {
+        if (!selected.hasClass("channel-label")) {
+            if (selected.prevAll(":not(.hidden):last").length > 0) {
+                selected.prevAll(":not(.hidden):last").trigger("click");
+            } else if (selected.hasClass("block")) {
+                $("#" + selected.parent().data("lid")).trigger("click");
+            }
+        }
+        event.preventDefault();
+    } else if (event.key === "ArrowRight") {
+        if (selected.hasClass("channel-label")) {
+            var blocks = $("#" + selected.data("chid") + " .block");
+            if (blocks.length > 0) {
+                blocks.first().trigger("click");
+            }
+        } else {
+            if (selected.nextAll(":not(.hidden):first").length > 0) {
+                selected.nextAll(":not(.hidden):first").trigger("click");
+            }
+        }
+        event.preventDefault();
+    }
+});
+
+// Link scrolling between channels and group labels
+$("#group-label-container").on("scroll", function () {
+    if ($(this).scrollLeft() === 0) {
+        $("#group-label-container, #channel-container").removeClass("scrolling");
+    } else {
+        $("#group-label-container, #channel-container").addClass("scrolling");
+    }
     $("#channel-container").scrollLeft($(this).scrollLeft());
 });
 
 $("#channel-container").on("scroll", function () {
-    $("#event-names").scrollLeft($(this).scrollLeft());
+    if ($(this).scrollLeft() === 0) {
+        $("#group-label-container, #channel-container").removeClass("scrolling");
+    } else {
+        $("#group-label-container, #channel-container").addClass("scrolling");
+    }
+    $("#group-label-container").scrollLeft($(this).scrollLeft());
 });
 
-// Add a new event
-function add_event(name, length) {
-    $("#event-names").append("<div class='event-title' style='width: " + (100 * length - 2) + "px'><br>" + name + "</div>");
-    $("#ev-select").append("<option val='" + name + "'>" + name + "</option>");
-}
-
-// Enable or disable filter selects
-function update(signals) {
-    $("#block-info").dialog("close");
-    if (signals === "show") {
-        $("#ch-select, #ev-select").prop("disabled", false);
-    } else {
-        $("#ev-select, #ch-select, #event-names, #channel-container, #channel-label-container").empty();
-        $("#ch-select, #ev-select").prop("disabled", "disabled");
+$(document).on("click", ".up-arrow", function () {
+    var channel_label = $(this).parent();
+    if (channel_label.index() !== 0) {
+        var channel = $("#" + channel_label.data("chid"));
+        channel_label.insertBefore(channel_label.prevAll(":not(.hidden):last"));
+        channel.insertBefore(channel.prevAll(":not(.hidden):last"));
     }
-}
+});
+
+$(document).on("click", ".down-arrow", function () {
+    var channel_label = $(this).parent();
+    if (channel_label.index() !== $(".channel-label").length) {
+        var channel = $("#" + channel_label.data("chid"));
+        channel_label.insertAfter(channel_label.nextAll(":not(.hidden):first"));
+        channel.insertAfter(channel.nextAll(":not(.hidden):first"));
+    }
+});

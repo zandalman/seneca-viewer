@@ -1,5 +1,5 @@
 // Initialize visualization window
-var visualize_window;
+var visualizer_window;
 
 $(document).ready(function () {
     // Initialize tabs
@@ -73,12 +73,12 @@ function refresh_json_options() {
 
 $("#visualize").on("click", function () {
     var window_settings = "toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1000,height=400";
-    visualize_window = window.open("/visualize", "visualize", window_settings);
+    visualizer_window = window.open("/visualizer", "visualizer", window_settings);
 });
 
 $(window).on("unload", function () {
-    if (visualize_window) {
-        visualize_window.close();
+    if (visualizer_window) {
+        visualizer_window.close();
     }
 });
 
