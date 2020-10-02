@@ -375,7 +375,6 @@ def create_app():
 
     @flask_sijax.route(app, '/visualizer')
     def visualizer():
-
         if g.sijax.is_sijax_request:
             g.sijax.register_comet_object(SijaxCometHandlers(app))
             return g.sijax.process_request()

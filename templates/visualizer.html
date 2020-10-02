@@ -14,6 +14,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/select2.min.js') }}"></script>
+    <script>{{ g.sijax.get_js()|safe }}</script>
 </head>
 <body>
     <div class="row">
@@ -24,7 +25,6 @@
                 <label for="grp-filter">Group filter</label><br/>
                 <select id="grp-filter" name="groups[]" multiple="multiple"></select><br/><br/>
             </div>
-            <button id="test">Test</button>
         </div>
         <div class="column" style="width: 40%;">
             <div id="event-info">
