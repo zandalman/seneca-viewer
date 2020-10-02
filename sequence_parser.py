@@ -1,5 +1,5 @@
-import uuid
 from collections import OrderedDict
+from functions import gen_id
 
 prefixes = {
     "Y": 1e24,
@@ -24,10 +24,6 @@ prefixes = {
 def get_value(num, unit):
     prefix = list(filter(unit.startswith, prefixes.keys()))
     return (prefixes[prefix[0]] if prefix else 1) * num
-
-
-def gen_id(marker, seed):
-    return marker + uuid.uuid5(uuid.NAMESPACE_DNS, seed).hex
 
 
 class Channel(object):
