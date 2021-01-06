@@ -25,22 +25,6 @@ def create_app():
     app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
     flask_sijax.Sijax(app)  # initialize flask-sijax
 
-    with open(os.path.join(app.root_path, "config.txt"), "r") as config_file:
-        config_json = json.load(config_file)
-
-    @flask_sijax.route(app, '/visualizer')
-    def visualizer():
-        """
-        Render the visualizer template and route it to '/visualizer'.
-
-        Returns:
-            The rendered html template for the visualizer.
-        """
-        if g.sijax.is_sijax_request:
-            g.sijax.register_comet_object(SijaxCometHandlers(app))
-            return g.sijax.process_request()
-        return render_template("visualizer.html")
-
     @flask_sijax.route(app, '/')
     def main():
         """
@@ -53,17 +37,8 @@ def create_app():
         if g.sijax.is_sijax_request:
             g.sijax.register_object(SijaxHandlers(app, config_json))
             return g.sijax.process_request()
-        savedFiles = [f for f in os.listdir(app.config["UPLOAD_FOLDER"]) if os.path.isfile(os.path.join(app.config["UPLOAD_FOLDER"], f))]
-        event_config = jsonProcess(config_json)
-        update_temp(app, None)
         return render_template("main.html",
-                               form_init_js=form_init_js,
-                               json_options=get_json_options(app),
-                               files=savedFiles,
-                               logic="",
-                               file_folder=app.config["UPLOAD_FOLDER"],
-                               configfile=os.path.join(app.root_path, "config.txt"),
-                               config=json.dumps(event_config))
+                               form_init_js=form_init_js)
     return app
 
 

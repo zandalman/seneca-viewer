@@ -4,34 +4,24 @@
     <meta charset="UTF-8">
     <link rel="icon" href="../static/favicon.svg">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/jquery-ui-ext.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/select2.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="static/DataTables/datatables.min.css"/>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/spreadsheet.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/codemirror.css') }}">
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_comet.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax_upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/selectableScroll.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/select2.min.js') }}"></script>
-    <script type="text/javascript" src="static/DataTables/datatables.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/codemirror.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/python.js') }}"></script>
     <script>{{ form_init_js|safe }}</script>
-    <script type="text/javascript"> var configuration=JSON.parse({{config | tojson | safe}});</script>
     <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/parameter.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/spreadsheet.js') }}"></script>
-    <title>Seneca Viewer</title>
-
+    <title>Seneca</title>
 </head>
 <body onload="remove_loader()">
     <div id="loader">

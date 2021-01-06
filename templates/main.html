@@ -1,156 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-    <div id="json-options">
-        <button onclick="$('#file-upload').trigger('click');">Upload JSON</button>
-        <form id="upload-json" name="upload-json" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" id="file-upload" style="display: none;" onchange="form.submit(); form.reset();"/>
-        </form>
-        <button id="remove-json">Remove JSON</button>
-        <button id="view-code">View Code</button>
-        <button id="visualize">Open Visualizer</button>
-        <label for="json-select">JSON select: </label>
-        <select id="json-select" name="json">
-            {%- for id, filename in json_options.items() %}
-                <option value="{{ id }}">{{ filename }}</option>
-            {%- endfor %}
-        </select><hr class="main">
-        <div id="code-dialog">
-            <code id="json-code"></code>
-        </div>
-    </div>
     <div id="main-tabs">
         <ul>
             <li><a href="#spreadsheet">Define Logic</a></li>
             <li><a href="#parameter">Set variables</a></li>
             <li><a href="#translator">Translate</a></li>
         </ul>
-        <div id="spreadsheet" style="display:hidden;">
-            <div class="flex">
-                <div class="inner-element" id="event-list" style="text-align:center;">
-                    <span>drag + drop</span>
-                </div>
-                <div class="colFlex">
-                    <div class="inner-element" style="width: 100%;" id="sort-container">
-                        <div class="menu-bar">
-                            <button class="upload" style="background-color: white;">load selected</button>
-                            <button class="config">help</button>
-                            <button id="toggleSorter">toggle sorter</button>
-                            <button class="save">save JSON</button>
-                            <button class="addGroup">add event</button>
-                            <input id='upload-json' type='file' hidden/>
-                        </div>
-                        <div class="config-popup" style="display:none; padding: 30px;">
-                            <div style="text-align:left; margin-bottom: 10px;">configuration file: {{configfile}}</div>
-                            <div style="text-align: left; margin-bottom: 10px;">keyboard shortcuts:
-                                <li>alt + s: update</li>
-                                <li>alt + a: add sub-event box to event</li>
-                                <li>alt + r: add event </li>
-                                <li>alt + c: focus on spreadsheet </li>
-                                <li>alt + w: tab through event types </li>
-                                <li>alt + shift + w: tab back through event types </li>
-                                <li>alt + q: tab through sub-event boxes </li>
-                                <li>alt + shift + q: tab back through sub-event boxes </li>
-                            </div>
-                            <div style="text-align: left;margin-bottom: 10px;">
-                                - drag the square in the corner right of editor tables to select multiple cells
-                                <br> - more tips?
-                            </div>
-                        </div>
-                        <div class="hoz-context">
-                            <input type="text" id="fileName" placeholder="file name" style="height:15px;">
-                        </div>
-                        <div id="sort-boxes"></div>
-                    </div>
-                     <div class="table-box" style="width: 100%;">
-                    <div class="menu-bar">
-                        <button class="all-tabs" style="display:none;">all tables</button>
-                        <button class="update">update</button>
-                        <button class="clear-selected">clear selection</button>
-                        <button class="delete-selected">delete selected</button>
-                        <button class='save-selected'>save selected</button>
-                        <button class='fill-selected'>"fill selected</button>
-                        <button class='fill-options'>
-                            <select class='fill-selector'>
-                                <option disabled selected>fill options</option>
-                            </select>
-                        </button>
-                        <button class='add-rows'>add rows</button>
-
-                    </div>
-                    <div class="second-tables">
-                        <!-- dynamic tables here -->
-                    </div>
-                </div>
-                </div>
-
-                <div class="inner-element" id="eventTableSelector">
-                    <div class="tabs-bar"></div>
-                    <div class="parameter-box" style="display:none;">
-                        <select id="variable-lists">
-                            <option value="" disabled selected>parameter</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+        <div id="spreadsheet">
         </div>
         <div id="parameter">
-            <div class="flex">
-                <div class="context" id="paramContext">
-                    <p>
-                        <button id="generate">Generate?</button>
-                    </p>
-                    <p> Current file path:</p>
-                    <p> {{ file_folder }}</p>
-                    <pre id="jsonDisplay"></pre>
-                </div>
-                <div class="inner-element" id="paramSet">
-                    <div class="hoz-context">
-                        <button id="resetSort">sort by event</button>
-                        <button id="getSettables">settables only</button>
-                        <input id="paramSearch" placeholder="Search...">
-                    </div>
-                    <div class="pList">
-                        <table id="table">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Sets</th>
-                                <th>Event Type</th>
-                                <th>subEvent</th>
-                                <th>subEvent Group</th>
-                                <th>Event</th>
-                                <th>value</th>
-                            </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-                <div class="context" id="paramRepo">
-                    <div class="menu-bar">
-                        <button id="updateParameter">update temp</button>
-                        <button id="saveParameters">save</button>
-                        <input id="parameterFileName" type="text">
-                    </div>
-
-                    <div id="clearAll" style="margin: 5px;">get all </div>
-                </div>
-                <div class="inner-element" style="width: calc(100% - 1200px);">
-                    placeholder
-                </div>
-            </div>
         </div>
         <div id="translator">
-            <div id="translator-tabs">
-                <ul>
-                    <li><a href="#Artiq">Artiq</a></li>
-                    <li><a href="#Cicero">Cicero</a></li>
-                </ul>
-                <div id="Artiq">
-                    <div id="code-editor"></div>
-                </div>
-                <div id="Cicero">
-                    <p>Cicero is currently not supported.</p>
-                </div>
         </div>
     </div>
 {% endblock %}

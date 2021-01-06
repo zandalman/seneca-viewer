@@ -3,28 +3,8 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-}
-#main-tabs {
-    position: absolute;
-    display:flex;
-    flex-direction: column;
-    top: 50px;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
-.tabs{
-    height: auto;
-    width: auto;
-}
-#json-options {
     font-family: ubuntu;
 }
-hr.main {
-    border-top: 3px double black;
-}
-
 #loader-img {
     position: absolute;
     left: 40%;
@@ -50,15 +30,6 @@ hr.main {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-label {
-    margin-left: 10px;
-}
-#json-options form, #json-options label {
-    display: inline-block;
-}
-#json-options select {
-    width: 300px;
 }
 code {
     font-family: 'Source Code Pro', monospace;
