@@ -1,6 +1,6 @@
 $(document).ready(function () {
     // Initialize tabs
-    $("#main-tabs").tabs();
+    $("#tabs").tabs();
 });
 
 var code_mirror = CodeMirror(document.getElementById("code-editor"), {

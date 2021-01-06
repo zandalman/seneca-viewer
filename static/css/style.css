@@ -5,6 +5,20 @@
     user-select: none;
     font-family: ubuntu;
 }
+.row {
+    width: 100%;
+    display: flex;
+}
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: white;
+    background-color: #eaeaea;
+    z-index: 1000;
+}
 #loader-img {
     position: absolute;
     left: 40%;
@@ -16,16 +30,6 @@
     padding-top: 20vw;
     animation: spin 2s linear infinite;
     z-index: 1001;
-}
-#loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    color: white;
-    background-color: #eaeaea;
-    z-index: 1000;
 }
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -43,4 +47,37 @@ code {
     padding: 1em 1.5em;
     display: block;
     word-wrap: break-word;
+}
+#top-bar {
+    background-color: #eaeaea;
+}
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0.5em;
+}
+.center {
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+table, th, td {
+    border: 1px solid black;
+}
+table {
+    margin: 0.5em;
+    border-collapse: collapse
+}
+th {
+    width: 100px;
+}
+td {
+    width: 50px;
+}
+.tab {
+    min-height: 500px;
+}
+i {
+    display: inline-block;
+}
+#top-bar i {
+    margin-top: 40%;
 }

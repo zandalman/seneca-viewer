@@ -1,16 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-    <div id="main-tabs">
+    <div id="tabs">
         <ul>
-            <li><a href="#spreadsheet">Define Logic</a></li>
-            <li><a href="#parameter">Set variables</a></li>
-            <li><a href="#translator">Translate</a></li>
+            <li><a href="#exp-edit">Experiment Editor</a></li>
+            <li><a href="#run-man">Run Manager</a></li>
         </ul>
-        <div id="spreadsheet">
+        <div id="exp-edit" class="tab">
+            <div id="top-bar">
+                <h4 style="display: inline-block;">No Experiment Loaded</h4>
+                <div style="float: right;">
+                    <i class="fa fa-upload"></i>
+                </div>
+            </div>
+            <div class="row" style="height: 100%">
+                <div class="column" style="width: 10%; background-color: #eaeaea;">
+                    <div class="center"><b>Events</b></div>
+                    <ul id="events"></ul>
+                    <i class="fa fa-plus-square center" style="color: limegreen;"></i>
+                </div>
+                <div class="column" style="width: 90%;">
+                    <table>
+                        <tr>
+                            <th>Channels</th>
+                            <th colspan=5 style="text-align: left;">Events</th>
+                        </tr>
+                        <tr>
+                            <td>ch1</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div id="parameter">
-        </div>
-        <div id="translator">
+        <div id="run-man" class="tab">
         </div>
     </div>
 {% endblock %}
