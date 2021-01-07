@@ -88,10 +88,11 @@ i.active:hover {
     opacity: 0.6;
     cursor: pointer;
 }
-#add-event {
+#add-event-name {
     width: 80%;
     background: transparent;
     outline: none;
     border: none;
     border-bottom: 1px solid black;
+    display: inline-block;
 }

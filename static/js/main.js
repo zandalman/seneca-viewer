@@ -94,6 +94,39 @@ var hot = new Handsontable(container, {
     licenseKey: "non-commercial-and-evaluation"
 });
 
-$(".colorpicker").on("input", function () {
+$("#events").on("input", ".colorpicker", function () {
     hot.render();
+});
+
+$("#add-event").on("click", function() {
+    var name = $("#add-event-name").val();
+    var events = $("#events li").map(function () {
+        return $(this).data("name");
+    }).toArray();
+    if (events.includes(name)) {
+        alert("An event with name '" + name + "' already exists.");
+    } else if (name !== "") {
+        $("#events").append("<li data-name='" + name + "'></li>");
+        var event = $("#events li[data-name='" + name + "']");
+        event.append("<i class='fa fa-times-circle active remove-event'></i>\ ");
+        event.append(name + "\ ");
+        event.append("<input type='color' value='#ffffff' class='colorpicker'>");
+        $("#add-event-name").val("");
+    }
+});
+
+$(document).on("keypress", function(e) {
+    if(e.key === "Enter") {
+        if ($("#add-event-name").is(":focus")) {
+            $("#add-event").trigger("click");
+        }
+    }
+});
+
+$("#events").on("click", ".remove-event", function () {
+    var name = $(this).parent().data("name");
+    $(this).parent().remove();
+    var data = hot.getData();
+    const indices = data[0].indexOf(name);
+    //alert(indices);
 });
