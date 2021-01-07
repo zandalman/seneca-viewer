@@ -10,9 +10,13 @@ var code_mirror = CodeMirror(document.getElementById("code-editor"), {
 });
 
 var data = [
-  ["ch1", "", "", "", ""],
-  ["ch2", "", "", "", ""],
-  ["ch3", "", "", "", ""]
+    ["ch1", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch2", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch3", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch4", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch5", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch6", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch7", "", "", "", "", "", "", "", "", "", "", "", ""]
 ];
 
 // Define renderer for first column of table
@@ -34,6 +38,7 @@ Handsontable.renderers.registerRenderer("colorRenderer", colorRenderer);
 var container = document.getElementById("exp-table");
 var hot = new Handsontable(container, {
     data: data,
+    fixedColumnsLeft: 1,
     contextMenu: {
         callback: function (key, selection, clickEvent) {
             console.log(key, selection, clickEvent);
@@ -126,7 +131,18 @@ $(document).on("keypress", function(e) {
 $("#events").on("click", ".remove-event", function () {
     var name = $(this).parent().data("name");
     $(this).parent().remove();
-    var data = hot.getData();
-    const indices = data[0].indexOf(name);
-    //alert(indices);
+    var tableData = hot.getData();
+    var changes = [];
+    for (i = 0; i < tableData.length; i++) {
+        for (j = 0; j < tableData[i].length; j++){
+            if (tableData[i][j] === name) {
+                changes.push([i, j, ""]);
+            }
+        }
+    }
+    if (changes.length > 0) {
+        if (confirm("Are you sure you want to delete '" + name + "'? " + String(changes.length) + " cells will be cleared.")){
+            hot.setDataAtCell(changes);
+        }
+    }
 });

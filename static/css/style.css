@@ -72,8 +72,8 @@ th {
 td {
     width: 50px;
 }
-.tab {
-    min-height: 500px;
+#tabs, .tab {
+    height: 100%;
 }
 i {
     display: inline-block;
@@ -95,4 +95,12 @@ i.active:hover {
     border: none;
     border-bottom: 1px solid black;
     display: inline-block;
+}
+#exp-table {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+body, html {
+    height: 100%;
 }
