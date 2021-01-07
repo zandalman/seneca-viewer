@@ -9,30 +9,29 @@
             <div id="top-bar">
                 <h4 style="display: inline-block;">No Experiment Loaded</h4>
                 <div style="float: right;">
-                    <i class="fa fa-upload"></i>
+                    <i class="fa fa-upload fa-lg active" title="load experiment"></i>
+                    <i class="fa fa-save fa-lg active" title="save experiment"></i>
                 </div>
             </div>
             <div class="row" style="height: 100%">
-                <div class="column" style="width: 10%; background-color: #eaeaea;">
-                    <div class="center"><b>Events</b></div>
-                    <ul id="events"></ul>
-                    <i class="fa fa-plus-square center" style="color: limegreen;"></i>
+                <div class="column" style="width: 20%; background-color: #eaeaea;">
+                    <b>Events</b>
+                    <ul id="events">
+                        <li data-name="sine1">sine1
+                            <input type="color" value="#ffffff" class="colorpicker">
+                        </li>
+                        <li data-name="sine2">sine2
+                            <input type="color" value="#ffffff" class="colorpicker">
+                        </li>
+                        <li data-name="square">square
+                            <input type="color" value="#ffffff" class="colorpicker">
+                        </li>
+                    </ul>
+                    <input type="text" id="add-event" placeholder="event name">
+                    <i class="fa fa-plus-square fa-lg center active" title="add event"></i>
                 </div>
-                <div class="column" style="width: 90%;">
-                    <table>
-                        <tr>
-                            <th>Channels</th>
-                            <th colspan=5 style="text-align: left;">Events</th>
-                        </tr>
-                        <tr>
-                            <td>ch1</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </table>
+                <div class="column" style="width: 80%;">
+                    <div id="exp-table"></div>
                 </div>
             </div>
         </div>
