@@ -1,7 +1,6 @@
 $(document).ready(function () {
     // Initialize tabs
     $("#tabs").tabs();
-    $("td").addClass("blue-bg");
 });
 
 var code_mirror = CodeMirror(document.getElementById("code-editor"), {
@@ -19,7 +18,7 @@ var data = [
     ["ch7", "", "", "", "", "", "", "", "", "", "", "", ""]
 ];
 
-// Define renderer for first column of table
+// Define renderer for first column of table (i.e. channels)
 function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
     td.style.fontWeight = "bold";
@@ -40,7 +39,6 @@ var hot = new Handsontable(container, {
     data: data,
     fixedColumnsLeft: 1,
     manualRowMove: true,
-    manualColumnMove: true,
     contextMenu: {
         callback: function (key, selection, clickEvent) {
             console.log(key, selection, clickEvent);
@@ -108,6 +106,7 @@ $("#add-event").on("click", function() {
         var event = $("#events li[data-name='" + name + "']");
         event.append("<i class='fa fa-times-circle active remove-event'></i>\ ");
         event.append(name + "\ ");
+        event.append("<i class='fa fa-edit active edit-event'></i>\ ");
         event.append("<input type='color' value='#ffffff' class='colorpicker'>");
         $("#add-event-name").val("");
     }
@@ -142,4 +141,41 @@ $("#events").on("click", ".remove-event", function () {
 
 $("#add-col").on("click", function () {
     hot.alter("insert_col", hot.getData()[0].length, $("#num-col").val());
+});
+
+$("#event-edit").dialog({
+    autoOpen: false,
+    modal: true,
+    height: 300,
+    width: 600,
+    resizable: false
+});
+
+$("#events").on("click", ".edit-event", function () {
+    var name = $(this).parent().data("name");
+    $("#event-edit").dialog("open");
+});
+
+$("#event-type").select2({
+    placeholder: "Event Type",
+    width: "100%"
+});
+
+functionPlot({
+    target: "#signal",
+    width: 400,
+    height: 200,
+    xAxis: {domain: [0, 5]},
+    yAxis: {domain: [-1, 1]},
+    grid: true,
+    disableZoom: true,
+    data: [
+        {
+            fn: "sin(x)"
+        }
+    ]
+});
+
+$("load-exp").on("click", function () {
+    //insert code
 });

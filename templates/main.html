@@ -1,5 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
+    <div id="event-edit" title="Event Editor">
+        <div class="row">
+            <div class="column" style="width: 33.3%">
+                <select name="event-type" id="event-type">
+                    <option></option>
+                </select>
+            </div>
+            <div class="column" style="width: 66.6%">
+                <div id="signal"></div>
+            </div>
+            </div>
+        </div>
+        <button>save changes</button>
+    </div>
     <div id="tabs">
         <ul>
             <li><a href="#exp-edit">Experiment Editor</a></li>
@@ -9,8 +23,8 @@
             <div id="top-bar">
                 <h4 style="display: inline-block;">No Experiment Loaded</h4>
                 <div style="float: right;">
-                    <i class="fa fa-upload fa-lg active" title="load experiment"></i>
-                    <i class="fa fa-save fa-lg active" title="save experiment"></i>
+                    <i id="load-exp" class="fa fa-upload fa-lg active" title="load experiment"></i>
+                    <i id="save-exp" class="fa fa-save fa-lg active" title="save experiment"></i>
                 </div>
             </div>
             <div class="row" style="height: 100%">
