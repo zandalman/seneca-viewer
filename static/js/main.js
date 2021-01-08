@@ -39,28 +39,21 @@ var container = document.getElementById("exp-table");
 var hot = new Handsontable(container, {
     data: data,
     fixedColumnsLeft: 1,
+    manualRowMove: true,
+    manualColumnMove: true,
     contextMenu: {
         callback: function (key, selection, clickEvent) {
             console.log(key, selection, clickEvent);
         },
         items: {
-            "row_above": {
-                name: "Insert channel above"
-            },
-            "row_below": {
-                name: "Insert channel below"
-            },
             "col_left": {
-                name: "Insert timestep left",
+                name: "Add timestep left",
                 disabled: function () {
                     return this.getSelectedLast()[1] === 0;
                 }
             },
             "col_right": {
-                name: "Insert timestep right"
-            },
-            "remove_row": {
-                name: "Remove channel"
+                name: "Add timestep right"
             },
             "remove_col": {
                 name: "Remove timestep",
@@ -77,6 +70,7 @@ var hot = new Handsontable(container, {
     colHeaders: function(index) {
         return index > 0 ? index : "channels";
     },
+    rowHeaders: true,
     cells: function(row, column, prop) {
         const cellProperties = {};
         const visualRowIndex = this.instance.toVisualRow(row);
@@ -95,7 +89,6 @@ var hot = new Handsontable(container, {
         }
         return cellProperties;
     },
-    manualRowMove: true,
     licenseKey: "non-commercial-and-evaluation"
 });
 
@@ -145,4 +138,8 @@ $("#events").on("click", ".remove-event", function () {
             hot.setDataAtCell(changes);
         }
     }
+});
+
+$("#add-col").on("click", function () {
+    hot.alter("insert_col", hot.getData()[0].length, $("#num-col").val());
 });

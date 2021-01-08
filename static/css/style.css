@@ -74,6 +74,7 @@ td {
 }
 #tabs, .tab {
     height: 100%;
+    position: relative;
 }
 i {
     display: inline-block;
