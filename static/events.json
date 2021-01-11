@@ -1,0 +1,46 @@
+{
+  "constant": {
+    "params": {
+      "time": {
+        "type": "numeric",
+        "unit": "s",
+        "default": "1"
+      },
+      "value": {
+        "type": "numeric",
+        "unit": "V",
+        "default": "0"
+      }
+    }
+  },
+  "exponential": {},
+  "Gaussian": {},
+  "log": {},
+  "Lorentzian": {},
+  "pulse": {},
+  "ramp": {},
+  "sawtooth": {},
+  "sine": {
+    "params": {
+      "time": {
+        "type": "numeric",
+        "unit": "s",
+        "default": "1"
+      },
+      "amplitude": {
+        "type": "numeric",
+        "unit": "V",
+        "default": "1"
+      },
+      "frequency": {
+        "type": "numeric",
+        "unit": "Hz",
+        "default": "60"
+      }
+    }
+  },
+  "square": {},
+  "step": {},
+  "trapezoid": {},
+  "triangle": {}
+}

@@ -8,7 +8,7 @@ var code_mirror = CodeMirror(document.getElementById("code-editor"), {
   mode:  "python"
 });
 
-var data = [
+var tableDataDefault = [
     ["ch1", "", "", "", "", "", "", "", "", "", "", "", ""],
     ["ch2", "", "", "", "", "", "", "", "", "", "", "", ""],
     ["ch3", "", "", "", "", "", "", "", "", "", "", "", ""],
@@ -36,7 +36,7 @@ Handsontable.renderers.registerRenderer("colorRenderer", colorRenderer);
 // Define table
 var container = document.getElementById("exp-table");
 var hot = new Handsontable(container, {
-    data: data,
+    data: tableDataDefault,
     fixedColumnsLeft: 1,
     manualRowMove: true,
     contextMenu: {
@@ -152,8 +152,9 @@ $("#event-edit").dialog({
 });
 
 $("#events").on("click", ".edit-event", function () {
+    $("#event-type").val(""); // Clear event type select box
     var name = $(this).parent().data("name");
-    $("#event-edit").dialog("open");
+    $("#event-edit").dialog("open"); // Open event editor
 });
 
 $("#event-type").select2({
@@ -161,7 +162,7 @@ $("#event-type").select2({
     width: "100%"
 });
 
-functionPlot({
+var plotDataDefault = {
     target: "#signal",
     width: 400,
     height: 200,
@@ -171,11 +172,53 @@ functionPlot({
     disableZoom: true,
     data: [
         {
-            fn: "sin(x)"
+            fn: "0"
         }
     ]
-});
+};
 
-$("load-exp").on("click", function () {
-    //insert code
+functionPlot(plotDataDefault);
+
+$("#event-type").on("select2:select", function (e) {
+    $("#params").empty();
+    var eventData = JSON.parse($(this).find(":selected").data("params").replaceAll("'", '"'));
+    var paramData = eventData.params;
+    //for (var index in eventData.params) {
+    //    var paramData = eventData.params[index];
+    //    $("#params").append("<p>" + paramData.name + "</p>");
+    //}
+    var plotData = JSON.parse(JSON.stringify(plotDataDefault));
+    switch ($(this).val()) {
+        case "constant":
+            plotData.data[0].fn = paramData.value.default;
+            alert(paramData.value.default);
+            break;
+        case "exponential":
+            break;
+        case "Gaussian":
+            break;
+        case "log":
+            break;
+        case "Lorentzian":
+            break;
+        case "pulse":
+            break;
+        case "ramp":
+            break;
+        case "sawtooth":
+            break;
+        case "sine":
+            break;
+        case "square":
+            break;
+        case "step":
+            break;
+        case "trapeziod":
+            break;
+        case "triangle":
+            break;
+        default:
+            1+1;
+    }
+    functionPlot(plotData);
 });

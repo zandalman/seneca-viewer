@@ -25,6 +25,10 @@ def create_app():
     app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
     flask_sijax.Sijax(app)  # initialize flask-sijax
 
+    event_type_data_path = os.path.join(app.root_path, "static", "events.json")
+    with open(event_type_data_path, "r") as f:
+        event_type_data = json.load(f)
+
     @flask_sijax.route(app, '/')
     def main():
         """
@@ -38,7 +42,8 @@ def create_app():
             g.sijax.register_object(SijaxHandlers(app, config_json))
             return g.sijax.process_request()
         return render_template("main.html",
-                               form_init_js=form_init_js)
+                               form_init_js=form_init_js,
+                               event_type_data=event_type_data)
     return app
 
 
