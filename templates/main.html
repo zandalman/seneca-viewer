@@ -1,51 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-    <div id="event-edit" title="Event Editor">
-        <div class="row">
-            <div class="column" style="width: 33.3%">
-                <select name="event-type" id="event-type">
-                    <option></option>
-                    {% for eventType, eventData in event_type_data.items() %}
-                        <option value="{{ eventType }}">{{ eventType }}</option>
-                    {% endfor %}
-                </select>
-                {% for eventType, eventData in event_type_data.items() %}
-                    <div class="params" data-event="{{ eventType }}">
-                        {% for paramName, paramData in eventData["params"].items() %}
-                            <div class="param" data-event="{{ eventType }}" data-param="{{ paramName }}">{{ paramName }}:
-                                {% if paramData["type"] == "numeric" %}
-                                    <select class="select-param-type">
-                                        <option value="fixed">fixed</option>
-                                        <option value="list">list</option>
-                                        <option value="variable" selected>variable</option>
-                                    </select>
-                                    <div class="param-input">
-                                        <input type="number" class="num-param-input" data-default="{{ paramData["default"] }}">
-                                        <input type="text" class="var-param-input" data-default="V${{ loop.index }}">
-                                    </div>
-                                    <!--<select class="unit-select"></select>-->
-                                {% elif paramData["type"] == "boolean" %}
-                                    <select class="select-param-type">
-                                        <option value="fixed">fixed</option>
-                                        <option value="variable" selected>variable</option>
-                                    </select>
-                                    <div class="param-input" data-event="{{ eventType }}" data-param="{{ paramName }}" data-default="{{ paramData["default"] }}">
-                                        True <input type="checkbox" class="bool-param-input" checked>
-                                        False <input type="checkbox" class="bool-param-input">
-                                        <input type="text" class="var-param-input" data-default="V${{ loop.index }}">
-                                    </div>
-                                {% endif %}
-                            </div><br/>
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="column" style="width: 66.6%">
-                <div id="signal"></div>
-            </div>
-            </div>
-        </div>
-    </div>
     <div id="tabs">
         <ul>
             <li><a href="#exp-edit">Experiment Editor</a></li>
@@ -59,12 +13,10 @@
                     <i id="save-exp" class="fa fa-save fa-lg active" title="save experiment"></i>
                 </div>
             </div>
-            <div class="row" style="height: 40%">
+            <div class="row">
                 <div class="column" style="width: 20%; background-color: #eaeaea;">
-                    <b>Events</b>
-                    <ul id="events"></ul>
-                    <input type="text" id="add-event-name" placeholder="event name">
-                    <i class="fa fa-plus-square fa-lg active" title="add event" id="add-event"></i>
+                    <b>Variables</b>
+                    <ul id="variables"></ul>
                 </div>
                 <div class="column" style="width: 80%;">
                     <div style="display:inline-block">
@@ -72,11 +24,11 @@
                         <input type="number" id="num-col" min="1" max="1000" step="1" value="1">
                         timesteps
                     </div>
-                    <div id="exp-table"></div>
+                    <div id="exp-table" class="table"></div>
+                    <div id="sine-table" class="table"></div>
                 </div>
             </div>
         </div>
-        <div id="run-man" class="tab">
-        </div>
+        <div id="run-man" class="tab"></div>
     </div>
 {% endblock %}

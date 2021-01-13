@@ -1,27 +1,27 @@
-$(document).ready(function () {
+$( document ).ready(function() {
     // Initialize tabs
     $("#tabs").tabs();
-    $(".num-param-input, .bool-param-input").hide();
 });
 
+var ROW_HEIGHT = 25;
 var UNITS = {
-    "y": 10e-24,
-    "z": 10e-21,
-    "a": 10e-18,
-    "f": 10e-15,
-    "p": 10e-12,
-    "n": 10e-9,
-    "u": 10e-6,
-    "m": 10e-3,
+    "y": 1e-24,
+    "z": 1e-21,
+    "a": 1e-18,
+    "f": 1e-15,
+    "p": 1e-12,
+    "n": 1e-9,
+    "\u03BC": 1e-6,
+    "m": 1e-3,
     "": 1,
-    "k": 10e3,
-    "M": 10e6,
-    "G": 10e9,
-    "P": 10e12,
-    "T": 10e15,
-    "E": 10e18,
-    "Z": 10e21,
-    "Y": 10e24
+    "k": 1e3,
+    "M": 1e6,
+    "G": 1e9,
+    "P": 1e12,
+    "T": 1e15,
+    "E": 1e18,
+    "Z": 1e21,
+    "Y": 1e24
 };
 
 Object.keys(UNITS).forEach(function(key) {
@@ -58,65 +58,8 @@ function colorRenderer(instance, td, row, col, prop, value, cellProperties) {
 }
 Handsontable.renderers.registerRenderer("colorRenderer", colorRenderer);
 
-// Define table
-var container = document.getElementById("exp-table");
-var hot = new Handsontable(container, {
-    data: tableDataDefault,
-    fixedColumnsLeft: 1,
-    manualRowMove: true,
-    contextMenu: {
-        callback: function (key, selection, clickEvent) {
-            console.log(key, selection, clickEvent);
-        },
-        items: {
-            "col_left": {
-                name: "Add timestep left",
-                disabled: function () {
-                    return this.getSelectedLast()[1] === 0;
-                }
-            },
-            "col_right": {
-                name: "Add timestep right"
-            },
-            "remove_col": {
-                name: "Remove timestep",
-                disabled: function () {
-                    return this.getSelectedLast()[1] === 0;
-                }
-            },
-            "copy": {},
-            "cut": {},
-            "undo": {},
-            "redo": {}
-        }
-    },
-    colHeaders: function(index) {
-        return index > 0 ? index : "channels";
-    },
-    rowHeaders: true,
-    cells: function(row, column, prop) {
-        const cellProperties = {};
-        const visualRowIndex = this.instance.toVisualRow(row);
-        const visualColIndex = this.instance.toVisualColumn(column);
-        if (visualColIndex === 0) {
-            cellProperties.editor = "text";
-            cellProperties.renderer = firstColRenderer;
-        } else {
-            cellProperties.type = "autocomplete";
-            cellProperties.source = $("#events li").map(function () {
-                return $(this).data("name");
-            }).toArray();
-            cellProperties.strict = true;
-            cellProperties.allowInvalid = false;
-            cellProperties.renderer = colorRenderer;
-        }
-        return cellProperties;
-    },
-    licenseKey: "non-commercial-and-evaluation"
-});
-
 $("#events").on("input", ".colorpicker", function () {
-    hot.render();
+    experimentTable.render();
 });
 
 $("#add-event").on("click", function() {
@@ -152,7 +95,7 @@ $(document).on("keypress", function(e) {
 $("#events").on("click", ".remove-event", function () {
     var name = $(this).parent().data("name");
     $(this).parent().remove();
-    var tableData = hot.getData();
+    var tableData = experimentTable.getData();
     var changes = [];
     for (i = 0; i < tableData.length; i++) {
         for (j = 0; j < tableData[i].length; j++){
@@ -162,14 +105,14 @@ $("#events").on("click", ".remove-event", function () {
         }
     }
     if (changes.length > 0) {
-        if (confirm("Are you sure you want to delete '" + name + "'? " + String(changes.length) + " cells will be cleared.")){
-            hot.setDataAtCell(changes);
+        if (confirm("Are you sure you want to delete '" + name + "'? " + String(changes.length) + " cells will be cleared in the experiment table.")){
+            experimentTable.setDataAtCell(changes);
         }
     }
 });
 
 $("#add-col").on("click", function () {
-    hot.alter("insert_col", hot.getData()[0].length, $("#num-col").val());
+    experimentTable.alter("insert_col", experimentTable.getData()[0].length, $("#num-col").val());
 });
 
 $("#event-edit").dialog({
@@ -307,4 +250,179 @@ $("#event-type").on("select2:select", function (e) {
             1+1;
     }
     functionPlot(plotData);
+});
+
+function paramRenderer(instance, td, row, col, prop, value, cellProperties) {
+    var stringifiedValue = Handsontable.helper.stringify(value);
+    if (!isNaN(stringifiedValue) && stringifiedValue) {
+        newValue = value;
+        var power = Math.max(Math.min(Math.pow(1000, Math.floor(Math.log10(Math.abs(value)) / 3)), 1e24), 1e-24);
+        var prefix = Object.keys(UNITS).filter(function(key) {return UNITS[key] === power;})[0];
+        newValue = String((value / power).toFixed(3)) + prefix;
+        cellProperties.className = "htRight";
+        newArguments = [instance, td, row, col, prop, newValue, cellProperties];
+        Handsontable.renderers.TextRenderer.apply(this, newArguments);
+    } else {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        td.style.fontWeight = "bold";
+    }
+}
+Handsontable.renderers.registerRenderer("paramRenderer", paramRenderer);
+
+var tableDataDefault2 = [
+    ["ev1", "", "", ""],
+    ["ev2", "", "", ""],
+    ["ev3", "", "", ""],
+    ["ev4", "", "", ""],
+    ["ev5", "", "", ""],
+    ["ev6", "", "", ""],
+    ["ev7", "", "", ""]
+];
+
+// Define table
+var container2 = document.getElementById("sine-table");
+var sineEventTable = new Handsontable(container2, {
+    data: tableDataDefault2,
+    fixedColumnsLeft: 1,
+    manualRowMove: true,
+    contextMenu: {
+        callback: function (key, selection, clickEvent) {
+            console.log(key, selection, clickEvent);
+        },
+        items: {
+            "row_above": {
+                name: "Add event above"
+            },
+            "row_below": {
+                name: "Add event below"
+            },
+            "remove_row": {
+                name: "Remove event"
+            },
+            "copy": {},
+            "cut": {},
+            "undo": {},
+            "redo": {}
+        }
+    },
+    colHeaders: ["events", "time (s)", "amplitude (V)", "frequency (Hz)"],
+    rowHeaders: true,
+    cells: function(row, column, prop) {
+        var cellProperties = {};
+        var visualRowIndex = this.instance.toVisualRow(row);
+        var visualColIndex = this.instance.toVisualColumn(column);
+        if (visualColIndex === 0) {
+            cellProperties.renderer = firstColRenderer;
+        } else {
+            cellProperties.renderer = paramRenderer;
+        }
+        return cellProperties;
+    },
+    preventOverflow: "horizontal",
+    licenseKey: "non-commercial-and-evaluation"
+});
+
+
+// Define table
+var container = document.getElementById("exp-table");
+var experimentTable = new Handsontable(container, {
+    data: tableDataDefault,
+    fixedColumnsLeft: 1,
+    manualRowMove: true,
+    contextMenu: {
+        callback: function (key, selection, clickEvent) {
+            console.log(key, selection, clickEvent);
+        },
+        items: {
+            "col_left": {
+                name: "Add timestep left",
+                disabled: function () {
+                    return this.getSelectedLast()[1] === 0;
+                }
+            },
+            "col_right": {
+                name: "Add timestep right"
+            },
+            "remove_col": {
+                name: "Remove timestep",
+                disabled: function () {
+                    return this.getSelectedLast()[1] === 0;
+                }
+            },
+            "copy": {},
+            "cut": {},
+            "undo": {},
+            "redo": {}
+        }
+    },
+    colHeaders: function(index) {
+        return index > 0 ? index : "channels";
+    },
+    rowHeaders: true,
+    cells: function(row, column, prop) {
+        const cellProperties = {};
+        const visualRowIndex = this.instance.toVisualRow(row);
+        const visualColIndex = this.instance.toVisualColumn(column);
+        if (visualColIndex === 0) {
+            cellProperties.editor = "text";
+            cellProperties.renderer = firstColRenderer;
+        } else {
+            cellProperties.type = "autocomplete";
+            cellProperties.source = sineEventTable.getDataAtCol(0);
+            cellProperties.strict = true;
+            cellProperties.allowInvalid = false;
+            cellProperties.renderer = colorRenderer;
+        }
+        return cellProperties;
+    },
+    preventOverflow: "horizontal",
+    licenseKey: "non-commercial-and-evaluation"
+});
+
+// Clear cells in experiment table when removing events in event tables
+sineEventTable.addHook("beforeRemoveRow", function (index, amount, physicalRows, source) {
+    var expData = experimentTable.getData();
+    var eventNames = sineEventTable.getDataAtCol(0);
+    var removedEventNames = physicalRows.map(function (rowIndex) {return eventNames[rowIndex];});
+    var expChanges = [];
+    for (i = 0; i < expData.length; i++) {
+        for (j = 0; j < expData[i].length; j++){
+            if (removedEventNames.includes(expData[i][j])) {
+                expChanges.push([i, j, ""]);
+            }
+        }
+    }
+    if (expChanges.length > 0) {
+        confirmMessage = "Are you sure you want to delete "
+            + (removedEventNames.length > 1 ? String(removedEventNames.length) + " events? " : "event '" + removedEventNames[0] + "'? ")
+            + String(expChanges.length) + " cells will be cleared.";
+        if (confirm(confirmMessage)){
+            experimentTable.setDataAtCell(expChanges);
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return true;
+    }
+});
+
+sineEventTable.addHook("afterChange", function(changes, source) {
+    var currentVariables = $("#variables li").map(function() {
+        return $(this).data("name");
+    }).get();
+    changes.forEach(function(change) {
+        var col = change[1];
+        var value = change[3];
+        if (isNaN(value) && col !== 0) {
+            if (!currentVariables.includes(value)) {
+                $("#variables").append("<li data-name='" + value + "'>" + value + "<li>");
+            }
+        }
+    });
+    currentVariables.map(function(variableName) {
+        if (!(sineEventTable.getData().flat().includes(variableName))) {
+            $("#variables li[data-name='" + variableName + "']").remove();
+        }
+    });
 });
