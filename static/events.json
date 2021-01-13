@@ -13,13 +13,27 @@
       }
     }
   },
-  "exponential": {},
-  "Gaussian": {},
-  "log": {},
-  "Lorentzian": {},
-  "pulse": {},
-  "ramp": {},
-  "sawtooth": {},
+  "exponential": {
+    "params": {}
+  },
+  "Gaussian": {
+    "params": {}
+  },
+  "log": {
+    "params": {}
+  },
+  "Lorentzian": {
+    "params": {}
+  },
+  "pulse": {
+    "params": {}
+  },
+  "ramp": {
+    "params": {}
+  },
+  "sawtooth": {
+    "params": {}
+  },
   "sine": {
     "params": {
       "time": {
@@ -39,8 +53,16 @@
       }
     }
   },
-  "square": {},
-  "step": {},
-  "trapezoid": {},
-  "triangle": {}
+  "square": {
+    "params": {}
+  },
+  "step": {
+    "params": {}
+  },
+  "trapezoid": {
+    "params": {}
+  },
+  "triangle": {
+    "params": {}
+  }
 }

@@ -108,3 +108,12 @@ body, html {
 .ui-dialog {
     z-index: 1000 !important;
 }
+.params {
+    display: none;
+}
+.param {
+    display: inline-block;
+}
+.param-input-numeric {
+    width: 100px;
+}

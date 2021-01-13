@@ -1,6 +1,31 @@
 $(document).ready(function () {
     // Initialize tabs
     $("#tabs").tabs();
+    $(".num-param-input, .bool-param-input").hide();
+});
+
+var UNITS = {
+    "y": 10e-24,
+    "z": 10e-21,
+    "a": 10e-18,
+    "f": 10e-15,
+    "p": 10e-12,
+    "n": 10e-9,
+    "u": 10e-6,
+    "m": 10e-3,
+    "": 1,
+    "k": 10e3,
+    "M": 10e6,
+    "G": 10e9,
+    "P": 10e12,
+    "T": 10e15,
+    "E": 10e18,
+    "Z": 10e21,
+    "Y": 10e24
+};
+
+Object.keys(UNITS).forEach(function(key) {
+    $(".unit-select").append("<option value='" + key + "'>" + key + "</option>");
 });
 
 var code_mirror = CodeMirror(document.getElementById("code-editor"), {
@@ -104,6 +129,10 @@ $("#add-event").on("click", function() {
     } else if (name !== "") {
         $("#events").append("<li data-name='" + name + "'></li>");
         var event = $("#events li[data-name='" + name + "']");
+        event.data({
+            type: "undefined",
+            params: {}
+        });
         event.append("<i class='fa fa-times-circle active remove-event'></i>\ ");
         event.append(name + "\ ");
         event.append("<i class='fa fa-edit active edit-event'></i>\ ");
@@ -151,9 +180,56 @@ $("#event-edit").dialog({
     resizable: false
 });
 
+var setEventEditorDefault = function(event) {
+    // Clear event type select box
+    $("#event-type").val(null).trigger("change");
+    $(".params").hide();
+    // Set all parameters to variables
+    $(".select-param-type option[value='variable']").prop("selected", true);
+    $(".num-param-input, .bool-param-input").hide();
+    $(".var-param-input").show();
+    // Set all parameter inputs to default values
+    $(".num-param-input, .var-param-input").each(function() {
+       $(this).val($(this).data("default"));
+    });
+};
+
+var setEventEditor = function(event, eventType) {
+    // Select event type in event type select box
+    $("#event-type option[value='" + eventType + "']").prop("selected", true);
+    $("#event-type").trigger("change");
+    // Retrieve event parameters
+    var paramDict = event.data("params");
+    Object.keys(paramDict).forEach(function(paramName) {
+        var paramData = paramDict.paramName;
+        var paramHTML = $(".param[data-event='" + eventType + "'][data-param='" + paramName + "']");
+        paramHTML.find(".select-param-type option[value='" + paramData.type + "']").prop("selected", true);
+        paramHTML.find(".select-param-type").trigger("change");
+        // Set parameters
+        switch (paramData.type) {
+            case "fixed":
+                paramHTML.find($(".num-param-input")).val(paramHTML.value);
+                break;
+            case "variable":
+                paramHTML.find($(".var-param-input")).val(paramHTML.value);
+                break;
+            default:
+                null;
+        }
+    });
+};
+
+// Open event editor
 $("#events").on("click", ".edit-event", function () {
-    $("#event-type").val(""); // Clear event type select box
-    var name = $(this).parent().data("name");
+    var event = $(this).parent();
+    var eventName = event.data("name");
+    var eventType = event.data("type");
+    setEventEditorDefault();
+    if (eventType !== "undefined") {
+        setEventEditor(event, eventType);
+    }
+    $("#event-edit").dialog("option", "title", "Event Editor: " + eventName); // Set event editor title
+    $("#event-edit").data("event", eventName);
     $("#event-edit").dialog("open"); // Open event editor
 });
 
@@ -179,19 +255,29 @@ var plotDataDefault = {
 
 functionPlot(plotDataDefault);
 
+$(".select-param-type").on("change", function () {
+    var paramType = $(this).val();
+    switch (paramType) {
+        case "fixed":
+            $(this).parent().find(".num-param-input, .bool-param-input").show();
+            $(this).parent().find(".var-param-input").hide();
+            break;
+        case "variable":
+            $(this).parent().find(".num-param-input, .bool-param-input").hide();
+            $(this).parent().find(".var-param-input").show();
+            break;
+        default:
+            null;
+    }
+});
+
 $("#event-type").on("select2:select", function (e) {
-    $("#params").empty();
-    var eventData = JSON.parse($(this).find(":selected").data("params").replaceAll("'", '"'));
-    var paramData = eventData.params;
-    //for (var index in eventData.params) {
-    //    var paramData = eventData.params[index];
-    //    $("#params").append("<p>" + paramData.name + "</p>");
-    //}
-    var plotData = JSON.parse(JSON.stringify(plotDataDefault));
+    $(".params").hide();
+    $(".params[data-event='" + $(this).val() + "']").show();
+    var plotData = JSON.parse(JSON.stringify(plotDataDefault)); // Deep copy default plot data
     switch ($(this).val()) {
         case "constant":
-            plotData.data[0].fn = paramData.value.default;
-            alert(paramData.value.default);
+            //plotData.data[0].fn = paramData.value.default;
             break;
         case "exponential":
             break;

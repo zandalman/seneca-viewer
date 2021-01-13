@@ -5,18 +5,46 @@
             <div class="column" style="width: 33.3%">
                 <select name="event-type" id="event-type">
                     <option></option>
-                    {% for key, value in event_type_data.items() %}
-                        <option value="{{ key }}" data-params="{{ value }}">{{ key }}</option>
+                    {% for eventType, eventData in event_type_data.items() %}
+                        <option value="{{ eventType }}">{{ eventType }}</option>
                     {% endfor %}
                 </select>
-                <div id="params"></div>
+                {% for eventType, eventData in event_type_data.items() %}
+                    <div class="params" data-event="{{ eventType }}">
+                        {% for paramName, paramData in eventData["params"].items() %}
+                            <div class="param" data-event="{{ eventType }}" data-param="{{ paramName }}">{{ paramName }}:
+                                {% if paramData["type"] == "numeric" %}
+                                    <select class="select-param-type">
+                                        <option value="fixed">fixed</option>
+                                        <option value="list">list</option>
+                                        <option value="variable" selected>variable</option>
+                                    </select>
+                                    <div class="param-input">
+                                        <input type="number" class="num-param-input" data-default="{{ paramData["default"] }}">
+                                        <input type="text" class="var-param-input" data-default="V${{ loop.index }}">
+                                    </div>
+                                    <!--<select class="unit-select"></select>-->
+                                {% elif paramData["type"] == "boolean" %}
+                                    <select class="select-param-type">
+                                        <option value="fixed">fixed</option>
+                                        <option value="variable" selected>variable</option>
+                                    </select>
+                                    <div class="param-input" data-event="{{ eventType }}" data-param="{{ paramName }}" data-default="{{ paramData["default"] }}">
+                                        True <input type="checkbox" class="bool-param-input" checked>
+                                        False <input type="checkbox" class="bool-param-input">
+                                        <input type="text" class="var-param-input" data-default="V${{ loop.index }}">
+                                    </div>
+                                {% endif %}
+                            </div><br/>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
             </div>
             <div class="column" style="width: 66.6%">
                 <div id="signal"></div>
             </div>
             </div>
         </div>
-        <button>save changes</button>
     </div>
     <div id="tabs">
         <ul>
@@ -31,7 +59,7 @@
                     <i id="save-exp" class="fa fa-save fa-lg active" title="save experiment"></i>
                 </div>
             </div>
-            <div class="row" style="height: 100%">
+            <div class="row" style="height: 40%">
                 <div class="column" style="width: 20%; background-color: #eaeaea;">
                     <b>Events</b>
                     <ul id="events"></ul>
