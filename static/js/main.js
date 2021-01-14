@@ -408,6 +408,9 @@ sineEventTable.addHook("beforeRemoveRow", function (index, amount, physicalRows,
 });
 
 sineEventTable.addHook("afterChange", function(changes, source) {
+    if (source === 'loadData') {
+      return; //don't save this change
+    }
     var currentVariables = $("#variables li").map(function() {
         return $(this).data("name");
     }).get();
@@ -425,4 +428,29 @@ sineEventTable.addHook("afterChange", function(changes, source) {
             $("#variables li[data-name='" + variableName + "']").remove();
         }
     });
+});
+
+function loadJson(loadedData) {
+    var loadData = JSON.parse(loadedData).data;
+    var eventData = loadData.eventData;
+    var experimentData = loadData.experimentData;
+    console.log(eventData);
+    console.log(experimentData);
+    sineEventTable.loadData(eventData);
+    experimentTable.loadData(experimentData);
+}
+
+$("#load-exp").on("click", function () {
+    $("#upload-json").find("input").click();
+    $("#upload-json").find("input").on( "change", function() {
+      $("#upload-json").submit();
+    });
+});
+
+$("#save-exp").on("click", function () {
+    var eventData = sineEventTable.getData();
+    var experimentData = experimentTable.getData();
+    var jsonExport = JSON.stringify({"data": {"eventData": eventData, "experimentData": experimentData}});
+    var fileName = prompt("Input file name");
+    Sijax.request("save_json", [jsonExport, fileName])
 });
