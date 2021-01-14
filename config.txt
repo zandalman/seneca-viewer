@@ -1,4 +1,12 @@
 {
+  "DDS":{
+    "eventType": "locked",
+    "alias": "set",
+    "frequency": "set",
+    "amplitude": "set",
+    "RF_switch": "locked",
+    "attenuation": "set"
+  },
    "sine":{
       "eventType":"locked",
       "name":"locked",
