@@ -3,7 +3,6 @@ $( document ).ready(function() {
     $("#tabs").tabs();
 });
 
-var ROW_HEIGHT = 25;
 var UNITS = {
     "y": 1e-24,
     "z": 1e-21,
@@ -265,9 +264,16 @@ function paramRenderer(instance, td, row, col, prop, value, cellProperties) {
     } else {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         td.style.fontWeight = "bold";
+        if ($("#variables").find("li[data-name='" + value + "']:hover").length > 0) {
+            td.style.backgroundColor = "yellow";
+        }
     }
 }
 Handsontable.renderers.registerRenderer("paramRenderer", paramRenderer);
+
+$("#variables").on("mouseenter, mouseleave", "li", function () {
+    sineEventTable.render();
+});
 
 var tableDataDefault2 = [
     ["ev1", "", "", ""],
@@ -278,6 +284,15 @@ var tableDataDefault2 = [
     ["ev6", "", "", ""],
     ["ev7", "", "", ""]
 ];
+
+customValidator = function (value, callback) {
+    if (isNaN(value) && value && !value.match(/(?=^[a-zA-Z])(?=^[a-zA-Z0-9]+$)/)) {
+        callback(false);
+    } else {
+        callback(true);
+    }
+};
+Handsontable.validators.registerValidator("custom-validator", customValidator);
 
 // Define table
 var container2 = document.getElementById("sine-table");
@@ -368,7 +383,7 @@ var experimentTable = new Handsontable(container, {
             cellProperties.renderer = firstColRenderer;
         } else {
             cellProperties.type = "autocomplete";
-            cellProperties.source = sineEventTable.getDataAtCol(0);
+            cellProperties.source = sineEventTable.getDataAtCol(0).filter(function (eventName) {return !(eventName === null || eventName === "");});
             cellProperties.strict = true;
             cellProperties.allowInvalid = false;
             cellProperties.renderer = colorRenderer;
@@ -407,6 +422,17 @@ sineEventTable.addHook("beforeRemoveRow", function (index, amount, physicalRows,
     }
 });
 
+sineEventTable.addHook("afterRemoveRow", function (index, amount, physicalRows, source) {
+    var currentVariables = $("#variables li").map(function() {
+        return $(this).data("name");
+    }).get();
+    currentVariables.map(function(variableName) {
+        if (!(sineEventTable.getData().flat().includes(variableName))) {
+            $("#variables li[data-name='" + variableName + "']").remove();
+        }
+    });
+});
+
 sineEventTable.addHook("afterChange", function(changes, source) {
     var currentVariables = $("#variables li").map(function() {
         return $(this).data("name");
@@ -417,6 +443,14 @@ sineEventTable.addHook("afterChange", function(changes, source) {
         if (isNaN(value) && col !== 0) {
             if (!currentVariables.includes(value)) {
                 $("#variables").append("<li data-name='" + value + "'>" + value + "<li>");
+                // Sort variables alphabetically
+                $("#variables li").sort(function(a, b) {
+                    return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
+                }).appendTo("#variables");
+                // Remove empty list items from varibale list
+                $("#variables li").filter(function () {
+                   return $(this).text() === "";
+                }).remove();
             }
         }
     });

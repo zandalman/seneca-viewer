@@ -115,3 +115,9 @@ body, html {
 .param-input-numeric {
     width: 100px;
 }
+#variables li:hover {
+    background: yellow;
+}
+.blue {
+    background-color: blue;
+}
