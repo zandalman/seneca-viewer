@@ -434,8 +434,6 @@ function loadJson(loadedData) {
     var loadData = JSON.parse(loadedData).data;
     var eventData = loadData.eventData;
     var experimentData = loadData.experimentData;
-    console.log(eventData);
-    console.log(experimentData);
     sineEventTable.loadData(eventData);
     experimentTable.loadData(experimentData);
 }
