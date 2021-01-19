@@ -3,6 +3,11 @@ $( document ).ready(function() {
     $("#tabs").tabs();
 });
 
+var NUM_REGEX = /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)(e-?(0|[1-9]\d*))?([yzafpnumkMGTPEZY]$|$)/;
+var VAR_REGEX = /(?=^[a-zA-Z])(?=^[a-zA-Z0-9\-_]+$)(?=^(?!(true|false)$))/;
+var BOOL_REGEX = /^(true|false|)$/;
+var MU = "\u03BC";
+
 var UNITS = {
     "y": 1e-24,
     "z": 1e-21,
@@ -10,14 +15,14 @@ var UNITS = {
     "f": 1e-15,
     "p": 1e-12,
     "n": 1e-9,
-    "\u03BC": 1e-6,
+    "u": 1e-6,
     "m": 1e-3,
     "": 1,
     "k": 1e3,
     "M": 1e6,
     "G": 1e9,
-    "P": 1e12,
-    "T": 1e15,
+    "T": 1e12,
+    "P": 1e15,
     "E": 1e18,
     "Z": 1e21,
     "Y": 1e24
@@ -49,139 +54,16 @@ function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
     td.style.background = "#EEE";
 }
 
-// Define renderer for colored cells
-function colorRenderer(instance, td, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
-    var color = $("#events li[data-name='" + value + "'] input").val();
-    td.style.backgroundColor = color;
-}
-Handsontable.renderers.registerRenderer("colorRenderer", colorRenderer);
-
 $("#events").on("input", ".colorpicker", function () {
     experimentTable.render();
-});
-
-$("#add-event").on("click", function() {
-    var name = $("#add-event-name").val();
-    var events = $("#events li").map(function () {
-        return $(this).data("name");
-    }).toArray();
-    if (events.includes(name)) {
-        alert("An event with name '" + name + "' already exists.");
-    } else if (name !== "") {
-        $("#events").append("<li data-name='" + name + "'></li>");
-        var event = $("#events li[data-name='" + name + "']");
-        event.data({
-            type: "undefined",
-            params: {}
-        });
-        event.append("<i class='fa fa-times-circle active remove-event'></i>\ ");
-        event.append(name + "\ ");
-        event.append("<i class='fa fa-edit active edit-event'></i>\ ");
-        event.append("<input type='color' value='#ffffff' class='colorpicker'>");
-        $("#add-event-name").val("");
-    }
-});
-
-$(document).on("keypress", function(e) {
-    if(e.key === "Enter") {
-        if ($("#add-event-name").is(":focus")) {
-            $("#add-event").trigger("click");
-        }
-    }
-});
-
-$("#events").on("click", ".remove-event", function () {
-    var name = $(this).parent().data("name");
-    $(this).parent().remove();
-    var tableData = experimentTable.getData();
-    var changes = [];
-    for (i = 0; i < tableData.length; i++) {
-        for (j = 0; j < tableData[i].length; j++){
-            if (tableData[i][j] === name) {
-                changes.push([i, j, ""]);
-            }
-        }
-    }
-    if (changes.length > 0) {
-        if (confirm("Are you sure you want to delete '" + name + "'? " + String(changes.length) + " cells will be cleared in the experiment table.")){
-            experimentTable.setDataAtCell(changes);
-        }
-    }
 });
 
 $("#add-col").on("click", function () {
     experimentTable.alter("insert_col", experimentTable.getData()[0].length, $("#num-col").val());
 });
 
-$("#event-edit").dialog({
-    autoOpen: false,
-    modal: true,
-    height: 300,
-    width: 600,
-    resizable: false
-});
-
-var setEventEditorDefault = function(event) {
-    // Clear event type select box
-    $("#event-type").val(null).trigger("change");
-    $(".params").hide();
-    // Set all parameters to variables
-    $(".select-param-type option[value='variable']").prop("selected", true);
-    $(".num-param-input, .bool-param-input").hide();
-    $(".var-param-input").show();
-    // Set all parameter inputs to default values
-    $(".num-param-input, .var-param-input").each(function() {
-       $(this).val($(this).data("default"));
-    });
-};
-
-var setEventEditor = function(event, eventType) {
-    // Select event type in event type select box
-    $("#event-type option[value='" + eventType + "']").prop("selected", true);
-    $("#event-type").trigger("change");
-    // Retrieve event parameters
-    var paramDict = event.data("params");
-    Object.keys(paramDict).forEach(function(paramName) {
-        var paramData = paramDict.paramName;
-        var paramHTML = $(".param[data-event='" + eventType + "'][data-param='" + paramName + "']");
-        paramHTML.find(".select-param-type option[value='" + paramData.type + "']").prop("selected", true);
-        paramHTML.find(".select-param-type").trigger("change");
-        // Set parameters
-        switch (paramData.type) {
-            case "fixed":
-                paramHTML.find($(".num-param-input")).val(paramHTML.value);
-                break;
-            case "variable":
-                paramHTML.find($(".var-param-input")).val(paramHTML.value);
-                break;
-            default:
-                null;
-        }
-    });
-};
-
-// Open event editor
-$("#events").on("click", ".edit-event", function () {
-    var event = $(this).parent();
-    var eventName = event.data("name");
-    var eventType = event.data("type");
-    setEventEditorDefault();
-    if (eventType !== "undefined") {
-        setEventEditor(event, eventType);
-    }
-    $("#event-edit").dialog("option", "title", "Event Editor: " + eventName); // Set event editor title
-    $("#event-edit").data("event", eventName);
-    $("#event-edit").dialog("open"); // Open event editor
-});
-
-$("#event-type").select2({
-    placeholder: "Event Type",
-    width: "100%"
-});
-
 var plotDataDefault = {
-    target: "#signal",
+    target: "#visualizer",
     width: 400,
     height: 200,
     xAxis: {domain: [0, 5]},
@@ -197,79 +79,72 @@ var plotDataDefault = {
 
 functionPlot(plotDataDefault);
 
-$(".select-param-type").on("change", function () {
-    var paramType = $(this).val();
-    switch (paramType) {
-        case "fixed":
-            $(this).parent().find(".num-param-input, .bool-param-input").show();
-            $(this).parent().find(".var-param-input").hide();
-            break;
-        case "variable":
-            $(this).parent().find(".num-param-input, .bool-param-input").hide();
-            $(this).parent().find(".var-param-input").show();
-            break;
-        default:
-            null;
-    }
-});
-
-$("#event-type").on("select2:select", function (e) {
-    $(".params").hide();
-    $(".params[data-event='" + $(this).val() + "']").show();
-    var plotData = JSON.parse(JSON.stringify(plotDataDefault)); // Deep copy default plot data
-    switch ($(this).val()) {
-        case "constant":
-            //plotData.data[0].fn = paramData.value.default;
-            break;
-        case "exponential":
-            break;
-        case "Gaussian":
-            break;
-        case "log":
-            break;
-        case "Lorentzian":
-            break;
-        case "pulse":
-            break;
-        case "ramp":
-            break;
-        case "sawtooth":
-            break;
-        case "sine":
-            break;
-        case "square":
-            break;
-        case "step":
-            break;
-        case "trapeziod":
-            break;
-        case "triangle":
-            break;
-        default:
-            1+1;
-    }
-    functionPlot(plotData);
-});
-
-function paramRenderer(instance, td, row, col, prop, value, cellProperties) {
-    var stringifiedValue = Handsontable.helper.stringify(value);
-    if (!isNaN(stringifiedValue) && stringifiedValue) {
-        newValue = value;
-        var power = Math.max(Math.min(Math.pow(1000, Math.floor(Math.log10(Math.abs(value)) / 3)), 1e24), 1e-24);
-        var prefix = Object.keys(UNITS).filter(function(key) {return UNITS[key] === power;})[0];
-        newValue = String((value / power).toFixed(3)) + prefix;
-        cellProperties.className = "htRight";
-        newArguments = [instance, td, row, col, prop, newValue, cellProperties];
-        Handsontable.renderers.TextRenderer.apply(this, newArguments);
+var decodeNumeric = function (value) {
+    var lastChar = value.slice(-1);
+    if (isNaN(lastChar)) {
+        value = value.slice(0, -1);
+        return parseFloat(value) * UNITS[lastChar];
     } else {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        td.style.fontWeight = "bold";
-        if ($("#variables").find("li[data-name='" + value + "']:hover").length > 0) {
-            td.style.backgroundColor = "yellow";
-        }
+        return parseFloat(value);
     }
 }
-Handsontable.renderers.registerRenderer("paramRenderer", paramRenderer);
+
+var generateParamValidator = function (paramType) {
+    var paramValidator = function (value, callback) {
+        var stringifiedValue = Handsontable.helper.stringify(value);
+        var isNum = stringifiedValue.match(NUM_REGEX);
+        var isVar = stringifiedValue.match(VAR_REGEX);
+        var isBool = stringifiedValue.match(BOOL_REGEX);
+        switch (paramType) {
+            case "float":
+                callback(Boolean(isNum || isVar || !stringifiedValue));
+                break;
+            case "int":
+                callback(Boolean((isNum && decodeNumeric(stringifiedValue) % 1 === 0) || isVar || !stringifiedValue));
+                break;
+            case "boolean":
+                callback(Boolean(isBool || isVar || !stringifiedValue));
+                break;
+        }
+    };
+    return paramValidator;
+}
+
+var generateParamRenderer = function (paramType) {
+    var paramRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+        var stringifiedValue = Handsontable.helper.stringify(value);
+        // Set default cell properties
+        cellProperties.source = ["true", "false"];
+        cellProperties.className = "htLeft";
+        cellProperties.type = paramType === "boolean" ? "autocomplete" : "text";
+        if (!stringifiedValue) {
+            // Empty cell
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+        } else if (paramType === "float" && stringifiedValue.match(NUM_REGEX)) {
+            // Float cell
+            var newValue = value.replace("u", MU);
+            cellProperties.className = "htRight";
+            var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
+            Handsontable.renderers.TextRenderer.apply(this, newArguments);
+            td.style.backgroundColor = "#d9ead3";
+        } else if (paramType === "int" && stringifiedValue.match(NUM_REGEX) && decodeNumeric(stringifiedValue) % 1 === 0) {
+            // Integer cell
+            cellProperties.className = "htRight";
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            td.style.backgroundColor = "#cfe2f3";
+        } else if (paramType === "boolean" && stringifiedValue.match(BOOL_REGEX)) {
+            // Boolean cell
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            td.style.backgroundColor = "#fff2cc";
+        } else {
+            // Variable cell
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            td.style.fontWeight = "bold";
+            td.style.backgroundColor = "#f4cccc";
+        }
+    };
+    return paramRenderer;
+};
 
 $("#variables").on("mouseenter, mouseleave", "li", function () {
     sineEventTable.render();
@@ -284,15 +159,7 @@ var tableDataDefault2 = [
     ["ev6", "", "", ""],
     ["ev7", "", "", ""]
 ];
-
-customValidator = function (value, callback) {
-    if (isNaN(value) && value && !value.match(/(?=^[a-zA-Z])(?=^[a-zA-Z0-9]+$)/)) {
-        callback(false);
-    } else {
-        callback(true);
-    }
-};
-Handsontable.validators.registerValidator("custom-validator", customValidator);
+var exampleParamTypes = ["float", "int", "bool"]
 
 // Define table
 var container2 = document.getElementById("sine-table");
@@ -320,7 +187,7 @@ var sineEventTable = new Handsontable(container2, {
             "redo": {}
         }
     },
-    colHeaders: ["events", "time (s)", "amplitude (V)", "frequency (Hz)"],
+    colHeaders: ["events", "float", "int", "bool"],
     rowHeaders: true,
     cells: function(row, column, prop) {
         var cellProperties = {};
@@ -329,7 +196,11 @@ var sineEventTable = new Handsontable(container2, {
         if (visualColIndex === 0) {
             cellProperties.renderer = firstColRenderer;
         } else {
-            cellProperties.renderer = paramRenderer;
+            var paramType = exampleParamTypes[visualColIndex - 1];
+            cellProperties.validator = generateParamValidator(paramType);
+            cellProperties.renderer = generateParamRenderer(paramType);
+            cellProperties.strict = true;
+            cellProperties.allowInvalid = false;
         }
         return cellProperties;
     },
@@ -386,7 +257,6 @@ var experimentTable = new Handsontable(container, {
             cellProperties.source = sineEventTable.getDataAtCol(0).filter(function (eventName) {return !(eventName === null || eventName === "");});
             cellProperties.strict = true;
             cellProperties.allowInvalid = false;
-            cellProperties.renderer = colorRenderer;
         }
         return cellProperties;
     },
@@ -434,7 +304,7 @@ sineEventTable.addHook("afterRemoveRow", function (index, amount, physicalRows, 
 });
 
 sineEventTable.addHook("afterChange", function(changes, source) {
-    if (source === 'loadData') {
+    if (source === "loadData") {
       return; //don't save this change
     }
     var currentVariables = $("#variables li").map(function() {
@@ -443,18 +313,16 @@ sineEventTable.addHook("afterChange", function(changes, source) {
     changes.forEach(function(change) {
         var col = change[1];
         var value = change[3];
-        if (isNaN(value) && col !== 0) {
-            if (!currentVariables.includes(value)) {
-                $("#variables").append("<li data-name='" + value + "'>" + value + "<li>");
-                // Sort variables alphabetically
-                $("#variables li").sort(function(a, b) {
-                    return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
-                }).appendTo("#variables");
-                // Remove empty list items from varibale list
-                $("#variables li").filter(function () {
-                   return $(this).text() === "";
-                }).remove();
-            }
+        if (value.match(VAR_REGEX) && col !== 0 && !currentVariables.includes(value)) {
+            $("#variables").append("<li data-name='" + value + "'>" + value + "<li>");
+            // Sort variables alphabetically
+            $("#variables li").sort(function(a, b) {
+                return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
+            }).appendTo("#variables");
+            // Remove empty list items from varibale list
+            $("#variables li").filter(function () {
+               return $(this).text() === "";
+            }).remove();
         }
     });
     currentVariables.map(function(variableName) {
@@ -484,5 +352,5 @@ $("#save-exp").on("click", function () {
     var experimentData = experimentTable.getData();
     var jsonExport = JSON.stringify({"data": {"eventData": eventData, "experimentData": experimentData}});
     var fileName = prompt("Input file name");
-    Sijax.request("save_json", [jsonExport, fileName])
+    Sijax.request("save_json", [jsonExport, fileName]);
 });

@@ -35,42 +35,12 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-code {
-    font-family: 'Source Code Pro', monospace;
-    background: #f4f4f4;
-    border: 1px solid #ddd;
-    border-left: 3px solid #f36d33;
-    color: #666;
-    page-break-inside: avoid;
-    margin-bottom: 1.6em;
-    overflow: auto;
-    padding: 1em 1.5em;
-    display: block;
-    word-wrap: break-word;
-}
 #top-bar {
     background-color: #eaeaea;
 }
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0.5em;
-}
-.center {
-    margin-left: 50%;
-    transform: translateX(-50%);
-}
-table, th, td {
-    border: 1px solid black;
-}
-table {
-    margin: 0.5em;
-    border-collapse: collapse
-}
-th {
-    width: 100px;
-}
-td {
-    width: 50px;
 }
 #tabs, .tab {
     height: 100%;
@@ -89,35 +59,15 @@ ul {
     padding: 0;
     margin: 0;
 }
-#add-event-name {
-    width: 80%;
-    background: transparent;
-    outline: none;
-    border: none;
-    border-bottom: 1px solid black;
-    display: inline-block;
-}
 .table {
     width: 100%;
 }
 body, html {
     height: 100%;
 }
-.ui-dialog {
-    z-index: 1000 !important;
-}
-.params {
-    display: none;
-}
-.param {
-    display: inline-block;
-}
-.param-input-numeric {
-    width: 100px;
-}
 #variables li:hover {
     background: yellow;
 }
-.blue {
-    background-color: blue;
+td {
+    min-width: 50px;
 }
