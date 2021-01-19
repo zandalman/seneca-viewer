@@ -3,11 +3,14 @@ $( document ).ready(function() {
     $("#tabs").tabs();
 });
 
+// Define regex expressions
 var NUM_REGEX = /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)(e-?(0|[1-9]\d*))?([yzafpnumkMGTPEZY]$|$)/;
 var VAR_REGEX = /(?=^[a-zA-Z])(?=^[a-zA-Z0-9\-_]+$)(?=^(?!(true|false)$))/;
 var BOOL_REGEX = /^(true|false|)$/;
+
 var MU = "\u03BC";
 
+// Define unit conversions
 var UNITS = {
     "y": 1e-24,
     "z": 1e-21,
@@ -105,6 +108,8 @@ var generateParamValidator = function (paramType) {
             case "boolean":
                 callback(Boolean(isBool || isVar || !stringifiedValue));
                 break;
+            default:
+                callback(Boolean(isVar || !stringifiedValue))
         }
     };
     return paramValidator;
@@ -159,7 +164,7 @@ var tableDataDefault2 = [
     ["ev6", "", "", ""],
     ["ev7", "", "", ""]
 ];
-var exampleParamTypes = ["float", "int", "bool"]
+var exampleParamTypes = ["float", "int", "boolean"]
 
 // Define table
 var container2 = document.getElementById("sine-table");
