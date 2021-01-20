@@ -43,7 +43,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.5em;
 }
 #tabs, .tab {
-    height: 100%;
     position: relative;
 }
 i {
@@ -70,4 +69,10 @@ body, html {
 }
 td {
     min-width: 50px;
+}
+#storage {
+    display: none;
+}
+#event-type {
+    width: 200px;
 }

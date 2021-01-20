@@ -2,67 +2,133 @@
   "constant": {
     "params": {
       "time": {
-        "type": "numeric",
+        "type": "float",
         "unit": "s",
         "default": "1"
       },
       "value": {
-        "type": "numeric",
+        "type": "float",
         "unit": "V",
         "default": "0"
       }
     }
   },
   "exponential": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "Gaussian": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "log": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "Lorentzian": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "pulse": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "ramp": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "sawtooth": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "sine": {
     "params": {
       "time": {
-        "type": "numeric",
+        "type": "float",
         "unit": "s",
         "default": "1"
       },
       "amplitude": {
-        "type": "numeric",
+        "type": "float",
         "unit": "V",
         "default": "1"
       },
       "frequency": {
-        "type": "numeric",
+        "type": "float",
         "unit": "Hz",
         "default": "60"
       }
     }
   },
   "square": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "step": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "trapezoid": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   },
   "triangle": {
-    "params": {}
+    "params": {
+      "time": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
   }
 }
