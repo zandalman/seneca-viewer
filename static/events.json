@@ -55,6 +55,31 @@
         "type": "float",
         "unit": "s",
         "default": "1"
+      },
+      "width": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      },
+      "frequency": {
+        "type": "float",
+        "unit": "Hz",
+        "default": "1"
+      },
+      "amplitude": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      },
+      "rising": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      },
+      "falling": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
       }
     }
   },

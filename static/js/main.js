@@ -10,8 +10,10 @@ $( document ).ready(function() {
         "allowClear": true,
         "placeholder": "Event Type Filter"
     });
+    $("#event-tables .table").hide();
 });
 
+// Initialize lists
 var eventList = [];
 var eventTables = [];
 
@@ -48,7 +50,6 @@ var createEventTables = function () {
     Object.keys(eventTypeDataJSON).forEach(function (eventType) {
         var eventTypeData = eventTypeDataJSON[eventType];
         $("#event-type").append("<option value='" + eventType + "'>" + eventType + "</option>");
-        $("#event-tables").append("<p>" + eventType + "</p>");
         $("#event-tables").append("<div class='table' id='table-" + eventType + "'></div>");
         eventTables.push(createEventTable(eventType, eventTypeData));
     });
@@ -94,7 +95,10 @@ var createEventTable = function (eventType, eventTypeData) {
                 "redo": {}
             }
         },
-        colHeaders: ["events"].concat(sortedParamNames),
+        colHeaders: ["events"].concat(sortedParamNames.map(function (paramName) {
+            var paramUnit = eventTypeData.params[paramName].unit;
+            return paramName + " (" + paramUnit + ")";
+        })),
         rowHeaders: true,
         cells: function(row, column, prop) {
             var cellProperties = {};
@@ -319,16 +323,21 @@ var addBeforeRemoveRowHook = function (eventTable) {
     });
 }
 
+var updateVariables = function () {
+    $("#variables li").map(function () {
+        var variableName = $(this).data("name");
+        var containsVariable = eventTables.map(function (eventTable) {
+            return !(eventTable.getData().flat().includes(variableName));
+        });
+        if (!containsVariable.includes(false)) {
+            $("#variables li[data-name='" + variableName + "']").remove();
+        }
+    });
+}
+
 var addAfterRemoveRowHook = function (eventTable) {
     eventTable.addHook("afterRemoveRow", function (index, amount, physicalRows, source) {
-        var currentVariables = $("#variables li").map(function () {
-            return $(this).data("name");
-        }).get();
-        currentVariables.map(function (variableName) {
-            if (!(eventTable.getData().flat().includes(variableName))) {
-                $("#variables li[data-name='" + variableName + "']").remove();
-            }
-        });
+        updateVariables();
     });
 }
 
@@ -343,25 +352,26 @@ var addAfterChangeHook = function (eventTable) {
         changes.forEach(function(change) {
             var col = change[1];
             var value = change[3];
-            if (value.match(VAR_REGEX) && col !== 0 && !currentVariables.includes(value)) {
+            if (VAR_REGEX.test(value) && col !== 0 && !currentVariables.includes(value) && value) {
                 $("#variables").append("<li data-name='" + value + "'>" + value + "<li>");
                 // Sort variables alphabetically
                 $("#variables li").sort(function(a, b) {
                     return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
                 }).appendTo("#variables");
-                // Remove empty list items from varibale list
+                // Remove empty list items from variable list
                 $("#variables li").filter(function () {
                    return $(this).text() === "";
                 }).remove();
             }
         });
-        currentVariables.map(function(variableName) {
-            if (!(eventTable.getData().flat().includes(variableName))) {
-                $("#variables li[data-name='" + variableName + "']").remove();
-            }
-        });
+        updateVariables();
     });
 }
+
+$("#event-type").on("change", function () {
+    $("#event-tables .table").hide();
+    $("#table-" + $(this).val()).show();
+});
 
 function loadJson(loadedData) {
     var loadData = JSON.parse(loadedData).data;

@@ -68,7 +68,7 @@ body, html {
     background: yellow;
 }
 td {
-    min-width: 50px;
+    min-width: 100px;
 }
 #storage {
     display: none;
