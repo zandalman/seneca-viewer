@@ -5,17 +5,25 @@ $( document ).ready(function() {
     experimentTable = createExperimentTable();
     createEventTables();
     addEventTableHooks();
-    // Initialize select box
+    // Initialize event type select box
     $("#event-type").select2({
         "allowClear": true,
         "placeholder": "Event Type Filter"
     });
-    $("#event-tables .table").hide();
+    // Color variable list titles
+    $("#float-variables-title").css("background-color", FLOAT_COLOR);
+    $("#int-variables-title").css("background-color", INT_COLOR);
+    $("#boolean-variables-title").css("background-color", BOOL_COLOR);
 });
 
-// Initialize lists
-var eventList = [];
+// Initialize event table list
 var eventTables = [];
+
+// Define colors
+var FLOAT_COLOR = "#d9ead3";
+var INT_COLOR = "#cfe2f3";
+var BOOL_COLOR = "#fff2cc";
+var VAR_COLOR = "#f4cccc";
 
 // Define regex expressions
 var NUM_REGEX = /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)(e-?(0|[1-9]\d*))?([yzafpnumkMGTPEZY]$|$)/;
@@ -44,14 +52,28 @@ var UNITS = {
     "Y": 1e24
 };
 
+// Define default experiment table data
+var experimentTableDataDefault = [
+    ["ch1", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch2", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch3", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch4", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch5", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch6", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["ch7", "", "", "", "", "", "", "", "", "", "", "", ""]
+];
+
+// Retrieve data from HTML storage
 var eventTypeDataJSON = JSON.parse($("#storage").data("evtyp").replaceAll("'", "\""));
 
-var createEventTables = function () {
-    Object.keys(eventTypeDataJSON).forEach(function (eventType) {
+// Create event tables
+var createEventTables = function (eventTableDataList = null) {
+    Object.keys(eventTypeDataJSON).sort().map(function (eventType, eventTypeIndex) {
         var eventTypeData = eventTypeDataJSON[eventType];
+        var eventTableData = eventTableDataList ? eventTableDataList[eventTypeIndex] : null;
         $("#event-type").append("<option value='" + eventType + "'>" + eventType + "</option>");
         $("#event-tables").append("<div class='table' id='table-" + eventType + "'></div>");
-        eventTables.push(createEventTable(eventType, eventTypeData));
+        eventTables.push(createEventTable(eventType, eventTypeData, eventTableData));
     });
 }
 
@@ -63,16 +85,18 @@ var addEventTableHooks = function () {
     });
 }
 
-var createEventTable = function (eventType, eventTypeData) {
+var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var numParams = Object.keys(eventTypeData.params).length;
     var sortedParamNames = Object.keys(eventTypeData.params).sort();
-    var defaultTableData = [Array.apply(null, Array(numParams + 1)).map(String.prototype.valueOf, "")];
-    defaultTableData[0][0] = eventType + "_event";
-    eventList.push(eventType + "_event");
+    if (!eventTableData) {
+        // Default event table data
+        eventTableData = [Array.apply(null, Array(numParams + 1)).map(String.prototype.valueOf, "")];
+        eventTableData[0][0] = eventType + "_event";
+    }
     // Define table
     var container = document.getElementById("table-" + eventType);
     var eventTable = new Handsontable(container, {
-        data: defaultTableData,
+        data: eventTableData,
         fixedColumnsLeft: 1,
         manualRowMove: true,
         contextMenu: {
@@ -96,8 +120,12 @@ var createEventTable = function (eventType, eventTypeData) {
             }
         },
         colHeaders: ["events"].concat(sortedParamNames.map(function (paramName) {
-            var paramUnit = eventTypeData.params[paramName].unit;
-            return paramName + " (" + paramUnit + ")";
+            if (!(eventTypeData.params[paramName].type === "boolean")) {
+                var paramUnit = eventTypeData.params[paramName].unit;
+                return paramName + " (" + paramUnit + ")";
+            } else {
+                return paramName;
+            }
         })),
         rowHeaders: true,
         cells: function(row, column, prop) {
@@ -105,9 +133,13 @@ var createEventTable = function (eventType, eventTypeData) {
             var visualRowIndex = this.instance.toVisualRow(row);
             var visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
+                cellProperties.validator = generateParamValidator();
                 cellProperties.renderer = firstColRenderer;
+                cellProperties.strict = true;
+                cellProperties.allowInvalid = false;
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
+                cellProperties.className = ["cell-" + paramType];
                 cellProperties.validator = generateParamValidator(paramType);
                 cellProperties.renderer = generateParamRenderer(paramType);
                 cellProperties.strict = true;
@@ -125,16 +157,6 @@ var code_mirror = CodeMirror(document.getElementById("code-editor"), {
   value: "x = 2\n",
   mode:  "python"
 });
-
-var tableDataDefault = [
-    ["ch1", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch2", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch3", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch4", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch5", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch6", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch7", "", "", "", "", "", "", "", "", "", "", "", ""]
-];
 
 // Define renderer for first column of table (i.e. channels)
 function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -177,9 +199,9 @@ var decodeNumeric = function (value) {
 var generateParamValidator = function (paramType) {
     var paramValidator = function (value, callback) {
         var stringifiedValue = Handsontable.helper.stringify(value);
-        var isNum = stringifiedValue.match(NUM_REGEX);
-        var isVar = stringifiedValue.match(VAR_REGEX);
-        var isBool = stringifiedValue.match(BOOL_REGEX);
+        var isNum = NUM_REGEX.test(stringifiedValue);
+        var isVar = VAR_REGEX.test(stringifiedValue);
+        var isBool = BOOL_REGEX.test(stringifiedValue);
         switch (paramType) {
             case "float":
                 callback(Boolean(isNum || isVar || !stringifiedValue));
@@ -202,41 +224,47 @@ var generateParamRenderer = function (paramType) {
         var stringifiedValue = Handsontable.helper.stringify(value);
         // Set default cell properties
         cellProperties.source = ["true", "false"];
-        cellProperties.className = "htLeft";
         cellProperties.type = paramType === "boolean" ? "autocomplete" : "text";
         if (!stringifiedValue) {
             // Empty cell
+            cellProperties.className.push("htLeft");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
         } else if (paramType === "float" && stringifiedValue.match(NUM_REGEX)) {
             // Float cell
             var newValue = value.replace("u", MU);
-            cellProperties.className = "htRight";
+            cellProperties.className.push("htRight");
             var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
             Handsontable.renderers.TextRenderer.apply(this, newArguments);
-            td.style.backgroundColor = "#d9ead3";
+            td.style.backgroundColor = FLOAT_COLOR;
         } else if (paramType === "int" && stringifiedValue.match(NUM_REGEX) && decodeNumeric(stringifiedValue) % 1 === 0) {
             // Integer cell
-            cellProperties.className = "htRight";
+            cellProperties.className.push("htRight");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
-            td.style.backgroundColor = "#cfe2f3";
+            td.style.backgroundColor = INT_COLOR;
         } else if (paramType === "boolean" && stringifiedValue.match(BOOL_REGEX)) {
             // Boolean cell
+            cellProperties.className.push("htLeft");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
-            td.style.backgroundColor = "#fff2cc";
+            td.style.backgroundColor = BOOL_COLOR;
         } else {
             // Variable cell
+            cellProperties.className.push("htLeft");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             td.style.fontWeight = "bold";
-            td.style.backgroundColor = "#f4cccc";
+            td.style.backgroundColor = VAR_COLOR;
         }
     };
     return paramRenderer;
 };
 
-var createExperimentTable = function () {
+var createExperimentTable = function (experimentTableData = null) {
     var container = document.getElementById("exp-table");
+    if (!experimentTableData) {
+        // Default experiment table data
+        experimentTableData = experimentTableDataDefault;
+    }
     var experimentTable = new Handsontable(container, {
-        data: tableDataDefault,
+        data: experimentTableData,
         fixedColumnsLeft: 1,
         manualRowMove: true,
         contextMenu: {
@@ -278,7 +306,11 @@ var createExperimentTable = function () {
                 cellProperties.renderer = firstColRenderer;
             } else {
                 cellProperties.type = "autocomplete";
-                cellProperties.source = eventList;
+                cellProperties.source = eventTables.map(function (eventTable) {
+                    return eventTable.getDataAtCol(0);
+                }).flat().filter(function (eventName) {
+                    return eventName !== null;
+                }).sort();
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
             }
@@ -313,24 +345,18 @@ var addBeforeRemoveRowHook = function (eventTable) {
                 return false;
             }
         }
-        removedEventNames.forEach(function (eventName) {
-            eventIndex = eventList.indexOf(eventName);
-            if (eventIndex !== -1) {
-                eventList.splice(eventIndex, 1);
-            }
-        });
         return true;
     });
 }
 
 var updateVariables = function () {
-    $("#variables li").map(function () {
+    $(".variable-list li").map(function () {
         var variableName = $(this).data("name");
         var containsVariable = eventTables.map(function (eventTable) {
             return !(eventTable.getData().flat().includes(variableName));
         });
         if (!containsVariable.includes(false)) {
-            $("#variables li[data-name='" + variableName + "']").remove();
+            $(".variable-list li[data-name='" + variableName + "']").remove();
         }
     });
 }
@@ -341,25 +367,39 @@ var addAfterRemoveRowHook = function (eventTable) {
     });
 }
 
+var getParamTypeAtCell = function (eventTable, row, col) {
+    var cellClassName = eventTable.getCellMeta(row, col).className;
+    if (cellClassName.includes("cell-float")) {
+        return "float"
+    } else if (cellClassName.includes("cell-int")) {
+        return "int"
+    } else if (cellClassName.includes("cell-boolean")) {
+        return "boolean"
+    }
+}
+
 var addAfterChangeHook = function (eventTable) {
     eventTable.addHook("afterChange", function(changes, source) {
         if (source === "loadData") {
           return; //don't save this change
         }
-        var currentVariables = $("#variables li").map(function() {
+        var currentVariables = $(".variable-list li").map(function() {
             return $(this).data("name");
         }).get();
         changes.forEach(function(change) {
+            var row = change[0];
             var col = change[1];
             var value = change[3];
             if (VAR_REGEX.test(value) && col !== 0 && !currentVariables.includes(value) && value) {
-                $("#variables").append("<li data-name='" + value + "'>" + value + "<li>");
+                var paramType = getParamTypeAtCell(eventTable, row, col);
+                var variableList = $("#" + paramType + "-variables");
+                variableList.append("<li data-name='" + value + "'>" + value + "<li>");
                 // Sort variables alphabetically
-                $("#variables li").sort(function(a, b) {
+                variableList.html(variableList.children().sort(function(a, b) {
                     return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
-                }).appendTo("#variables");
+                }));
                 // Remove empty list items from variable list
-                $("#variables li").filter(function () {
+                variableList.children().filter(function () {
                    return $(this).text() === "";
                 }).remove();
             }
@@ -369,29 +409,43 @@ var addAfterChangeHook = function (eventTable) {
 }
 
 $("#event-type").on("change", function () {
-    $("#event-tables .table").hide();
-    $("#table-" + $(this).val()).show();
+    if ($(this).val()) {
+        $("#event-tables .table").hide();
+        $("#table-" + $(this).val()).show();
+    } else {
+        $("#event-tables .table").show();
+    }
 });
 
-function loadJson(loadedData) {
-    var loadData = JSON.parse(loadedData).data;
-    var eventData = loadData.eventData;
-    var experimentData = loadData.experimentData;
-    sineEventTable.loadData(eventData);
-    experimentTable.loadData(experimentData);
+var resetTables = function () {
+    $("#exp-table").empty();
+    $("#event-tables").empty();
+    $(".htMenu").remove();
+    eventTables = [];
+}
+
+var loadJson = function (loadedData) {
+    var eventTableDataList = loadedData.data.eventData;
+    var experimentTableData = loadedData.data.experimentData;
+    resetTables();
+    experimentTable = createExperimentTable(experimentTableData);
+    createEventTables(eventTableDataList);
+    $("#event-type").trigger("change");
 }
 
 $("#load-exp").on("click", function () {
     $("#upload-json").find("input").click();
-    $("#upload-json").find("input").on( "change", function() {
+    $("#upload-json").find("input").on("change", function() {
       $("#upload-json").submit();
     });
 });
 
 $("#save-exp").on("click", function () {
-    var eventData = sineEventTable.getData();
-    var experimentData = experimentTable.getData();
-    var jsonExport = JSON.stringify({"data": {"eventData": eventData, "experimentData": experimentData}});
+    var eventTableDataList = eventTables.map(function (eventTable) {
+        return eventTable.getData();
+    });
+    var experimentTableData = experimentTable.getData();
+    var jsonExport = {"data": {"eventData": eventTableDataList, "experimentData": experimentTableData}};
     var fileName = prompt("Input file name");
     Sijax.request("save_json", [jsonExport, fileName]);
 });

@@ -37,11 +37,11 @@ class SijaxUploadHandlers(object):
         #elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
             #obj_response.alert("A json file '%s' has already been uploaded." % filename)
         else:
-            obj_response.call("loadJson", [json.load(file_data)])
+            obj_response.call("loadJson", [json.loads(file_data.read().decode("utf-8"))])
+            obj_response.html("#loaded-experiment-name", filename)
             #file_data.save(os.path.join(self.app.config["UPLOAD_FOLDER"], filename))
             #obj_response.html_append("#json-select", "<option value='%s'>%s</option>" % (gen_id("j", filename), filename))
             #obj_response.call("refresh_json_options")
-
 
 
 class SijaxCometHandlers(object):
@@ -69,17 +69,25 @@ class SijaxHandlers(object):
     def __init__(self, app):
         self.app = app
 
-    def save_json(self, obj_response, json_file, file_name):
+    def save_json(self, obj_response, json, filename):
         """
         Saves a JSON file.
 
         Args:
             obj_response: Sijax object response.
-            json_file: JSON string to be saved.
-            file_name: File name.
+            json: JSON string to be saved.
+            filename: File name.
         """
-        with open(os.path.join(self.app.config["UPLOAD_FOLDER"], file_name + ".json"), 'w') as file:
-            try:
-                json.dump(json_file, file, indent=2)
-            except Exception as e:
-                print(e)
+        if not filename:
+            obj_response.alert("No file name entered.")
+        elif filename != secure_filename(filename):
+            obj_response.alert("File name '%s' is not secure." % filename)
+        # elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
+            # obj_response.alert("A json file '%s' has already been uploaded." % filename)
+        else:
+            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
+                try:
+                    json.dump(json, filename, indent=2)
+                    obj_response.html("#loaded-experiment-name", filename)
+                except Exception as e:
+                    print(e)

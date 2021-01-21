@@ -45,11 +45,11 @@ h1, h2, h3, h4, h5, h6 {
 #tabs, .tab {
     position: relative;
 }
-i {
+.fa {
     display: inline-block;
     font-size: 18px;
 }
-i.active:hover {
+.fa.active:hover {
     opacity: 0.6;
     cursor: pointer;
 }
@@ -63,9 +63,6 @@ ul {
 }
 body, html {
     height: 100%;
-}
-#variables li:hover {
-    background: yellow;
 }
 td {
     min-width: 100px;

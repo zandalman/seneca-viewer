@@ -4,7 +4,6 @@ import flask_sijax
 import os
 import json
 from sijax_handlers import SijaxCometHandlers, SijaxUploadHandlers, SijaxHandlers
-from functions import update_temp, get_json_options, jsonProcess
 
 def create_app():
     """

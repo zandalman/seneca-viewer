@@ -68,7 +68,7 @@
       },
       "amplitude": {
         "type": "float",
-        "unit": "s",
+        "unit": "V",
         "default": "1"
       },
       "rising": {
@@ -117,6 +117,11 @@
         "type": "float",
         "unit": "Hz",
         "default": "60"
+      },
+      "rectified": {
+        "type": "boolean",
+        "unit": "",
+        "default": "false"
       }
     }
   },
