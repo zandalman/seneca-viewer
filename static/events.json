@@ -1,7 +1,8 @@
 {
   "constant": {
+    "abbreviation": "CST",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -14,8 +15,9 @@
     }
   },
   "exponential": {
+    "abbreviation": "EXP",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -23,8 +25,9 @@
     }
   },
   "Gaussian": {
+    "abbreviation": "GSS",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -32,8 +35,9 @@
     }
   },
   "log": {
+    "abbreviation": "LOG",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -41,8 +45,9 @@
     }
   },
   "Lorentzian": {
+    "abbreviation": "LTZ",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -50,8 +55,9 @@
     }
   },
   "pulse": {
+    "abbreviation": "PLS",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -84,8 +90,9 @@
     }
   },
   "ramp": {
+    "abbreviation": "RMP",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -93,8 +100,9 @@
     }
   },
   "sawtooth": {
+    "abbreviation": "SWT",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -102,8 +110,9 @@
     }
   },
   "sine": {
+    "abbreviation": "SIN",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -126,8 +135,9 @@
     }
   },
   "square": {
+    "abbreviation": "SQR",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -135,8 +145,9 @@
     }
   },
   "step": {
+    "abbreviation": "STP",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -144,8 +155,9 @@
     }
   },
   "trapezoid": {
+    "abbreviation": "TRP",
     "params": {
-      "time": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"
@@ -153,8 +165,19 @@
     }
   },
   "triangle": {
+    "abbreviation": "TRI",
     "params": {
-      "time": {
+      "duration": {
+        "type": "float",
+        "unit": "s",
+        "default": "1"
+      }
+    }
+  },
+  "RPC": {
+    "abbreviation": "RPC",
+    "params": {
+      "duration": {
         "type": "float",
         "unit": "s",
         "default": "1"

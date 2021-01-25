@@ -19,6 +19,9 @@ $( document ).ready(function() {
 // Initialize event table list
 var eventTables = [];
 
+// Define ID length
+var ID_LENGTH = 5;
+
 // Define colors
 var FLOAT_COLOR = "#d9ead3";
 var INT_COLOR = "#cfe2f3";
@@ -91,7 +94,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
     if (!eventTableData) {
         // Default event table data
         eventTableData = [Array.apply(null, Array(numParams + 1)).map(String.prototype.valueOf, "")];
-        eventTableData[0][0] = eventType + "_event";
+        eventTableData[0][0] = generateEventID(eventType);
     }
     // Define table
     var container = document.getElementById("table-" + eventType);
@@ -133,10 +136,8 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             var visualRowIndex = this.instance.toVisualRow(row);
             var visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
-                cellProperties.validator = generateParamValidator();
+                cellProperties.editor = "none";
                 cellProperties.renderer = firstColRenderer;
-                cellProperties.strict = true;
-                cellProperties.allowInvalid = false;
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
                 cellProperties.className = ["cell-" + paramType];
@@ -153,11 +154,6 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
     return eventTable;
 }
 
-var code_mirror = CodeMirror(document.getElementById("code-editor"), {
-  value: "x = 2\n",
-  mode:  "python"
-});
-
 // Define renderer for first column of table (i.e. channels)
 function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -165,10 +161,12 @@ function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
     td.style.background = "#EEE";
 }
 
+// Add timesteps to experiment table
 $("#add-col").on("click", function () {
     experimentTable.alter("insert_col", experimentTable.getData()[0].length, $("#num-col").val());
 });
 
+// Default plot data for visualizer
 var plotDataDefault = {
     target: "#visualizer",
     width: 400,
@@ -183,9 +181,9 @@ var plotDataDefault = {
         }
     ]
 };
-
 functionPlot(plotDataDefault);
 
+// Translate numeric event table inputs to numbers
 var decodeNumeric = function (value) {
     var lastChar = value.slice(-1);
     if (isNaN(lastChar)) {
@@ -196,6 +194,7 @@ var decodeNumeric = function (value) {
     }
 }
 
+// Generate custom validator for event tables
 var generateParamValidator = function (paramType) {
     var paramValidator = function (value, callback) {
         var stringifiedValue = Handsontable.helper.stringify(value);
@@ -219,6 +218,7 @@ var generateParamValidator = function (paramType) {
     return paramValidator;
 }
 
+// Generate custom renderer for event tables
 var generateParamRenderer = function (paramType) {
     var paramRenderer = function (instance, td, row, col, prop, value, cellProperties) {
         var stringifiedValue = Handsontable.helper.stringify(value);
@@ -257,6 +257,7 @@ var generateParamRenderer = function (paramType) {
     return paramRenderer;
 };
 
+// Create experiment table
 var createExperimentTable = function (experimentTableData = null) {
     var container = document.getElementById("exp-table");
     if (!experimentTableData) {
@@ -302,7 +303,7 @@ var createExperimentTable = function (experimentTableData = null) {
             const visualRowIndex = this.instance.toVisualRow(row);
             const visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
-                cellProperties.editor = "text";
+                cellProperties.editor = "none";
                 cellProperties.renderer = firstColRenderer;
             } else {
                 cellProperties.type = "autocomplete";
@@ -349,6 +350,7 @@ var addBeforeRemoveRowHook = function (eventTable) {
     });
 }
 
+// Update variable list
 var updateVariables = function () {
     $(".variable-list li").map(function () {
         var variableName = $(this).data("name");
@@ -367,6 +369,7 @@ var addAfterRemoveRowHook = function (eventTable) {
     });
 }
 
+// Get parameter type associated with event table cell
 var getParamTypeAtCell = function (eventTable, row, col) {
     var cellClassName = eventTable.getCellMeta(row, col).className;
     if (cellClassName.includes("cell-float")) {
@@ -408,6 +411,7 @@ var addAfterChangeHook = function (eventTable) {
     });
 }
 
+// Hide and show event tables based on event type filter
 $("#event-type").on("change", function () {
     if ($(this).val()) {
         $("#event-tables .table").hide();
@@ -417,20 +421,24 @@ $("#event-type").on("change", function () {
     }
 });
 
-var resetTables = function () {
+// Reset event tables
+var resetTables = function (loadedData) {
+    // Retrieve table data
+    var eventTableDataList = loadedData.data.eventData;
+    var experimentTableData = loadedData.data.experimentData;
+    // Remove old tables
     $("#exp-table").empty();
     $("#event-tables").empty();
     $(".htMenu").remove();
     eventTables = [];
-}
-
-var loadJson = function (loadedData) {
-    var eventTableDataList = loadedData.data.eventData;
-    var experimentTableData = loadedData.data.experimentData;
-    resetTables();
+    // Create new tables
     experimentTable = createExperimentTable(experimentTableData);
     createEventTables(eventTableDataList);
     $("#event-type").trigger("change");
+}
+
+var loadJson = function (loadedData) {
+    resetTables();
 }
 
 $("#load-exp").on("click", function () {
@@ -449,3 +457,9 @@ $("#save-exp").on("click", function () {
     var fileName = prompt("Input file name");
     Sijax.request("save_json", [jsonExport, fileName]);
 });
+
+var generateEventID = function (eventType) {
+    var abbr = eventTypeDataJSON[eventType].abbreviation;
+    var num = String(Math.random()).substr(2, ID_LENGTH);
+    return abbr + "-" + num;
+}
