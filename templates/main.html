@@ -36,7 +36,12 @@
                     <div style="display:inline-block">
                         <button id="add-col">add</button>
                         <input type="number" id="num-col" min="1" max="1000" step="1" value="1">
-                        timesteps
+                        <label>timesteps&emsp;</label></t>
+                        <label>display mode</label>
+                        <select id="exp-table-display-mode">
+                            <option value="event-type">event types</option>
+                            <option value="event-id">event IDs</option>
+                        </select>
                     </div>
                     <div id="exp-table" class="table"></div>
                     <div id="visualizer"></div>

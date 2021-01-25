@@ -59,6 +59,7 @@ var UNITS = {
 
 // Define default experiment table data
 var experimentTableDataDefault = [
+    ["duration (s)", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0"],
     ["ch1", "", "", "", "", "", "", "", "", "", "", "", ""],
     ["ch2", "", "", "", "", "", "", "", "", "", "", "", ""],
     ["ch3", "", "", "", "", "", "", "", "", "", "", "", ""],
@@ -164,15 +165,39 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
 function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
     td.style.fontWeight = "bold";
-    td.style.background = "#EEE";
+    td.style.backgroundColor = "#EEE";
 }
+
+
+// Define renderer for timestep duration cells in experiment table
+function durationRenderer(instance, td, row, col, prop, value, cellProperties) {
+    var newValue = value.replace("u", MU);
+    cellProperties.className = ["htRight"];
+    var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
+    Handsontable.renderers.TextRenderer.apply(this, newArguments);
+    td.style.backgroundColor = "#F8F8F8";
+}
+
+// Define validator for timestep duration cells in experiment table
+var durationValidator = function(value, callback) {
+    var isNum = NUM_REGEX.test(value);
+    callback(Boolean(isNum || !value));
+};
 
 
 // Define renderer for experiment table
 function experimentTableRenderer(instance, td, row, col, prop, value, cellProperties) {
-    var eventType = getEventType(value);
-    var newArguments = [instance, td, row, col, prop, eventType, cellProperties];
-    Handsontable.renderers.TextRenderer.apply(this, newArguments);
+    var displayMode = $("#exp-table-display-mode").val();
+    switch (displayMode) {
+        case "event-type":
+            var eventType = getEventType(value);
+            var newArguments = [instance, td, row, col, prop, eventType, cellProperties];
+            Handsontable.renderers.TextRenderer.apply(this, newArguments);
+            break;
+        case "event-id":
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            break;
+    }
 }
 
 // Add timesteps to experiment table
@@ -317,8 +342,13 @@ var createExperimentTable = function (experimentTableData = null) {
             const visualRowIndex = this.instance.toVisualRow(row);
             const visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
-                cellProperties.editor = "none";
+                cellProperties.editor = false;
                 cellProperties.renderer = firstColRenderer;
+            } else if (visualRowIndex === 0) {
+                cellProperties.renderer = durationRenderer;
+                cellProperties.validator = durationValidator;
+                cellProperties.strict = true;
+                cellProperties.allowInvalid = false;
             } else {
                 cellProperties.type = "autocomplete";
                 cellProperties.source = eventTables.map(function (eventTable) {
@@ -498,3 +528,8 @@ var getEventType = function (value) {
     })[0];
     return eventType;
 }
+
+// Update experiment table renderer on display mode change
+$("#exp-table-display-mode").on("change", function () {
+    experimentTable.render();
+})
