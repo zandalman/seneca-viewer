@@ -136,7 +136,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             var visualRowIndex = this.instance.toVisualRow(row);
             var visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
-                cellProperties.editor = "none";
+                cellProperties.editor = false;
                 cellProperties.renderer = firstColRenderer;
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
@@ -438,7 +438,7 @@ var resetTables = function (loadedData) {
 }
 
 var loadJson = function (loadedData) {
-    resetTables();
+    resetTables(loadedData);
 }
 
 $("#load-exp").on("click", function () {
