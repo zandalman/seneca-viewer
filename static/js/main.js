@@ -21,6 +21,8 @@ var eventTables = [];
 
 // Define ID length
 var ID_LENGTH = 5;
+var ABBR_LENGTH = 3;
+var IDs = [];
 
 // Define colors
 var FLOAT_COLOR = "#d9ead3";
@@ -85,6 +87,7 @@ var addEventTableHooks = function () {
         addBeforeRemoveRowHook(eventTable);
         addAfterRemoveRowHook(eventTable);
         addAfterChangeHook(eventTable);
+        addAfterCreateRowHook(eventTable);
     });
 }
 
@@ -114,7 +117,10 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                     name: "Add event below"
                 },
                 "remove_row": {
-                    name: "Remove event"
+                    name: "Remove event",
+                    disabled: function () {
+                        return this.getSelectedLast()[0] === 0;
+                    }
                 },
                 "copy": {},
                 "cut": {},
@@ -122,7 +128,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                 "redo": {}
             }
         },
-        colHeaders: ["events"].concat(sortedParamNames.map(function (paramName) {
+        colHeaders: [eventType + " events"].concat(sortedParamNames.map(function (paramName) {
             if (!(eventTypeData.params[paramName].type === "boolean")) {
                 var paramUnit = eventTypeData.params[paramName].unit;
                 return paramName + " (" + paramUnit + ")";
@@ -154,11 +160,19 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
     return eventTable;
 }
 
-// Define renderer for first column of table (i.e. channels)
+// Define renderer for first column of table (i.e. channels and event IDs)
 function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
     td.style.fontWeight = "bold";
     td.style.background = "#EEE";
+}
+
+
+// Define renderer for experiment table
+function experimentTableRenderer(instance, td, row, col, prop, value, cellProperties) {
+    var eventType = getEventType(value);
+    var newArguments = [instance, td, row, col, prop, eventType, cellProperties];
+    Handsontable.renderers.TextRenderer.apply(this, newArguments);
 }
 
 // Add timesteps to experiment table
@@ -314,6 +328,7 @@ var createExperimentTable = function (experimentTableData = null) {
                 }).sort();
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
+                cellProperties.renderer = experimentTableRenderer;
             }
             return cellProperties;
         },
@@ -366,6 +381,13 @@ var updateVariables = function () {
 var addAfterRemoveRowHook = function (eventTable) {
     eventTable.addHook("afterRemoveRow", function (index, amount, physicalRows, source) {
         updateVariables();
+    });
+}
+
+var addAfterCreateRowHook = function (eventTable) {
+    eventTable.addHook("afterCreateRow", function (index, amount, source) {
+        var eventType = getEventType(eventTable.getDataAtCell(0, 0));
+        eventTable.setDataAtCell(index, 0, generateEventID(eventType));
     });
 }
 
@@ -460,6 +482,19 @@ $("#save-exp").on("click", function () {
 
 var generateEventID = function (eventType) {
     var abbr = eventTypeDataJSON[eventType].abbreviation;
-    var num = String(Math.random()).substr(2, ID_LENGTH);
-    return abbr + "-" + num;
+    while (true) {
+        var id = Math.random().toString(36).substr(2, ID_LENGTH).toUpperCase();
+        if (!IDs.includes(id)) {
+            IDs.push(id);
+            return abbr + "-" + id;
+        }
+    }
+}
+
+var getEventType = function (value) {
+    var abbr = value.substr(0, ABBR_LENGTH);
+    var eventType = Object.keys(eventTypeDataJSON).filter(function (eventType) {
+        return eventTypeDataJSON[eventType].abbreviation === abbr;
+    })[0];
+    return eventType;
 }
