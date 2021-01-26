@@ -532,4 +532,19 @@ var getEventType = function (value) {
 // Update experiment table renderer on display mode change
 $("#exp-table-display-mode").on("change", function () {
     experimentTable.render();
-})
+});
+
+var getEventTableData = function (eventTable) {
+    var eventTableData = eventTable.getData();
+    for (i = 0; i < eventTableData.length; i++) {
+        for (j = 1; j < eventTableData[i].length; j++){
+            var paramType = getParamTypeAtCell(eventTable, i, j);
+            if (paramType === "float" || paramType === "int") {
+                eventTableData[i][j] = decodeNumeric(eventTableData[i][j]);
+            } else if (paramType === "boolean") {
+                eventTableData[i][j] = Boolean(eventTableData[i][j]);
+            }
+        }
+    }
+    return eventTableData;
+}
