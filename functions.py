@@ -66,9 +66,3 @@ def jsonProcess(config_json):
     event_config["all_parameters"].remove("eventType")
     event_config["all_parameters"].insert(0, "eventType")
     return event_config
-
-
-def update_code_dialog(obj_response, app):
-    with open(os.path.join(app.root_path, "temp.json"), "r") as f:
-        for count, line in enumerate(f.readlines()):
-            obj_response.html_append("#json-code", "%d <span style='margin-left: %dpx'>%s</span><br>" % (count, 40 * line.count("\t"), line.strip()))

@@ -57,16 +57,21 @@ var UNITS = {
     "Y": 1e24
 };
 
+var createFullArray = function (length, value) {
+    return Array.apply(null, Array(length)).map(String.prototype.valueOf, value);
+}
+
 // Define default experiment table data
+var defaultTimestepDuration = "1.0";
 var experimentTableDataDefault = [
-    ["duration (s)", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0"],
-    ["ch1", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch2", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch3", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch4", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch5", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch6", "", "", "", "", "", "", "", "", "", "", "", ""],
-    ["ch7", "", "", "", "", "", "", "", "", "", "", "", ""]
+    ["duration (s)"].concat(createFullArray(12, defaultTimestepDuration)),
+    ["ch1"].concat(createFullArray(12, "")),
+    ["ch2"].concat(createFullArray(12, "")),
+    ["ch3"].concat(createFullArray(12, "")),
+    ["ch4"].concat(createFullArray(12, "")),
+    ["ch5"].concat(createFullArray(12, "")),
+    ["ch6"].concat(createFullArray(12, "")),
+    ["ch7"].concat(createFullArray(12, ""))
 ];
 
 // Retrieve data from HTML storage
@@ -97,7 +102,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var sortedParamNames = Object.keys(eventTypeData.params).sort();
     if (!eventTableData) {
         // Default event table data
-        eventTableData = [Array.apply(null, Array(numParams + 1)).map(String.prototype.valueOf, "")];
+        eventTableData = [createFullArray(numParams + 1, "")];
         eventTableData[0][0] = generateEventID(eventType);
     }
     // Define table
@@ -156,6 +161,10 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             return cellProperties;
         },
         preventOverflow: "horizontal",
+        fillHandle: {
+            direction: "vertical",
+            autoInsertRow: true
+        },
         licenseKey: "non-commercial-and-evaluation"
     });
     return eventTable;
@@ -171,7 +180,7 @@ function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
 
 // Define renderer for timestep duration cells in experiment table
 function durationRenderer(instance, td, row, col, prop, value, cellProperties) {
-    var newValue = value.replace("u", MU);
+    var newValue = value ? value.replace("u", MU) : value;
     cellProperties.className = ["htRight"];
     var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
     Handsontable.renderers.TextRenderer.apply(this, newArguments);
@@ -190,7 +199,7 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
     var displayMode = $("#exp-table-display-mode").val();
     switch (displayMode) {
         case "event-type":
-            var eventType = getEventType(value);
+            var eventType = value ? getEventType(value) : value;
             var newArguments = [instance, td, row, col, prop, eventType, cellProperties];
             Handsontable.renderers.TextRenderer.apply(this, newArguments);
             break;
@@ -351,11 +360,11 @@ var createExperimentTable = function (experimentTableData = null) {
                 cellProperties.allowInvalid = false;
             } else {
                 cellProperties.type = "autocomplete";
-                cellProperties.source = eventTables.map(function (eventTable) {
+                cellProperties.source = [""].concat(eventTables.map(function (eventTable) {
                     return eventTable.getDataAtCol(0);
                 }).flat().filter(function (eventName) {
                     return eventName !== null;
-                }).sort();
+                }).sort());
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
                 cellProperties.renderer = experimentTableRenderer;
@@ -364,6 +373,11 @@ var createExperimentTable = function (experimentTableData = null) {
         },
         preventOverflow: "horizontal",
         licenseKey: "non-commercial-and-evaluation"
+    });
+    experimentTable.addHook("afterCreateCol", function (index, amount, source) {
+        for (i = index; i < index + amount; i++) {
+            experimentTable.setDataAtCell(0, i, defaultTimestepDuration);
+        }
     });
     return experimentTable;
 }
@@ -417,7 +431,9 @@ var addAfterRemoveRowHook = function (eventTable) {
 var addAfterCreateRowHook = function (eventTable) {
     eventTable.addHook("afterCreateRow", function (index, amount, source) {
         var eventType = getEventType(eventTable.getDataAtCell(0, 0));
-        eventTable.setDataAtCell(index, 0, generateEventID(eventType));
+        for (i = index; i < index + amount; i++) {
+            eventTable.setDataAtCell(i, 0, generateEventID(eventType));
+        }
     });
 }
 
