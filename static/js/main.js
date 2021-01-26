@@ -197,9 +197,13 @@ var durationValidator = function(value, callback) {
 // Define renderer for experiment table
 function experimentTableRenderer(instance, td, row, col, prop, value, cellProperties) {
     var displayMode = $("#exp-table-display-mode").val();
+    var eventType = value ? getEventType(value) : value;
+    if (value) {
+        // Maybe add comments with event parameters???
+        //cellProperties.comment = {value: "hello", readOnly: true};
+    }
     switch (displayMode) {
         case "event-type":
-            var eventType = value ? getEventType(value) : value;
             var newArguments = [instance, td, row, col, prop, eventType, cellProperties];
             Handsontable.renderers.TextRenderer.apply(this, newArguments);
             break;
@@ -315,6 +319,7 @@ var createExperimentTable = function (experimentTableData = null) {
     var experimentTable = new Handsontable(container, {
         data: experimentTableData,
         fixedColumnsLeft: 1,
+        comments: true,
         manualRowMove: true,
         contextMenu: {
             callback: function (key, selection, clickEvent) {
