@@ -77,10 +77,10 @@ class SijaxHandlers(object):
             obj_response.alert("No file name entered.")
         elif filename != secure_filename(filename):
             obj_response.alert("File name '%s' is not secure." % filename)
-        # elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
-            # obj_response.alert("A json file '%s' has already been uploaded." % filename)
+        #elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
+        #    obj_response.alert("A json file '%s.json' already exists." % filename)
         else:
-            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
+            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename), 'w') as f:
                 try:
                     json.dump(json_string, f, indent=2)
                     obj_response.html("#loaded-experiment-name", filename)

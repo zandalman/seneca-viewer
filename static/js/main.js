@@ -510,8 +510,9 @@ var loadJson = function (loadedData) {
 }
 
 $("#load-exp").on("click", function () {
-    $("#upload-json").find("input").click();
-    $("#upload-json").find("input").on("change", function() {
+    $("#upload-json-input").val("");
+    $("#upload-json-input").click();
+    $("#upload-json-input").on("change", function() {
       $("#upload-json").submit();
     });
 });
@@ -522,7 +523,7 @@ $("#save-exp").on("click", function () {
     });
     var experimentTableData = experimentTable.getData();
     var jsonExport = {"data": {"eventData": eventTableDataList, "experimentData": experimentTableData}};
-    var fileName = prompt("Input file name");
+    var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") + ".json" : $("#loaded-experiment-name").html();
     Sijax.request("save_json", [jsonExport, fileName]);
 });
 
@@ -564,3 +565,10 @@ var getEventTableData = function (eventTable) {
     }
     return eventTableData;
 }
+
+$(document).on("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "s")) {
+        $("#save-exp").trigger("click");
+        e.preventDefault();
+    }
+});
