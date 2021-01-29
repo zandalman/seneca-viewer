@@ -57,21 +57,20 @@ var UNITS = {
     "Y": 1e24
 };
 
+// Return an array of a given length filled with a given value
 var createFullArray = function (length, value) {
     return Array.apply(null, Array(length)).map(String.prototype.valueOf, value);
 }
 
 // Define default experiment table data
-var defaultTimestepDuration = "1.0";
 var experimentTableDataDefault = [
-    ["duration (s)"].concat(createFullArray(12, defaultTimestepDuration)),
-    ["ch1"].concat(createFullArray(12, "")),
-    ["ch2"].concat(createFullArray(12, "")),
-    ["ch3"].concat(createFullArray(12, "")),
-    ["ch4"].concat(createFullArray(12, "")),
-    ["ch5"].concat(createFullArray(12, "")),
-    ["ch6"].concat(createFullArray(12, "")),
-    ["ch7"].concat(createFullArray(12, ""))
+    ["ch1", "DDS"].concat(createFullArray(12, "")),
+    ["ch2", "DDS"].concat(createFullArray(12, "")),
+    ["ch3", "DDS"].concat(createFullArray(12, "")),
+    ["ch4", "DDS"].concat(createFullArray(12, "")),
+    ["ch5", "DDS"].concat(createFullArray(12, "")),
+    ["ch6", "DDS"].concat(createFullArray(12, "")),
+    ["ch7", "DDS"].concat(createFullArray(12, ""))
 ];
 
 // Retrieve data from HTML storage
@@ -88,6 +87,7 @@ var createEventTables = function (eventTableDataList = null) {
     });
 }
 
+// Add hooks to event tables
 var addEventTableHooks = function () {
     eventTables.forEach(function (eventTable) {
         addBeforeRemoveRowHook(eventTable);
@@ -149,7 +149,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             var visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
                 cellProperties.editor = false;
-                cellProperties.renderer = firstColRenderer;
+                cellProperties.renderer = headerRenderer;
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
                 cellProperties.className = ["cell-" + paramType];
@@ -170,28 +170,11 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
     return eventTable;
 }
 
-// Define renderer for first column of table (i.e. channels and event IDs)
-function firstColRenderer(instance, td, row, col, prop, value, cellProperties) {
+// Define renderer to disguise table cells as table headers
+function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
-    td.style.fontWeight = "bold";
     td.style.backgroundColor = "#EEE";
 }
-
-
-// Define renderer for timestep duration cells in experiment table
-function durationRenderer(instance, td, row, col, prop, value, cellProperties) {
-    var newValue = value ? value.replace("u", MU) : value;
-    cellProperties.className = ["htRight"];
-    var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
-    Handsontable.renderers.TextRenderer.apply(this, newArguments);
-    td.style.backgroundColor = "#F8F8F8";
-}
-
-// Define validator for timestep duration cells in experiment table
-var durationValidator = function(value, callback) {
-    var isNum = NUM_REGEX.test(value);
-    callback(Boolean(isNum || !value));
-};
 
 
 // Define renderer for experiment table
@@ -318,7 +301,7 @@ var createExperimentTable = function (experimentTableData = null) {
     }
     var experimentTable = new Handsontable(container, {
         data: experimentTableData,
-        fixedColumnsLeft: 1,
+        fixedColumnsLeft: 2,
         comments: true,
         manualRowMove: true,
         contextMenu: {
@@ -329,7 +312,7 @@ var createExperimentTable = function (experimentTableData = null) {
                 "col_left": {
                     name: "Add timestep left",
                     disabled: function () {
-                        return this.getSelectedLast()[1] === 0;
+                        return this.getSelectedLast()[1] < 2;
                     }
                 },
                 "col_right": {
@@ -338,7 +321,7 @@ var createExperimentTable = function (experimentTableData = null) {
                 "remove_col": {
                     name: "Remove timestep",
                     disabled: function () {
-                        return this.getSelectedLast()[1] === 0;
+                        return this.getSelectedLast()[1] < 2;
                     }
                 },
                 "copy": {},
@@ -348,21 +331,23 @@ var createExperimentTable = function (experimentTableData = null) {
             }
         },
         colHeaders: function(index) {
-            return index > 0 ? index : "channels";
+            switch (index) {
+                case 0:
+                    return "channel";
+                case 1:
+                    return "device type";
+                default:
+                    return index - 1;
+            }
         },
         rowHeaders: true,
         cells: function(row, column, prop) {
             const cellProperties = {};
             const visualRowIndex = this.instance.toVisualRow(row);
             const visualColIndex = this.instance.toVisualColumn(column);
-            if (visualColIndex === 0) {
+            if (visualColIndex < 2) {
                 cellProperties.editor = false;
-                cellProperties.renderer = firstColRenderer;
-            } else if (visualRowIndex === 0) {
-                cellProperties.renderer = durationRenderer;
-                cellProperties.validator = durationValidator;
-                cellProperties.strict = true;
-                cellProperties.allowInvalid = false;
+                cellProperties.renderer = headerRenderer;
             } else {
                 cellProperties.type = "autocomplete";
                 cellProperties.source = [""].concat(eventTables.map(function (eventTable) {
@@ -378,11 +363,6 @@ var createExperimentTable = function (experimentTableData = null) {
         },
         preventOverflow: "horizontal",
         licenseKey: "non-commercial-and-evaluation"
-    });
-    experimentTable.addHook("afterCreateCol", function (index, amount, source) {
-        for (i = index; i < index + amount; i++) {
-            experimentTable.setDataAtCell(0, i, defaultTimestepDuration);
-        }
     });
     return experimentTable;
 }
