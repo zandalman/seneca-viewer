@@ -11,9 +11,10 @@ $( document ).ready(function() {
         "placeholder": "Event Type Filter"
     });
     // Color variable list titles
-    $("#float-variables-title").css("background-color", FLOAT_COLOR);
-    $("#int-variables-title").css("background-color", INT_COLOR);
-    $("#boolean-variables-title").css("background-color", BOOL_COLOR);
+    $("#float-variables-title").css("background-color", COLORS.float);
+    $("#int-variables-title").css("background-color", COLORS.int);
+    $("#boolean-variables-title").css("background-color", COLORS.boolean);
+    $("#string-variables-title").css("background-color", COLORS.string);
 });
 
 // Initialize event table list
@@ -25,15 +26,25 @@ var ABBR_LENGTH = 3;
 var IDs = [];
 
 // Define colors
-var FLOAT_COLOR = "#d9ead3";
-var INT_COLOR = "#cfe2f3";
-var BOOL_COLOR = "#fff2cc";
-var VAR_COLOR = "#f4cccc";
+COLORS = {
+    float: "#d9ead3",
+    int: "#cfe2f3",
+    boolean: "#fff2cc",
+    string: "#f4cccc",
+    floatVar: "#93c47d",
+    intVar: "#6fa8dc",
+    booleanVar: "#ffd966",
+    stringVar: "#e06666",
+    header: "#EEE"
+};
 
 // Define regex expressions
-var NUM_REGEX = /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)(e-?(0|[1-9]\d*))?([yzafpnumkMGTPEZY]$|$)/;
-var VAR_REGEX = /(?=^[a-zA-Z])(?=^[a-zA-Z0-9\-_]+$)(?=^(?!(true|false)$))/;
-var BOOL_REGEX = /^(true|false|)$/;
+REGEX = {
+    number: /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)(e-?(0|[1-9]\d*))?([yzafpnumkMGTPEZY]$|$)/,
+    string: /(?=^[a-zA-Z])(?=^[a-zA-Z0-9\-_]+$)/,
+    boolean: /^(true|false)$/
+};
+
 var MU = "\u03BC";
 
 // Define unit conversions
@@ -60,7 +71,7 @@ var UNITS = {
 // Return an array of a given length filled with a given value
 var createFullArray = function (length, value) {
     return Array.apply(null, Array(length)).map(String.prototype.valueOf, value);
-}
+};
 
 // Define default experiment table data
 var experimentTableDataDefault = [
@@ -97,6 +108,33 @@ var addEventTableHooks = function () {
     });
 }
 
+var toggleCellIsVariable = function (eventTable, row, col) {
+    var isVariable = isVariableAtCell(eventTable, row, col);
+    var paramType = getParamTypeAtCell(eventTable, row, col);
+    eventTable.setCellMeta(row, col, "comments", !isVariable);
+    if (!isVariable) {
+        eventTable.setCellMeta(row, col, "validator", generateParamValidator("string"));
+    } else {
+        eventTable.setCellMeta(row, col, "validator", generateParamValidator(paramType));
+    }
+    eventTable.render();
+}
+
+var toggleSelectedCellsIsVariable = function (eventTable) {
+    var selection = eventTable.getSelectedLast();
+    if (selection) {
+        var startRow = Math.min(selection[0], selection[2]);
+        var endRow = Math.max(selection[0], selection[2]);
+        var startCol = Math.min(selection[1], selection[3]);
+        var endCol = Math.max(selection[1], selection[3]);
+        for (var row = startRow; row <= endRow; row++) {
+            for (var col = Math.max(1, startCol); col <= endCol; col++) {
+                toggleCellIsVariable(eventTable, row, col);
+            }
+        }
+    }
+}
+
 var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var numParams = Object.keys(eventTypeData.params).length;
     var sortedParamNames = Object.keys(eventTypeData.params).sort();
@@ -109,6 +147,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var container = document.getElementById("table-" + eventType);
     var eventTable = new Handsontable(container, {
         data: eventTableData,
+        className: eventType,
         fixedColumnsLeft: 1,
         manualRowMove: true,
         contextMenu: {
@@ -131,11 +170,20 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                 "copy": {},
                 "cut": {},
                 "undo": {},
-                "redo": {}
+                "redo": {},
+                "variable": {
+                    name: "Toggle variable",
+                    disabled: function () {
+                        return this.getSelectedLast()[1] === 0;
+                    },
+                    callback: function () {
+                        toggleSelectedCellsIsVariable(this);
+                    }
+                }
             }
         },
         colHeaders: [eventType + " events"].concat(sortedParamNames.map(function (paramName) {
-            if (!(eventTypeData.params[paramName].type === "boolean")) {
+            if (!(["boolean", "string"].includes(eventTypeData.params[paramName].type))) {
                 var paramUnit = eventTypeData.params[paramName].unit;
                 return paramName + " (" + paramUnit + ")";
             } else {
@@ -153,7 +201,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
                 cellProperties.className = ["cell-" + paramType];
-                cellProperties.validator = generateParamValidator(paramType);
+                cellProperties.validator = cellProperties.comments ? generateParamValidator("string") : generateParamValidator(paramType);
                 cellProperties.renderer = generateParamRenderer(paramType);
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
@@ -173,16 +221,17 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
 // Define renderer to disguise table cells as table headers
 function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
-    td.style.backgroundColor = "#EEE";
+    td.style.backgroundColor = COLORS["header"];
 }
 
 
 // Define renderer for experiment table
 function experimentTableRenderer(instance, td, row, col, prop, value, cellProperties) {
     var displayMode = $("#exp-table-display-mode").val();
-    var eventType = value ? getEventType(value) : value;
+    var eventType = Boolean(value) ? getEventType(value) : value;
     if (value) {
-        // Maybe add comments with event parameters???
+        null;
+        // Maybe add comments with event parameters?
         //cellProperties.comment = {value: "hello", readOnly: true};
     }
     switch (displayMode) {
@@ -233,21 +282,22 @@ var decodeNumeric = function (value) {
 var generateParamValidator = function (paramType) {
     var paramValidator = function (value, callback) {
         var stringifiedValue = Handsontable.helper.stringify(value);
-        var isNum = NUM_REGEX.test(stringifiedValue);
-        var isVar = VAR_REGEX.test(stringifiedValue);
-        var isBool = BOOL_REGEX.test(stringifiedValue);
+        var isNum = REGEX.number.test(stringifiedValue);
+        var isString = REGEX.string.test(stringifiedValue);
+        var isBool = REGEX.boolean.test(stringifiedValue);
         switch (paramType) {
             case "float":
-                callback(Boolean(isNum || isVar || !stringifiedValue));
+                callback(Boolean(isNum || !stringifiedValue));
                 break;
             case "int":
-                callback(Boolean((isNum && decodeNumeric(stringifiedValue) % 1 === 0) || isVar || !stringifiedValue));
+                callback(Boolean((isNum && decodeNumeric(stringifiedValue) % 1 === 0) || !stringifiedValue));
                 break;
             case "boolean":
-                callback(Boolean(isBool || isVar || !stringifiedValue));
+                callback(Boolean(isBool || !stringifiedValue));
                 break;
-            default:
-                callback(Boolean(isVar || !stringifiedValue))
+            case "string":
+                callback(isString || !stringifiedValue);
+                break;
         }
     };
     return paramValidator;
@@ -257,36 +307,41 @@ var generateParamValidator = function (paramType) {
 var generateParamRenderer = function (paramType) {
     var paramRenderer = function (instance, td, row, col, prop, value, cellProperties) {
         var stringifiedValue = Handsontable.helper.stringify(value);
+        var isVariable = cellProperties.comments;
         // Set default cell properties
         cellProperties.source = ["true", "false"];
         cellProperties.type = paramType === "boolean" ? "autocomplete" : "text";
-        if (!stringifiedValue) {
-            // Empty cell
+        if (isVariable) {
             cellProperties.className.push("htLeft");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
-        } else if (paramType === "float" && stringifiedValue.match(NUM_REGEX)) {
-            // Float cell
-            var newValue = value.replace("u", MU);
-            cellProperties.className.push("htRight");
-            var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
-            Handsontable.renderers.TextRenderer.apply(this, newArguments);
-            td.style.backgroundColor = FLOAT_COLOR;
-        } else if (paramType === "int" && stringifiedValue.match(NUM_REGEX) && decodeNumeric(stringifiedValue) % 1 === 0) {
-            // Integer cell
-            cellProperties.className.push("htRight");
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
-            td.style.backgroundColor = INT_COLOR;
-        } else if (paramType === "boolean" && stringifiedValue.match(BOOL_REGEX)) {
-            // Boolean cell
-            cellProperties.className.push("htLeft");
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
-            td.style.backgroundColor = BOOL_COLOR;
+            td.style.backgroundColor = COLORS[paramType + "Var"];
         } else {
-            // Variable cell
-            cellProperties.className.push("htLeft");
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
-            td.style.fontWeight = "bold";
-            td.style.backgroundColor = VAR_COLOR;
+            if (!stringifiedValue) {
+                cellProperties.className.push("htLeft");
+                Handsontable.renderers.TextRenderer.apply(this, arguments);
+            } else {
+                switch (paramType) {
+                    case "float":
+                        var newValue = value.replace("u", MU);
+                        cellProperties.className.push("htRight");
+                        var newArguments = [instance, td, row, col, prop, newValue, cellProperties];
+                        Handsontable.renderers.TextRenderer.apply(this, newArguments);
+                        break;
+                    case "int":
+                        cellProperties.className.push("htRight");
+                        Handsontable.renderers.TextRenderer.apply(this, arguments);
+                        break;
+                    case "boolean":
+                        cellProperties.className.push("htLeft");
+                        Handsontable.renderers.TextRenderer.apply(this, arguments);
+                        break;
+                    case "string":
+                        cellProperties.className.push("htLeft");
+                        Handsontable.renderers.TextRenderer.apply(this, arguments);
+                        break;
+                }
+            }
+            td.style.backgroundColor = COLORS[paramType];
         }
     };
     return paramRenderer;
@@ -369,13 +424,13 @@ var createExperimentTable = function (experimentTableData = null) {
 
 var addBeforeRemoveRowHook = function (eventTable) {
     eventTable.addHook("beforeRemoveRow", function (index, amount, physicalRows, source) {
-        var expData = experimentTable.getData();
+        var experimentTableData = experimentTable.getData();
         var eventNames = eventTable.getDataAtCol(0);
         var removedEventNames = physicalRows.map(function (rowIndex) {return eventNames[rowIndex];});
         var expChanges = [];
-        for (i = 0; i < expData.length; i++) {
-            for (j = 0; j < expData[i].length; j++){
-                if (removedEventNames.includes(expData[i][j])) {
+        for (i = 0; i < experimentTableData.length; i++) {
+            for (j = 0; j < experimentTableData[i].length; j++){
+                if (removedEventNames.includes(experimentTableData[i][j])) {
                     expChanges.push([i, j, ""]);
                 }
             }
@@ -415,11 +470,15 @@ var addAfterRemoveRowHook = function (eventTable) {
 
 var addAfterCreateRowHook = function (eventTable) {
     eventTable.addHook("afterCreateRow", function (index, amount, source) {
-        var eventType = getEventType(eventTable.getDataAtCell(0, 0));
+        var eventType = eventTable.getSettings().className;
         for (i = index; i < index + amount; i++) {
             eventTable.setDataAtCell(i, 0, generateEventID(eventType));
         }
     });
+}
+
+var isVariableAtCell = function (eventTable, row, col) {
+    return eventTable.getCellMeta(row, col).comments;
 }
 
 // Get parameter type associated with event table cell
@@ -431,32 +490,34 @@ var getParamTypeAtCell = function (eventTable, row, col) {
         return "int"
     } else if (cellClassName.includes("cell-boolean")) {
         return "boolean"
+    } else if (cellClassName.includes("cell-string")) {
+        return "string"
     }
 }
 
 var addAfterChangeHook = function (eventTable) {
-    eventTable.addHook("afterChange", function(changes, source) {
+    eventTable.addHook("afterChange", function (changes, source) {
         if (source === "loadData") {
-          return; //don't save this change
+            return; //don't save this change
         }
-        var currentVariables = $(".variable-list li").map(function() {
+        var currentVariables = $(".variable-list li").map(function () {
             return $(this).data("name");
         }).get();
-        changes.forEach(function(change) {
+        changes.forEach(function (change) {
             var row = change[0];
             var col = change[1];
             var value = change[3];
-            if (VAR_REGEX.test(value) && col !== 0 && !currentVariables.includes(value) && value) {
+            if (!currentVariables.includes(value) && value && isVariableAtCell(eventTable, row, col)) {
                 var paramType = getParamTypeAtCell(eventTable, row, col);
                 var variableList = $("#" + paramType + "-variables");
                 variableList.append("<li data-name='" + value + "'>" + value + "<li>");
                 // Sort variables alphabetically
-                variableList.html(variableList.children().sort(function(a, b) {
+                variableList.html(variableList.children().sort(function (a, b) {
                     return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
                 }));
                 // Remove empty list items from variable list
                 variableList.children().filter(function () {
-                   return $(this).text() === "";
+                    return $(this).text() === "";
                 }).remove();
             }
         });
@@ -497,8 +558,8 @@ var loadJson = function (loadedData) {
 $("#load-exp").on("click", function () {
     $("#upload-json-input").val("");
     $("#upload-json-input").click();
-    $("#upload-json-input").on("change", function() {
-      $("#upload-json").submit();
+    $("#upload-json-input").on("change", function () {
+        $("#upload-json").submit();
     });
 });
 
@@ -539,7 +600,7 @@ $("#exp-table-display-mode").on("change", function () {
 var getEventTableData = function (eventTable) {
     var eventTableData = eventTable.getData();
     for (i = 0; i < eventTableData.length; i++) {
-        for (j = 1; j < eventTableData[i].length; j++){
+        for (j = 1; j < eventTableData[i].length; j++) {
             var paramType = getParamTypeAtCell(eventTable, i, j);
             if (paramType === "float" || paramType === "int") {
                 eventTableData[i][j] = decodeNumeric(eventTableData[i][j]);
@@ -554,6 +615,11 @@ var getEventTableData = function (eventTable) {
 $(document).on("keydown", function (e) {
     if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "s")) {
         $("#save-exp").trigger("click");
+        e.preventDefault();
+    } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "b")) {
+        eventTables.forEach(function (eventTable) {
+            toggleSelectedCellsIsVariable(eventTable);
+        });
         e.preventDefault();
     }
 });

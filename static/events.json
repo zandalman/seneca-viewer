@@ -181,6 +181,11 @@
         "type": "float",
         "unit": "s",
         "default": "1"
+      },
+      "path": {
+        "type": "string",
+        "unit": "",
+        "default": ""
       }
     }
   }
