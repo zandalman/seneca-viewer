@@ -73,3 +73,8 @@ td {
 #event-type {
     width: 200px;
 }
+.hotkey-text {
+    color: lightgrey;
+    float: right;
+    font-size: 0.8em;
+}

@@ -45,6 +45,7 @@ REGEX = {
     boolean: /^(true|false)$/
 };
 
+// Define unicode characters
 var MU = "\u03BC";
 
 // Define unit conversions
@@ -108,18 +109,15 @@ var addEventTableHooks = function () {
     });
 }
 
+// Toggle whether a cell is a variable
 var toggleCellIsVariable = function (eventTable, row, col) {
     var isVariable = isVariableAtCell(eventTable, row, col);
     var paramType = getParamTypeAtCell(eventTable, row, col);
     eventTable.setCellMeta(row, col, "comments", !isVariable);
-    if (!isVariable) {
-        eventTable.setCellMeta(row, col, "validator", generateParamValidator("string"));
-    } else {
-        eventTable.setCellMeta(row, col, "validator", generateParamValidator(paramType));
-    }
     eventTable.render();
 }
 
+// Toggle whether selected cells are variables
 var toggleSelectedCellsIsVariable = function (eventTable) {
     var selection = eventTable.getSelectedLast();
     if (selection) {
@@ -135,11 +133,12 @@ var toggleSelectedCellsIsVariable = function (eventTable) {
     }
 }
 
+// Create an event table
 var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var numParams = Object.keys(eventTypeData.params).length;
     var sortedParamNames = Object.keys(eventTypeData.params).sort();
     if (!eventTableData) {
-        // Default event table data
+        // Use default event table data
         eventTableData = [createFullArray(numParams + 1, "")];
         eventTableData[0][0] = generateEventID(eventType);
     }
@@ -172,7 +171,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                 "undo": {},
                 "redo": {},
                 "variable": {
-                    name: "Toggle variable",
+                    name: "Toggle variable <span class='hotkey-text'>ctrl + b</span>",
                     disabled: function () {
                         return this.getSelectedLast()[1] === 0;
                     },
@@ -224,15 +223,14 @@ function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
     td.style.backgroundColor = COLORS["header"];
 }
 
-
 // Define renderer for experiment table
 function experimentTableRenderer(instance, td, row, col, prop, value, cellProperties) {
     var displayMode = $("#exp-table-display-mode").val();
     var eventType = Boolean(value) ? getEventType(value) : value;
     if (value) {
         null;
-        // Maybe add comments with event parameters?
-        //cellProperties.comment = {value: "hello", readOnly: true};
+        // Maybe add comments to cells with event parameters?
+        //cellProperties.comment = {value: "put event params here", readOnly: true};
     }
     switch (displayMode) {
         case "event-type":
@@ -422,6 +420,7 @@ var createExperimentTable = function (experimentTableData = null) {
     return experimentTable;
 }
 
+// Delete instances of event in experiment table before removing event from event table
 var addBeforeRemoveRowHook = function (eventTable) {
     eventTable.addHook("beforeRemoveRow", function (index, amount, physicalRows, source) {
         var experimentTableData = experimentTable.getData();
@@ -449,7 +448,7 @@ var addBeforeRemoveRowHook = function (eventTable) {
     });
 }
 
-// Update variable list
+// Update variable lists based on event table rows
 var updateVariables = function () {
     $(".variable-list li").map(function () {
         var variableName = $(this).data("name");
@@ -468,6 +467,7 @@ var addAfterRemoveRowHook = function (eventTable) {
     });
 }
 
+// Generate event IDs for new events
 var addAfterCreateRowHook = function (eventTable) {
     eventTable.addHook("afterCreateRow", function (index, amount, source) {
         var eventType = eventTable.getSettings().className;
@@ -477,6 +477,7 @@ var addAfterCreateRowHook = function (eventTable) {
     });
 }
 
+// Check if a given event table cell is a variable cell
 var isVariableAtCell = function (eventTable, row, col) {
     return eventTable.getCellMeta(row, col).comments;
 }
@@ -495,10 +496,11 @@ var getParamTypeAtCell = function (eventTable, row, col) {
     }
 }
 
+// Add new variables if necessary
 var addAfterChangeHook = function (eventTable) {
     eventTable.addHook("afterChange", function (changes, source) {
         if (source === "loadData") {
-            return; //don't save this change
+            return; // don't do hook if loading data
         }
         var currentVariables = $(".variable-list li").map(function () {
             return $(this).data("name");
@@ -573,10 +575,13 @@ $("#save-exp").on("click", function () {
     Sijax.request("save_json", [jsonExport, fileName]);
 });
 
+// Generate a random event ID
+// Event IDs consist of a 3-letter abbreviation for the event type and a five character alphanumeric sequence
 var generateEventID = function (eventType) {
     var abbr = eventTypeDataJSON[eventType].abbreviation;
     while (true) {
         var id = Math.random().toString(36).substr(2, ID_LENGTH).toUpperCase();
+        // Make sure event ID is not already taken
         if (!IDs.includes(id)) {
             IDs.push(id);
             return abbr + "-" + id;
@@ -584,6 +589,7 @@ var generateEventID = function (eventType) {
     }
 }
 
+// Return the event type based on the abbreviation
 var getEventType = function (value) {
     var abbr = value.substr(0, ABBR_LENGTH);
     var eventType = Object.keys(eventTypeDataJSON).filter(function (eventType) {
@@ -597,6 +603,8 @@ $("#exp-table-display-mode").on("change", function () {
     experimentTable.render();
 });
 
+// Convert event table data into proper data types
+// Unused function
 var getEventTableData = function (eventTable) {
     var eventTableData = eventTable.getData();
     for (i = 0; i < eventTableData.length; i++) {
@@ -612,10 +620,13 @@ var getEventTableData = function (eventTable) {
     return eventTableData;
 }
 
+// Define hot keys
 $(document).on("keydown", function (e) {
+    // ctrl + s = save experiment
     if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "s")) {
         $("#save-exp").trigger("click");
         e.preventDefault();
+    // ctrl + b = toggle whether selected cells are variables
     } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "b")) {
         eventTables.forEach(function (eventTable) {
             toggleSelectedCellsIsVariable(eventTable);
