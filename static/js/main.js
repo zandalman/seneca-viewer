@@ -571,7 +571,7 @@ $("#save-exp").on("click", function () {
     });
     var experimentTableData = experimentTable.getData();
     var jsonExport = {"data": {"eventData": eventTableDataList, "experimentData": experimentTableData}};
-    var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") + ".json" : $("#loaded-experiment-name").html();
+    var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
     Sijax.request("save_json", [jsonExport, fileName]);
 });
 

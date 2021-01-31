@@ -80,9 +80,44 @@ class SijaxHandlers(object):
         #elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
         #    obj_response.alert("A json file '%s.json' already exists." % filename)
         else:
-            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename), 'w') as f:
+            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".txt"), 'w') as f:
                 try:
                     json.dump(json_string, f, indent=2)
+                    #obj_response.html("#loaded-experiment-name", filename)
+                except Exception as e:
+                    print(e)
+            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
+                try:
+                    data = json_string["data"]
+                    event_data = data["eventData"]
+                    experiment_data = data["experimentData"]
+                    data_json_converted = {}
+                    #Processing the experiment section first
+                    experiment_json = {}
+                    for channel in experiment_data:
+                        channel_events = []
+                        for event in channel[1:]:
+                            channel_events.append({"ID": event})
+                        experiment_json[channel[0]] = channel_events
+                    data_json_converted["experimentData"] = experiment_json
+                    with open(self.app.config["EVENT_CONFIG"]) as event_config_file:
+                        event_config = json.load(event_config_file)
+                        sorted_events = sorted(event_config)
+                        event_type_json = {}
+                        #iterate through the events, alphabetically sorted
+                        for event_type_list, event_type in zip(event_data, sorted_events):
+                            parameters = event_config[event_type]['params']
+                            converted_event_list = []
+                            for event in event_type_list:
+                                event_dict = {}
+                                event_dict["ID"] = event[0]
+                                #iterate through the parameters
+                                for value, parameter in zip(event[1:], parameters):
+                                    event_dict[parameter] = value
+                                converted_event_list.append(event_dict)
+                            event_type_json[event_type] = converted_event_list
+                    data_json_converted["eventData"] = event_type_json
+                    json.dump(data_json_converted, f, indent=2)
                     obj_response.html("#loaded-experiment-name", filename)
                 except Exception as e:
                     print(e)

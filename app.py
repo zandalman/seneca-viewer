@@ -19,7 +19,8 @@ def create_app():
         SIJAX_JSON_URI="/static/js/sijax/json2.js",
         UPLOAD_FOLDER=os.path.join(app.root_path, "uploads"),
         VALUE_FOLDER=os.path.join(app.root_path, "valued_jsons"),
-        TEMP_FOLDER= app.root_path
+        TEMP_FOLDER= app.root_path,
+        EVENT_CONFIG=os.path.join(app.root_path, "static/events.json")
     )
     app.secret_key = b"\xa4\xfb3hXuN2G\xce\n\xe0\xcf,\x8d\xb6"
     flask_sijax.Sijax(app)  # initialize flask-sijax
