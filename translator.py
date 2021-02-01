@@ -1,4 +1,4 @@
-from templates import artiq_templates
+from script_templates import artiq_templates
 import json
 import random
 
