@@ -70,9 +70,6 @@ td {
 #storage {
     display: none;
 }
-#event-type {
-    width: 200px;
-}
 .hotkey-text {
     color: lightgrey;
     float: right;

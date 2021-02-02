@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-    <div id="storage" data-evtyp="{{ event_type_data }}"></div>
+    <div id="storage" data-config="{{ event_type_data }}"></div>
     <div id="tabs">
         <ul>
             <li><a href="#exp-edit">Experiment Editor</a></li>
@@ -47,10 +47,15 @@
                         </select>
                     </div>
                     <div id="exp-table" class="table"></div>
-                    <div id="visualizer"></div>
-                    <select id="event-type">
-                        <option></option>
-                    </select><br/><br/>
+                    <div id="visualizer" style="display: none;"></div>
+                    <div id="filters">
+                        <select id="event-type-filter">
+                            <option></option>
+                        </select>
+                        <select id="device-filter">
+                            <option></option>
+                        </select>
+                    </div><br/><br/>
                     <div id="event-tables"></div><br/>
                 </div>
             </div>

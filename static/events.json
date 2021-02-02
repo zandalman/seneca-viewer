@@ -1,155 +1,173 @@
 {
-  "build": {
-    "devices": ["all"],
-    "params": {}
-  },
-  "initialize": {
-    "devices": ["all"],
-    "params": {}
-  },
-  "set_frequency": {
-    "devices": ["DDS"],
-    "params": {
-      "frequency": {
-        "type": "float",
-        "unit": "Hz"
+  "devices": ["DDS", "DAC", "ADC", "TTL"],
+  "events": {
+    " ": {
+      "abbreviation": "",
+      "devices": ["all"],
+      "params": {}
+    },
+    "set_frequency": {
+      "abbreviation": "FRQ",
+      "devices": ["DDS"],
+      "params": {
+        "frequency": {
+          "type": "float",
+          "unit": "Hz"
+        }
       }
-    }
-  },
-  "set_attenuation": {
-    "devices": ["DDS"],
-    "params": {
-      "attenuation": {
-        "type": "float",
-        "unit": "dB/m"
+    },
+    "set_attenuation": {
+      "abbreviation": "ATT",
+      "devices": ["DDS"],
+      "params": {
+        "attenuation": {
+          "type": "float",
+          "unit": "dB/m"
+        }
       }
-    }
-  },
-  "ramp_frequency": {
-    "devices": ["DDS"],
-    "params": {
-      "frequency_per_step": {
-        "type": "float",
-        "unit": "Hz"
-      },
-      "amplitude": {
-        "type": "float",
-        "unit": "V"
-      },
-      "steps": {
-        "type": "int",
-        "unit": ""
-      },
-      "time_per_step": {
-        "type": "float",
-        "unit": "s"
+    },
+    "ramp_frequency": {
+      "abbreviation": "RFQ",
+      "devices": ["DDS"],
+      "params": {
+        "frequency_per_step": {
+          "type": "float",
+          "unit": "Hz"
+        },
+        "amplitude": {
+          "type": "float",
+          "unit": "V"
+        },
+        "steps": {
+          "type": "int",
+          "unit": ""
+        },
+        "time_per_step": {
+          "type": "float",
+          "unit": "s"
+        }
       }
-    }
-  },
-  "scan_frequency": {
-    "devices": ["DDS"],
-    "params": {
-      "frequencies": {
-        "type": "list.float",
-        "unit": "Hz"
-      },
-      "amplitude": {
-        "type": "float",
-        "unit": "V"
-      },
-      "time_per_step": {
-        "type": "float",
-        "unit": "s"
+    },
+    "scan_frequency": {
+      "abbreviation": "SFQ",
+      "devices": ["DDS"],
+      "params": {
+        "frequencies": {
+          "type": "list.float",
+          "unit": "Hz"
+        },
+        "amplitude": {
+          "type": "float",
+          "unit": "V"
+        },
+        "time_per_step": {
+          "type": "float",
+          "unit": "s"
+        }
       }
-    }
-  },
-  "turn_off": {
-    "devices": ["DDS", "DAC"]
-  },
-  "RF_on": {
-    "devices": ["DDS"]
-  },
-  "RF_off": {
-    "devices": ["DDS"]
-  },
-  "set_voltage": {
-    "devices": ["DAC"],
-    "params": {
-      "voltage": {
-        "type": "float",
-        "unit": "V"
+    },
+    "turn_off": {
+      "abbreviation": "OFF",
+      "devices": ["DDS", "DAC"],
+      "params": {}
+    },
+    "RF_on": {
+      "abbreviation": "RON",
+      "devices": ["DDS"],
+      "params": {}
+    },
+    "RF_off": {
+      "abbreviation": "ROF",
+      "devices": ["DDS"],
+      "params": {}
+    },
+    "set_voltage": {
+      "abbreviation": "VLT",
+      "devices": ["DAC"],
+      "params": {
+        "voltage": {
+          "type": "float",
+          "unit": "V"
+        }
       }
-    }
-  },
-  "ramp": {
-    "devices": ["DAC"],
-    "params": {
-      "volts_per_step": {
-        "type": "float",
-        "unit": "V"
-      },
-      "steps": {
-        "type": "int",
-        "unit": ""
-      },
-      "time_per_step": {
-        "type": "float",
-        "unit": "s"
+    },
+    "ramp": {
+      "abbreviation": "RMP",
+      "devices": ["DAC"],
+      "params": {
+        "volts_per_step": {
+          "type": "float",
+          "unit": "V"
+        },
+        "steps": {
+          "type": "int",
+          "unit": ""
+        },
+        "time_per_step": {
+          "type": "float",
+          "unit": "s"
+        }
       }
-    }
-  },
-  "acquire_once": {
-    "devices": ["ADC"],
-    "params": {}
-  },
-  "acquire_continuous": {
-    "devices": ["ADC"],
-    "params": {
-      "steps": {
-        "type":"int",
-        "unit": ""
-      },
-      "time_per_step": {
-        "type": "float",
-        "unit": "s"
+    },
+    "acquire_once": {
+      "abbreviation": "AQO",
+      "devices": ["ADC"],
+      "params": {}
+    },
+    "acquire_continuous": {
+      "abbreviation": "AQC",
+      "devices": ["ADC"],
+      "params": {
+        "steps": {
+          "type": "int",
+          "unit": ""
+        },
+        "time_per_step": {
+          "type": "float",
+          "unit": "s"
+        }
       }
-    }
-  },
-  "single_pulse": {
-    "devices": ["TTL"],
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s"
-      },
-      "delay": {
-        "type": "float",
-        "unit": "s"
+    },
+    "single_pulse": {
+      "abbreviation": "SPL",
+      "devices": ["TTL"],
+      "params": {
+        "duration": {
+          "type": "float",
+          "unit": "s"
+        },
+        "delay": {
+          "type": "float",
+          "unit": "s"
+        }
       }
-    }
-  },
-  "logic_high": {
-    "devices": ["TTL"],
-    "params": {}
-  },
-  "logic_low": {
-    "devices": ["TTL"],
-    "params": {}
-  },
-  "pulse_train": {
-    "devices": ["TTL"],
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s"
-      },
-      "delay": {
-        "type": "float",
-        "unit": "s"
-      },
-      "number_of_pulses": {
-        "type": "int",
-        "unit": ""
+    },
+    "logic_high": {
+      "abbreviation": "LHI",
+      "devices": ["TTL"],
+      "params": {}
+    },
+    "logic_low": {
+      "abbreviation": "LLO",
+      "devices": ["TTL"],
+      "params": {}
+    },
+    "pulse_train": {
+      "abbreviation": "PLT",
+      "devices": ["TTL"],
+      "params": {
+        "duration": {
+          "type": "float",
+          "unit": "s"
+        },
+        "delay": {
+          "type": "float",
+          "unit": "s"
+        },
+        "number_of_pulses": {
+          "type": "int",
+          "unit": ""
+        }
       }
     }
   }

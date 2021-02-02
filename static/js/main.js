@@ -6,9 +6,15 @@ $( document ).ready(function() {
     createEventTables();
     addEventTableHooks();
     // Initialize event type select box
-    $("#event-type").select2({
-        "allowClear": true,
-        "placeholder": "Event Type Filter"
+    $("#event-type-filter").select2({
+        allowClear: true,
+        placeholder: "Event Type Filter",
+        width: 200
+    });
+    $("#device-filter").select2({
+        allowClear: true,
+        placeholder: "Device Filter",
+        width: 200
     });
     // Color variable list titles
     $("#float-variables-title").css("background-color", COLORS.float);
@@ -19,6 +25,7 @@ $( document ).ready(function() {
 
 // Initialize event table list
 var eventTables = [];
+var eventTypes = [];
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -86,16 +93,22 @@ var experimentTableDataDefault = [
 ];
 
 // Retrieve data from HTML storage
-var eventTypeDataJSON = JSON.parse($("#storage").data("evtyp").replaceAll("'", "\""));
+var configData = JSON.parse($("#storage").data("config").replaceAll("'", "\""));
+var eventTypeDataAll = configData.events;
+var devices = configData.devices;
 
 // Create event tables
 var createEventTables = function (eventTableDataList = null) {
-    Object.keys(eventTypeDataJSON).sort().map(function (eventType, eventTypeIndex) {
-        var eventTypeData = eventTypeDataJSON[eventType];
+    devices.sort().forEach(function (device) {
+        $("#device-filter").append("<option value='" + device + "'>" + device + "</option>");
+    });
+    Object.keys(eventTypeDataAll).sort().map(function (eventType, eventTypeIndex) {
+        var eventTypeData = eventTypeDataAll[eventType];
         var eventTableData = eventTableDataList ? eventTableDataList[eventTypeIndex] : null;
-        $("#event-type").append("<option value='" + eventType + "'>" + eventType + "</option>");
+        $("#event-type-filter").append("<option value='" + eventType + "'>" + eventType + "</option>");
         $("#event-tables").append("<div class='table' id='table-" + eventType + "'></div>");
         eventTables.push(createEventTable(eventType, eventTypeData, eventTableData));
+        eventTypes.push(eventType);
     });
 }
 
@@ -182,7 +195,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             }
         },
         colHeaders: [eventType + " events"].concat(sortedParamNames.map(function (paramName) {
-            if (!(["boolean", "string"].includes(eventTypeData.params[paramName].type))) {
+            if (eventTypeData.params[paramName].unit) {
                 var paramUnit = eventTypeData.params[paramName].unit;
                 return paramName + " (" + paramUnit + ")";
             } else {
@@ -403,8 +416,10 @@ var createExperimentTable = function (experimentTableData = null) {
                 cellProperties.renderer = headerRenderer;
             } else {
                 cellProperties.type = "autocomplete";
-                cellProperties.source = [""].concat(eventTables.map(function (eventTable) {
-                    return eventTable.getDataAtCol(0);
+                cellProperties.source = [""].concat(eventTables.map(function (eventTable, idx) {
+                    var devices = eventTypeDataAll[eventTypes[idx]].devices;
+                    var deviceCompatible = devices.includes(experimentTableData[visualRowIndex][1]) || devices[0] === "all";
+                    return deviceCompatible ? eventTable.getDataAtCol(0) : null;
                 }).flat().filter(function (eventName) {
                     return eventName !== null;
                 }).sort());
@@ -528,12 +543,23 @@ var addAfterChangeHook = function (eventTable) {
 }
 
 // Hide and show event tables based on event type filter
-$("#event-type").on("change", function () {
+$("#event-type-filter").on("change", function () {
     if ($(this).val()) {
         $("#event-tables .table").hide();
         $("#table-" + $(this).val()).show();
     } else {
         $("#event-tables .table").show();
+    }
+});
+
+// Hide and show event tables based on device filter
+// IN PROGRESS
+$("#device-filter").on("change", function () {
+    if ($(this).val()) {
+        //$("#event-tables .table").hide();
+        //$("#table-" + $(this).val()).show();
+    } else {
+        //$("#event-tables .table").show();
     }
 });
 
@@ -547,10 +573,11 @@ var resetTables = function (loadedData) {
     $("#event-tables").empty();
     $(".htMenu").remove();
     eventTables = [];
+    eventTypes = [];
     // Create new tables
     experimentTable = createExperimentTable(experimentTableData);
     createEventTables(eventTableDataList);
-    $("#event-type").trigger("change");
+    $("#event-type-filter").trigger("change");
 }
 
 var loadJson = function (loadedData) {
@@ -578,7 +605,7 @@ $("#save-exp").on("click", function () {
 // Generate a random event ID
 // Event IDs consist of a 3-letter abbreviation for the event type and a five character alphanumeric sequence
 var generateEventID = function (eventType) {
-    var abbr = eventTypeDataJSON[eventType].abbreviation;
+    var abbr = eventTypeDataAll[eventType].abbreviation;
     while (true) {
         var id = Math.random().toString(36).substr(2, ID_LENGTH).toUpperCase();
         // Make sure event ID is not already taken
@@ -592,8 +619,8 @@ var generateEventID = function (eventType) {
 // Return the event type based on the abbreviation
 var getEventType = function (value) {
     var abbr = value.substr(0, ABBR_LENGTH);
-    var eventType = Object.keys(eventTypeDataJSON).filter(function (eventType) {
-        return eventTypeDataJSON[eventType].abbreviation === abbr;
+    var eventType = Object.keys(eventTypeDataAll).filter(function (eventType) {
+        return eventTypeDataAll[eventType].abbreviation === abbr;
     })[0];
     return eventType;
 }
