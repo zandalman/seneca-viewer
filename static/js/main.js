@@ -561,7 +561,6 @@ var addAfterCreateRowHook = function (eventTable) {
 
 // Check if a given event table cell is a variable cell
 var isVariableAtCell = function (eventTable, row, col) {
-    alert(Object.keys(eventTable.getCellMeta(1, 1)));
     return eventTable.getCellMeta(row, col).comments;
 }
 
