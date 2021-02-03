@@ -1,11 +1,7 @@
 {
+  "ordering": "alphabetical",
   "devices": ["DDS", "DAC", "ADC", "TTL"],
   "events": {
-    " ": {
-      "abbreviation": "",
-      "devices": ["all"],
-      "params": {}
-    },
     "set_frequency": {
       "abbreviation": "FRQ",
       "devices": ["DDS"],
@@ -13,16 +9,6 @@
         "frequency": {
           "type": "float",
           "unit": "Hz"
-        }
-      }
-    },
-    "set_attenuation": {
-      "abbreviation": "ATT",
-      "devices": ["DDS"],
-      "params": {
-        "attenuation": {
-          "type": "float",
-          "unit": "dB/m"
         }
       }
     },
@@ -48,38 +34,25 @@
         }
       }
     },
-    "scan_frequency": {
-      "abbreviation": "SFQ",
-      "devices": ["DDS"],
+    "power": {
+      "abbreviation": "POW",
+      "devices": ["DDS", "DAC"],
       "params": {
-        "frequencies": {
-          "type": "list.float",
-          "unit": "Hz"
-        },
-        "amplitude": {
-          "type": "float",
-          "unit": "V"
-        },
-        "time_per_step": {
-          "type": "float",
-          "unit": "s"
+        "on": {
+          "type": "boolean",
+          "unit": ""
         }
       }
     },
-    "turn_off": {
-      "abbreviation": "OFF",
-      "devices": ["DDS", "DAC"],
-      "params": {}
-    },
-    "RF_on": {
-      "abbreviation": "RON",
+    "RF_power": {
+      "abbreviation": "RPW",
       "devices": ["DDS"],
-      "params": {}
-    },
-    "RF_off": {
-      "abbreviation": "ROF",
-      "devices": ["DDS"],
-      "params": {}
+      "params": {
+        "on": {
+          "type": "boolean",
+          "unit": ""
+        }
+      }
     },
     "set_voltage": {
       "abbreviation": "VLT",
@@ -112,7 +85,12 @@
     "acquire_once": {
       "abbreviation": "AQO",
       "devices": ["ADC"],
-      "params": {}
+      "params": {
+        "duration": {
+          "type": "float",
+          "unit": "s"
+        }
+      }
     },
     "acquire_continuous": {
       "abbreviation": "AQC",
@@ -139,18 +117,22 @@
         "delay": {
           "type": "float",
           "unit": "s"
+        },
+        "duty cycle": {
+          "type": "float",
+          "unit": "s"
         }
       }
     },
-    "logic_high": {
-      "abbreviation": "LHI",
+    "logic": {
+      "abbreviation": "LOG",
       "devices": ["TTL"],
-      "params": {}
-    },
-    "logic_low": {
-      "abbreviation": "LLO",
-      "devices": ["TTL"],
-      "params": {}
+      "params": {
+        "high": {
+          "type": "boolean",
+          "unit": ""
+        }
+      }
     },
     "pulse_train": {
       "abbreviation": "PLT",

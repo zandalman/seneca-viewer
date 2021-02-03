@@ -5,7 +5,7 @@ $( document ).ready(function() {
     experimentTable = createExperimentTable();
     createEventTables();
     addEventTableHooks();
-    // Initialize event type select box
+    // Initialize select boxes
     $("#event-type-filter").select2({
         allowClear: true,
         placeholder: "Event Type Filter",
@@ -23,7 +23,7 @@ $( document ).ready(function() {
     $("#string-variables-title").css("background-color", COLORS.string);
 });
 
-// Initialize event table list
+// Initialize event table and event type list
 var eventTables = [];
 var eventTypes = [];
 
@@ -80,6 +80,11 @@ var UNITS = {
 var createFullArray = function (length, value) {
     return Array.apply(null, Array(length)).map(String.prototype.valueOf, value);
 };
+
+// Return an array of a given length of increasing integers starting from a given value
+var range = function (length, start = 0) {
+    return Array.apply(null, Array(length)).map(function (_, i) {return i + start;});
+}
 
 // Define default experiment table data
 var experimentTableDataDefault = [
@@ -150,8 +155,8 @@ var toggleSelectedCellsIsVariable = function (eventTable) {
 var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var numParams = Object.keys(eventTypeData.params).length;
     var sortedParamNames = Object.keys(eventTypeData.params).sort();
+    // Use default event table data if there is no data
     if (!eventTableData) {
-        // Use default event table data
         eventTableData = [createFullArray(numParams + 1, "")];
         eventTableData[0][0] = generateEventID(eventType);
     }
@@ -194,7 +199,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                 }
             }
         },
-        colHeaders: [eventType + " events"].concat(sortedParamNames.map(function (paramName) {
+        colHeaders: [eventType].concat(sortedParamNames.map(function (paramName) {
             if (eventTypeData.params[paramName].unit) {
                 var paramUnit = eventTypeData.params[paramName].unit;
                 return paramName + " (" + paramUnit + ")";
@@ -208,7 +213,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             var visualRowIndex = this.instance.toVisualRow(row);
             var visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex === 0) {
-                cellProperties.editor = false;
+                cellProperties.readOnly = true;
                 cellProperties.renderer = headerRenderer;
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
@@ -234,6 +239,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
 function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
     td.style.backgroundColor = COLORS["header"];
+    td.style.color = "black";
 }
 
 // Define renderer for experiment table
@@ -393,7 +399,15 @@ var createExperimentTable = function (experimentTableData = null) {
                 "copy": {},
                 "cut": {},
                 "undo": {},
-                "redo": {}
+                "redo": {},
+                "mergeCells": {
+                    disabled: function () {
+                        var selection = this.getSelectedLast();
+                        var onlyOneCellSelected = selection[0] === selection[2] && selection[1] === selection[3];
+                        var multipleRowsSelected = selection[0] !== selection[2];
+                        return multipleRowsSelected || onlyOneCellSelected;
+                    }
+                }
             }
         },
         colHeaders: function(index) {
@@ -412,7 +426,7 @@ var createExperimentTable = function (experimentTableData = null) {
             const visualRowIndex = this.instance.toVisualRow(row);
             const visualColIndex = this.instance.toVisualColumn(column);
             if (visualColIndex < 2) {
-                cellProperties.editor = false;
+                cellProperties.readOnly = true;
                 cellProperties.renderer = headerRenderer;
             } else {
                 cellProperties.type = "autocomplete";
@@ -430,10 +444,41 @@ var createExperimentTable = function (experimentTableData = null) {
             return cellProperties;
         },
         preventOverflow: "horizontal",
+        mergeCells: true,
         licenseKey: "non-commercial-and-evaluation"
+    });
+    // Remove null values from merged cells
+    experimentTable.addHook("afterMergeCells", function (cellRange, mergeParent) {
+        var value = experimentTable.getDataAtCell(mergeParent.row, mergeParent.col);
+        var changes = range(mergeParent.colspan, mergeParent.col).map(function (col) {
+            return [mergeParent.row, col, value];
+        });
+        experimentTable.setDataAtCell(changes);
     });
     return experimentTable;
 }
+
+// Automatically merge cells in experiment table if they are in same row with adjacent values
+$("#automerge").on("click", function () {
+    var experimentTableData = experimentTable.getData();
+    var mergeCells = [];
+    for (var row = 0; row < experimentTableData.length; row++) {
+        for (var col = 2; col < experimentTableData[row].length; col++){
+            var value = experimentTableData[row][col];
+            var colspan = 1;
+            while (value && experimentTableData[row][col + colspan] === value) {
+                colspan++;
+            }
+            if (colspan > 1) {
+                mergeCells.push({row: row, col: col, rowspan: 1, colspan: colspan});
+                col = col + colspan - 1;
+            }
+        }
+    }
+    experimentTable.updateSettings({
+        mergeCells: mergeCells
+    });
+});
 
 // Delete instances of event in experiment table before removing event from event table
 var addBeforeRemoveRowHook = function (eventTable) {
@@ -544,22 +589,30 @@ var addAfterChangeHook = function (eventTable) {
 
 // Hide and show event tables based on event type filter
 $("#event-type-filter").on("change", function () {
-    if ($(this).val()) {
+    var eventType = $(this).val();
+    if (eventType) {
+        $("#device-filter").val(null).trigger("change");
         $("#event-tables .table").hide();
-        $("#table-" + $(this).val()).show();
+        $("#table-" + eventType).show();
     } else {
         $("#event-tables .table").show();
     }
 });
 
 // Hide and show event tables based on device filter
-// IN PROGRESS
 $("#device-filter").on("change", function () {
-    if ($(this).val()) {
-        //$("#event-tables .table").hide();
-        //$("#table-" + $(this).val()).show();
+    var device = $(this).val();
+    if (device) {
+        $("#event-type-filter").val(null).trigger("change");
+        $("#event-tables .table").hide();
+        eventTables.forEach(function (eventTable, idx) {
+            var devices = eventTypeDataAll[eventTypes[idx]].devices;
+            if (devices.includes(device) || devices[0] === "all") {
+                $("#table-" + eventTypes[idx]).show();
+            }
+        });
     } else {
-        //$("#event-tables .table").show();
+        $("#event-tables .table").show();
     }
 });
 
