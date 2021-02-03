@@ -49,7 +49,7 @@ COLORS = {
 // Define regex expressions
 REGEX = {
     number: /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)(e-?(0|[1-9]\d*))?([yzafpnumkMGTPEZY]$|$)/,
-    string: /(?=^[a-zA-Z])(?=^[a-zA-Z0-9\-_]+$)/,
+    variable: /(?=^[a-zA-Z])(?=^[a-zA-Z0-9\-_]+$)/,
     boolean: /^(true|false)$/
 };
 
@@ -133,11 +133,12 @@ var toggleCellIsVariable = function (eventTable, row, col) {
     var isVariable = isVariableAtCell(eventTable, row, col);
     var paramType = getParamTypeAtCell(eventTable, row, col);
     eventTable.setCellMeta(row, col, "comments", !isVariable);
+    eventTable.setDataAtCell(row, col, null);
     eventTable.render();
 }
 
 // Toggle whether selected cells are variables
-var toggleSelectedCellsIsVariable = function (eventTable) {
+var toggleSelectedCellsAreVariable = function (eventTable) {
     var selection = eventTable.getSelectedLast();
     if (selection) {
         var startRow = Math.min(selection[0], selection[2]);
@@ -195,7 +196,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                         return this.getSelectedLast()[1] === 0;
                     },
                     callback: function () {
-                        toggleSelectedCellsIsVariable(this);
+                        toggleSelectedCellsAreVariable(this);
                     }
                 }
             }
@@ -219,7 +220,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             } else {
                 var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
                 cellProperties.className = ["cell-" + paramType];
-                cellProperties.validator = cellProperties.comments ? generateParamValidator("string") : generateParamValidator(paramType);
+                cellProperties.validator = generateParamValidator(paramType);
                 cellProperties.renderer = generateParamRenderer(paramType);
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
@@ -308,22 +309,26 @@ var decodeNumeric = function (value) {
 var generateParamValidator = function (paramType) {
     var paramValidator = function (value, callback) {
         var stringifiedValue = Handsontable.helper.stringify(value);
-        var isNum = REGEX.number.test(stringifiedValue);
-        var isString = REGEX.string.test(stringifiedValue);
-        var isBool = REGEX.boolean.test(stringifiedValue);
-        switch (paramType) {
-            case "float":
-                callback(Boolean(isNum || !stringifiedValue));
-                break;
-            case "int":
-                callback(Boolean((isNum && decodeNumeric(stringifiedValue) % 1 === 0) || !stringifiedValue));
-                break;
-            case "boolean":
-                callback(Boolean(isBool || !stringifiedValue));
-                break;
-            case "string":
-                callback(isString || !stringifiedValue);
-                break;
+        var isVariable = isVariableAtCell(this.instance, this.row, this.col);
+        if (isVariable) {
+            callback(REGEX.variable.test(stringifiedValue) || !stringifiedValue);
+        } else {
+            var isNum = REGEX.number.test(stringifiedValue);
+            var isBool = REGEX.boolean.test(stringifiedValue);
+            switch (paramType) {
+                case "float":
+                    callback(Boolean(isNum || !stringifiedValue));
+                    break;
+                case "int":
+                    callback(Boolean((isNum && decodeNumeric(stringifiedValue) % 1 === 0) || !stringifiedValue));
+                    break;
+                case "boolean":
+                    callback(Boolean(isBool || !stringifiedValue));
+                    break;
+                case "string":
+                    callback(!stringifiedValue);
+                    break;
+            }
         }
     };
     return paramValidator;
@@ -504,10 +509,10 @@ var addBeforeRemoveRowHook = function (eventTable) {
         var eventNames = eventTable.getDataAtCol(0);
         var removedEventNames = physicalRows.map(function (rowIndex) {return eventNames[rowIndex];});
         var expChanges = [];
-        for (i = 0; i < experimentTableData.length; i++) {
-            for (j = 0; j < experimentTableData[i].length; j++){
-                if (removedEventNames.includes(experimentTableData[i][j])) {
-                    expChanges.push([i, j, ""]);
+        for (var row = 0; row < experimentTableData.length; row++) {
+            for (var col = 0; col < experimentTableData[row].length; col++){
+                if (removedEventNames.includes(experimentTableData[row][col])) {
+                    expChanges.push([row, col, null]);
                 }
             }
         }
@@ -548,14 +553,15 @@ var addAfterRemoveRowHook = function (eventTable) {
 var addAfterCreateRowHook = function (eventTable) {
     eventTable.addHook("afterCreateRow", function (index, amount, source) {
         var eventType = eventTable.getSettings().className;
-        for (i = index; i < index + amount; i++) {
-            eventTable.setDataAtCell(i, 0, generateEventID(eventType));
+        for (var row = index; row < index + amount; row++) {
+            eventTable.setDataAtCell(row, 0, generateEventID(eventType));
         }
     });
 }
 
 // Check if a given event table cell is a variable cell
 var isVariableAtCell = function (eventTable, row, col) {
+    alert(Object.keys(eventTable.getCellMeta(1, 1)));
     return eventTable.getCellMeta(row, col).comments;
 }
 
@@ -664,11 +670,38 @@ $("#load-exp").on("click", function () {
 });
 
 $("#save-exp").on("click", function () {
-    var eventTableDataList = eventTables.map(function (eventTable) {
-        return eventTable.getData();
+    var eventTableDataAll = [];
+    eventTables.forEach(function (eventTable, idx) {
+        var eventTableData = eventTable.getData();
+        var numRows = eventTableData.length;
+        var numCols = eventTableData[0].length;
+        var eventTableVariableData = JSON.parse(JSON.stringify(eventTableData));
+        for (var row = 0; row <= numRows; row++) {
+            eventTableVariableData[row] = eventTable.getCellMetaAtRow(row).map(function (cellMeta) {
+               return cellMeta.comments;
+            });
+        }
+        eventTableDataAll.push({
+            eventType: eventTypes[idx],
+            data: eventTableData,
+            variableData: eventTableVariableData
+        });
     });
     var experimentTableData = experimentTable.getData();
-    var jsonExport = {"data": {"eventData": eventTableDataList, "experimentData": experimentTableData}};
+    var variableData = {};
+    $(".variable-list").map(function () {
+        var varType = $(this).data("type");
+        variableData[varType] = $(this).children().map(function () {
+            return $(this).data("name");
+        }).get();
+    });
+    var jsonExport = {
+        data: {
+            eventData: eventTableDataAll,
+            experimentData: experimentTableData,
+            variableData: variableData
+        }
+    };
     var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
     Sijax.request("save_json", [jsonExport, fileName]);
 });
@@ -727,7 +760,7 @@ $(document).on("keydown", function (e) {
     // ctrl + b = toggle whether selected cells are variables
     } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "b")) {
         eventTables.forEach(function (eventTable) {
-            toggleSelectedCellsIsVariable(eventTable);
+            toggleSelectedCellsAreVariable(eventTable);
         });
         e.preventDefault();
     }
