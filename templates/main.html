@@ -39,13 +39,15 @@
                     <div style="display:inline-block">
                         <button id="add-col">add</button>
                         <input type="number" id="num-col" min="1" max="1000" step="1" value="1">
-                        <label>timesteps&emsp;</label></t>
+                        <label>timesteps&emsp;</label>
                         <label>display mode</label>
                         <select id="exp-table-display-mode">
                             <option value="event-type">event types</option>
                             <option value="event-id">event IDs</option>
                         </select>
                         <button id="automerge">automerge</button>
+                        <label> comments</label>
+                        <input type="checkbox" id="comments">
                     </div>
                     <div id="exp-table" class="table"></div>
                     <div id="visualizer" style="display: none;"></div>

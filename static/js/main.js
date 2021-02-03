@@ -43,7 +43,7 @@ COLORS = {
     booleanVar: "#ffd966",
     stringVar: "#e06666",
     header: "#EEE",
-    event: "#FEFEFE"
+    event: "#FAFAFA"
 };
 
 // Define regex expressions
@@ -240,7 +240,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
 // Define renderer to disguise table cells as table headers
 function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
-    td.style.backgroundColor = COLORS["header"];
+    td.style.backgroundColor = COLORS.header;
     td.style.color = "black";
 }
 
@@ -248,7 +248,7 @@ function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
 function experimentTableRenderer(instance, td, row, col, prop, value, cellProperties) {
     var displayMode = $("#exp-table-display-mode").val();
     var eventType = Boolean(value) ? getEventType(value) : value;
-    if (value) {
+    if (document.getElementById("comments").checked && value) {
         var eventTable = eventTables[eventTypes.indexOf(eventType)];
         var params = eventTable.getColHeader().slice(1);
         var eventTableRow = eventTable.getDataAtCol(0).indexOf(value);
@@ -270,7 +270,15 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             break;
     }
+    if (value) {
+        td.style.backgroundColor = COLORS.event;
+    }
 }
+
+// Render experiment table when toggling comments
+$("#comments").on("click", function () {
+    experimentTable.render();
+});
 
 // Add timesteps to experiment table
 $("#add-col").on("click", function () {
