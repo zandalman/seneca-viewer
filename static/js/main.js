@@ -42,7 +42,8 @@ COLORS = {
     intVar: "#6fa8dc",
     booleanVar: "#ffd966",
     stringVar: "#e06666",
-    header: "#EEE"
+    header: "#EEE",
+    event: "#FEFEFE"
 };
 
 // Define regex expressions
@@ -92,9 +93,9 @@ var experimentTableDataDefault = [
     ["ch2", "DDS"].concat(createFullArray(12, "")),
     ["ch3", "DDS"].concat(createFullArray(12, "")),
     ["ch4", "DDS"].concat(createFullArray(12, "")),
-    ["ch5", "DDS"].concat(createFullArray(12, "")),
-    ["ch6", "DDS"].concat(createFullArray(12, "")),
-    ["ch7", "DDS"].concat(createFullArray(12, ""))
+    ["ch5", "ADC"].concat(createFullArray(12, "")),
+    ["ch6", "ADC"].concat(createFullArray(12, "")),
+    ["ch7", "DAC"].concat(createFullArray(12, ""))
 ];
 
 // Retrieve data from HTML storage
@@ -247,9 +248,15 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
     var displayMode = $("#exp-table-display-mode").val();
     var eventType = Boolean(value) ? getEventType(value) : value;
     if (value) {
-        null;
-        // Maybe add comments to cells with event parameters?
-        //cellProperties.comment = {value: "put event params here", readOnly: true};
+        var eventTable = eventTables[eventTypes.indexOf(eventType)];
+        var params = eventTable.getColHeader().slice(1);
+        var eventTableRow = eventTable.getDataAtCol(0).indexOf(value);
+        var paramValues = eventTable.getDataAtRow(eventTableRow).slice(1);
+        var commentString = params.map(function (param, idx) {
+            var paramValue = paramValues[idx] ? paramValues[idx] : "undefined";
+            return param + ": " + paramValue;
+        }).join("\n");
+        if (commentString !== "") {cellProperties.comment = {value: commentString, readOnly: true};}
     }
     switch (displayMode) {
         case "event-type":
@@ -455,9 +462,9 @@ var createExperimentTable = function (experimentTableData = null) {
         });
         experimentTable.setDataAtCell(changes);
     });
-    experimentTable.addHook("afterOnCellMouseDown", function (event, coords, TD) {
-        if (coords.row >= 0) {
-            var device = experimentTable.getDataAtCell(coords.row, 1);
+    experimentTable.addHook("afterSelection", function (row, column, row2, column2, preventScrolling, selectionLayerLevel) {
+        if (row >= 0) {
+            var device = experimentTable.getDataAtCell(row, 1);
             $("#device-filter").val(device);
             $("#device-filter").trigger("change");
         }
@@ -485,6 +492,7 @@ $("#automerge").on("click", function () {
     experimentTable.updateSettings({
         mergeCells: mergeCells
     });
+    mergeCells.forEach(function (mergeParent) {experimentTable.runHooks("afterMergeCells", {}, mergeParent)});
 });
 
 // Delete instances of event in experiment table before removing event from event table
@@ -591,6 +599,7 @@ var addAfterChangeHook = function (eventTable) {
             }
         });
         updateVariables();
+        experimentTable.render();
     });
 }
 
