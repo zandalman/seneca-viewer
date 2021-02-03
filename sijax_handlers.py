@@ -154,17 +154,10 @@ class SijaxHandlers(object):
         #    obj_response.alert("A json file '%s.json' already exists." % filename)
         else:
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".txt"), 'w') as f:
-                try:
-                    json.dump(json_string, f, indent=2)
-                    #obj_response.html("#loaded-experiment-name", filename)
-                except Exception as e:
-                    print(e)
+                json.dump(json_string, f, indent=2)
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
-                try:
-                    config = open(self.app.config["EVENT_CONFIG"])
-                    json_output = raw_to_json(config, json_string)
-                    json.dump(json_output, f, indent=2)
-                    json_to_raw(json_output)
-                    obj_response.html("#loaded-experiment-name", filename)
-                except Exception as e:
-                    print(e)
+                config = open(self.app.config["EVENT_CONFIG"])
+                json_output = raw_to_json(config, json_string)
+                json.dump(json_output, f, indent=2)
+                json_to_raw(json_output)
+            obj_response.html("#loaded-experiment-name", filename)

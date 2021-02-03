@@ -257,6 +257,8 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
             return param + ": " + paramValue;
         }).join("\n");
         if (commentString !== "") {cellProperties.comment = {value: commentString, readOnly: true};}
+    } else {
+        cellProperties.comment = {value: null, readOnly: true};
     }
     switch (displayMode) {
         case "event-type":
