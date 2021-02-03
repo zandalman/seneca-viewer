@@ -455,6 +455,13 @@ var createExperimentTable = function (experimentTableData = null) {
         });
         experimentTable.setDataAtCell(changes);
     });
+    experimentTable.addHook("afterOnCellMouseDown", function (event, coords, TD) {
+        if (coords.row >= 0) {
+            var device = experimentTable.getDataAtCell(coords.row, 1);
+            $("#device-filter").val(device);
+            $("#device-filter").trigger("change");
+        }
+    });
     return experimentTable;
 }
 
