@@ -1,191 +1,155 @@
 {
-  "constant": {
-    "abbreviation": "CST",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      },
-      "value": {
-        "type": "float",
-        "unit": "V",
-        "default": "0"
-      }
-    }
+  "build": {
+    "devices": ["all"],
+    "params": {}
   },
-  "exponential": {
-    "abbreviation": "EXP",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
+  "initialize": {
+    "devices": ["all"],
+    "params": {}
   },
-  "Gaussian": {
-    "abbreviation": "GSS",
+  "set_frequency": {
+    "devices": ["DDS"],
     "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "log": {
-    "abbreviation": "LOG",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "Lorentzian": {
-    "abbreviation": "LTZ",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "pulse": {
-    "abbreviation": "PLS",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      },
-      "width": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      },
       "frequency": {
         "type": "float",
-        "unit": "Hz",
-        "default": "1"
+        "unit": "Hz"
+      }
+    }
+  },
+  "set_attenuation": {
+    "devices": ["DDS"],
+    "params": {
+      "attenuation": {
+        "type": "float",
+        "unit": "dB/m"
+      }
+    }
+  },
+  "ramp_frequency": {
+    "devices": ["DDS"],
+    "params": {
+      "frequency_per_step": {
+        "type": "float",
+        "unit": "Hz"
       },
       "amplitude": {
         "type": "float",
-        "unit": "V",
-        "default": "1"
+        "unit": "V"
       },
-      "rising": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
+      "steps": {
+        "type": "int",
+        "unit": ""
       },
-      "falling": {
+      "time_per_step": {
         "type": "float",
-        "unit": "s",
-        "default": "1"
+        "unit": "s"
+      }
+    }
+  },
+  "scan_frequency": {
+    "devices": ["DDS"],
+    "params": {
+      "frequencies": {
+        "type": "list.float",
+        "unit": "Hz"
+      },
+      "amplitude": {
+        "type": "float",
+        "unit": "V"
+      },
+      "time_per_step": {
+        "type": "float",
+        "unit": "s"
+      }
+    }
+  },
+  "turn_off": {
+    "devices": ["DDS", "DAC"]
+  },
+  "RF_on": {
+    "devices": ["DDS"]
+  },
+  "RF_off": {
+    "devices": ["DDS"]
+  },
+  "set_voltage": {
+    "devices": ["DAC"],
+    "params": {
+      "voltage": {
+        "type": "float",
+        "unit": "V"
       }
     }
   },
   "ramp": {
-    "abbreviation": "RMP",
+    "devices": ["DAC"],
     "params": {
-      "duration": {
+      "volts_per_step": {
         "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "sawtooth": {
-    "abbreviation": "SWT",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "sine": {
-    "abbreviation": "SIN",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
+        "unit": "V"
       },
-      "amplitude": {
-        "type": "float",
-        "unit": "V",
-        "default": "1"
+      "steps": {
+        "type": "int",
+        "unit": ""
       },
-      "frequency": {
+      "time_per_step": {
         "type": "float",
-        "unit": "Hz",
-        "default": "60"
+        "unit": "s"
+      }
+    }
+  },
+  "acquire_once": {
+    "devices": ["ADC"],
+    "params": {}
+  },
+  "acquire_continuous": {
+    "devices": ["ADC"],
+    "params": {
+      "steps": {
+        "type":"int",
+        "unit": ""
       },
-      "rectified": {
-        "type": "boolean",
-        "unit": "",
-        "default": "false"
+      "time_per_step": {
+        "type": "float",
+        "unit": "s"
       }
     }
   },
-  "square": {
-    "abbreviation": "SQR",
+  "single_pulse": {
+    "devices": ["TTL"],
     "params": {
       "duration": {
         "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "step": {
-    "abbreviation": "STP",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "trapezoid": {
-    "abbreviation": "TRP",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "triangle": {
-    "abbreviation": "TRI",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
-      }
-    }
-  },
-  "RPC": {
-    "abbreviation": "RPC",
-    "params": {
-      "duration": {
-        "type": "float",
-        "unit": "s",
-        "default": "1"
+        "unit": "s"
       },
-      "path": {
-        "type": "string",
-        "unit": "",
-        "default": ""
+      "delay": {
+        "type": "float",
+        "unit": "s"
+      }
+    }
+  },
+  "logic_high": {
+    "devices": ["TTL"],
+    "params": {}
+  },
+  "logic_low": {
+    "devices": ["TTL"],
+    "params": {}
+  },
+  "pulse_train": {
+    "devices": ["TTL"],
+    "params": {
+      "duration": {
+        "type": "float",
+        "unit": "s"
+      },
+      "delay": {
+        "type": "float",
+        "unit": "s"
+      },
+      "number_of_pulses": {
+        "type": "int",
+        "unit": ""
       }
     }
   }
