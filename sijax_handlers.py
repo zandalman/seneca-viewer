@@ -35,7 +35,7 @@ class SijaxUploadHandlers(object):
         elif filename != secure_filename(filename):
             obj_response.alert("File name '%s' is not secure." % filename)
         else:
-            obj_response.call("loadJson", [json.loads(file_data.read().decode("utf-8"))])
+            obj_response.call("loadJson", [json_to_raw(json.loads(file_data.read().decode("utf-8")))])
             obj_response.html("#loaded-experiment-name", filename)
 
 
@@ -61,25 +61,29 @@ def json_to_raw(json_obj):
     data = json_obj["data"]
     event_data = data["eventData"]
     experiment_data = data["experimentData"]
-    data_raw_converted = {"data":{"eventData": [], "experimentData": []}}
+    #variable_data = data["variableData"]
+    #data_raw_converted = {"data":{"eventData": [], "experimentData": []}}
     channels = experiment_data.keys()
-    exp_data_list = data_raw_converted["data"]["experimentData"]
+    exp_data_list = []
     for channel in channels:
         ch_list = [channel]
         exp_data_list.append(ch_list)
         for event in experiment_data[channel]:
             ch_list.append(event["ID"])
     #print (data_raw_converted)
-    event_data_list = data_raw_converted["data"]["eventData"]
+    data["experimentData"] = exp_data_list
+    event_data_list = []
     for event_type in event_data:
-        ev_type_list = []
-        event_data_list.append(ev_type_list)
-        for event in event_data[event_type]:
+        ev_type_dict = {"data": [], "variableData":[]}
+        event_data_list.append(ev_type_dict)
+        for event in event_data[event_type]["data"]:
             ev_vals = []
-            ev_type_list.append(ev_vals)
+            ev_type_dict["data"].append(ev_vals)
             for value in event.values():
                 ev_vals.append(value)
-    return data_raw_converted
+        ev_type_dict["variableData"] = data["eventData"][event_type]["variableData"]
+    data["eventData"] = event_data_list
+    return {"data": data}
 
 
 def raw_to_json(config_file, raw_data_obj):
@@ -95,7 +99,6 @@ def raw_to_json(config_file, raw_data_obj):
     data = raw_data_obj["data"]
     event_data = data["eventData"]
     experiment_data = data["experimentData"]
-    data_json_converted = {"data": {}}
     # Processing the experiment section first
     experiment_json = {}
     for channel in experiment_data:
@@ -103,24 +106,26 @@ def raw_to_json(config_file, raw_data_obj):
         for event in channel[1:]:
             channel_events.append({"ID": event})
         experiment_json[channel[0]] = channel_events
-    data_json_converted["data"]["experimentData"] = experiment_json
+    data["experimentData"] = experiment_json
     event_config = json.load(config_file)
-    sorted_events = sorted(event_config)
+    sorted_events = sorted(event_config["events"])
+
     event_type_json = {}
     # iterate through the events, alphabetically sorted
     for event_type_list, event_type in zip(event_data, sorted_events):
-        parameters = event_config[event_type]['params']
-        converted_event_list = []
-        for event in event_type_list:
+        parameters = event_config["events"][event_type]["params"]
+        converted_event_list = {"data":[], "variableData": []}
+        for event in event_type_list["data"]:
             event_dict = {}
             event_dict["ID"] = event[0]
             # iterate through the parameters
             for value, parameter in zip(event[1:], parameters):
                 event_dict[parameter] = value
-            converted_event_list.append(event_dict)
+            converted_event_list["data"].append(event_dict)
+            converted_event_list["variableData"] = event_type_list["variableData"]
         event_type_json[event_type] = converted_event_list
-    data_json_converted["data"]["eventData"] = event_type_json
-    return data_json_converted
+    data["eventData"] = event_type_json
+    return {"data": data}
 
 class SijaxHandlers(object):
     """
@@ -153,11 +158,8 @@ class SijaxHandlers(object):
         #elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
         #    obj_response.alert("A json file '%s.json' already exists." % filename)
         else:
-            with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".txt"), 'w') as f:
-                json.dump(json_string, f, indent=2)
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
                 config = open(self.app.config["EVENT_CONFIG"])
                 json_output = raw_to_json(config, json_string)
                 json.dump(json_output, f, indent=2)
-                json_to_raw(json_output)
             obj_response.html("#loaded-experiment-name", filename)
