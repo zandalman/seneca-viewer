@@ -125,7 +125,7 @@ def raw_to_json(config_file, raw_data_obj):
             converted_event_list["variableData"] = event_type_list["variableData"]
         event_type_json[event_type] = converted_event_list
     data["eventData"] = event_type_json
-    return {"data": data}
+    return {"data": data }
 
 class SijaxHandlers(object):
     """
