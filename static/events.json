@@ -1,6 +1,6 @@
 {
   "ordering": "alphabetical",
-  "devices": ["DDS", "DAC", "ADC", "TTL"],
+  "devices": ["DDS", "DAC", "ADC", "TTL", "SCRIPT"],
   "events": {
     "set_frequency": {
       "abbreviation": "FRQ",
@@ -9,6 +9,20 @@
         "frequency": {
           "type": "float",
           "unit": "Hz"
+        }
+      }
+    },
+    "collect_data": {
+      "abbreviation": "CDT",
+      "devices": ["SCRIPT"],
+      "params": {
+        "location_name": {
+          "type": "string",
+          "unit": ""
+        },
+        "data_name": {
+          "type": "string",
+          "unit": ""
         }
       }
     },
@@ -89,6 +103,10 @@
         "duration": {
           "type": "float",
           "unit": "s"
+        },
+        "data_name": {
+          "type": "string",
+          "unit": ""
         }
       }
     },
@@ -103,6 +121,10 @@
         "time_per_step": {
           "type": "float",
           "unit": "s"
+        },
+        "data_name": {
+          "type": "string",
+          "unit": ""
         }
       }
     },
