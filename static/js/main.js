@@ -26,6 +26,7 @@ $( document ).ready(function() {
 // Initialize event table and event type list
 var eventTables = [];
 var eventTypes = [];
+var eventTypesWithImages = [];
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -115,6 +116,9 @@ var createEventTables = function (eventTableDataList = null) {
         $("#event-tables").append("<div class='table' id='table-" + eventType + "'></div>");
         eventTables.push(createEventTable(eventType, eventTypeData, eventTableData));
         eventTypes.push(eventType);
+        if (eventTypeData.image === "true") {
+            eventTypesWithImages.push(eventType);
+        }
     });
 }
 
@@ -232,6 +236,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
             direction: "vertical",
             autoInsertRow: true
         },
+        autoColumnSize: {useHeaders: true},
         licenseKey: "non-commercial-and-evaluation"
     });
     return eventTable;
@@ -261,17 +266,24 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
     } else {
         cellProperties.comment = {value: null, readOnly: true};
     }
+    var newArguments = [];
     switch (displayMode) {
         case "event-type":
-            var newArguments = [instance, td, row, col, prop, eventType, cellProperties];
+            newArguments = [instance, td, row, col, prop, eventType, cellProperties];
             Handsontable.renderers.TextRenderer.apply(this, newArguments);
             break;
         case "event-id":
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             break;
         case "image":
-            td.style.backgroundImage = "url('https://homepages.cae.wisc.edu/~ece533/images/airplane.png')";
-            td.style.backgroundSize = "cover";
+            if (eventTypesWithImages.includes(eventType)) {
+                td.style.backgroundImage = "url('/static/plot_images/" + eventType + ".png')";
+                td.style.backgroundSize = "contain";
+                newArguments = [instance, td, row, col, prop, "", cellProperties];
+            } else {
+                newArguments = [instance, td, row, col, prop, eventType, cellProperties];
+            }
+            Handsontable.renderers.TextRenderer.apply(this, newArguments);
             break;
     }
     if (value) {
@@ -471,6 +483,7 @@ var createExperimentTable = function (experimentTableData = null) {
         },
         preventOverflow: "horizontal",
         mergeCells: true,
+        autoColumnSize: {useHeaders: true},
         licenseKey: "non-commercial-and-evaluation"
     });
     // Remove null values from merged cells

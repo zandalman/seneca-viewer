@@ -4,6 +4,7 @@
   "events": {
     "set_frequency": {
       "abbreviation": "FRQ",
+      "image": "true",
       "devices": ["DDS"],
       "params": {
         "frequency": {
@@ -14,6 +15,7 @@
     },
     "collect_data": {
       "abbreviation": "CDT",
+      "image": "false",
       "devices": ["SCRIPT"],
       "params": {
         "location_name": {
@@ -28,6 +30,7 @@
     },
     "ramp_frequency": {
       "abbreviation": "RFQ",
+      "image": "true",
       "devices": ["DDS"],
       "params": {
         "frequency_per_step": {
@@ -50,6 +53,7 @@
     },
     "power": {
       "abbreviation": "POW",
+      "image": "false",
       "devices": ["DDS", "DAC"],
       "params": {
         "on": {
@@ -60,6 +64,7 @@
     },
     "RF_power": {
       "abbreviation": "RPW",
+      "image": "false",
       "devices": ["DDS"],
       "params": {
         "on": {
@@ -70,6 +75,7 @@
     },
     "set_voltage": {
       "abbreviation": "VLT",
+      "image": "true",
       "devices": ["DAC"],
       "params": {
         "voltage": {
@@ -80,6 +86,7 @@
     },
     "ramp": {
       "abbreviation": "RMP",
+      "image": "true",
       "devices": ["DAC"],
       "params": {
         "volts_per_step": {
@@ -98,6 +105,7 @@
     },
     "acquire_once": {
       "abbreviation": "AQO",
+      "image": "false",
       "devices": ["ADC"],
       "params": {
         "duration": {
@@ -112,6 +120,7 @@
     },
     "acquire_continuous": {
       "abbreviation": "AQC",
+      "image": "false",
       "devices": ["ADC"],
       "params": {
         "steps": {
@@ -130,6 +139,7 @@
     },
     "single_pulse": {
       "abbreviation": "SPL",
+      "image": "true",
       "devices": ["TTL"],
       "params": {
         "duration": {
@@ -148,6 +158,7 @@
     },
     "logic": {
       "abbreviation": "LOG",
+      "image": "true",
       "devices": ["TTL"],
       "params": {
         "high": {
@@ -158,6 +169,7 @@
     },
     "pulse_train": {
       "abbreviation": "PLT",
+      "image": "true",
       "devices": ["TTL"],
       "params": {
         "duration": {

@@ -65,7 +65,7 @@ body, html {
     height: 100%;
 }
 td {
-    min-width: 100px;
+    width: 100px;
 }
 #storage {
     display: none;
