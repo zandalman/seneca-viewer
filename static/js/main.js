@@ -269,6 +269,10 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
         case "event-id":
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             break;
+        case "image":
+            td.style.backgroundImage = "url('https://homepages.cae.wisc.edu/~ece533/images/airplane.png')";
+            td.style.backgroundSize = "cover";
+            break;
     }
     if (value) {
         td.style.backgroundColor = COLORS.event;
@@ -334,7 +338,7 @@ var generateParamValidator = function (paramType) {
                     callback(Boolean(isBool || !stringifiedValue));
                     break;
                 case "string":
-                    callback(!stringifiedValue);
+                    callback(true);
                     break;
             }
         }
@@ -480,8 +484,10 @@ var createExperimentTable = function (experimentTableData = null) {
     experimentTable.addHook("afterSelection", function (row, column, row2, column2, preventScrolling, selectionLayerLevel) {
         if (row >= 0) {
             var device = experimentTable.getDataAtCell(row, 1);
+            var channel = experimentTable.getDataAtCell(row, 0);
             $("#device-filter").val(device);
             $("#device-filter").trigger("change");
+            $("#current-channel").html(channel);
         }
     });
     return experimentTable;
