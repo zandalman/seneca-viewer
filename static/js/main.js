@@ -90,7 +90,7 @@ var range = function (length, start = 0) {
 
 // Define default experiment table data
 var experimentTableDataDefault = [
-    ["ch1", "DDS"].concat(createFullArray(12, "")),
+    ["ch1", "TTL"].concat(createFullArray(12, "")),
     ["ch2", "DDS"].concat(createFullArray(12, "")),
     ["ch3", "DDS"].concat(createFullArray(12, "")),
     ["ch4", "DDS"].concat(createFullArray(12, "")),
@@ -216,13 +216,11 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
         rowHeaders: true,
         cells: function(row, column, prop) {
             var cellProperties = {};
-            var visualRowIndex = this.instance.toVisualRow(row);
-            var visualColIndex = this.instance.toVisualColumn(column);
-            if (visualColIndex === 0) {
+            if (column === 0) {
                 cellProperties.readOnly = true;
                 cellProperties.renderer = headerRenderer;
             } else {
-                var paramType = eventTypeData.params[sortedParamNames[visualColIndex - 1]].type;
+                var paramType = eventTypeData.params[sortedParamNames[column - 1]].type;
                 cellProperties.className = ["cell-" + paramType];
                 cellProperties.validator = generateParamValidator(paramType);
                 cellProperties.renderer = generateParamRenderer(paramType);
@@ -461,16 +459,14 @@ var createExperimentTable = function (experimentTableData = null) {
         rowHeaders: true,
         cells: function(row, column, prop) {
             const cellProperties = {};
-            const visualRowIndex = this.instance.toVisualRow(row);
-            const visualColIndex = this.instance.toVisualColumn(column);
-            if (visualColIndex < 2) {
+            if (column < 2) {
                 cellProperties.readOnly = true;
                 cellProperties.renderer = headerRenderer;
             } else {
                 cellProperties.type = "autocomplete";
                 cellProperties.source = [""].concat(eventTables.map(function (eventTable, idx) {
                     var devices = eventTypeDataAll[eventTypes[idx]].devices;
-                    var deviceCompatible = devices.includes(experimentTableData[visualRowIndex][1]) || devices[0] === "all";
+                    var deviceCompatible = devices.includes(experimentTableData[row][1]) || devices[0] === "all";
                     return deviceCompatible ? eventTable.getDataAtCol(0) : null;
                 }).flat().filter(function (eventName) {
                     return eventName !== null;

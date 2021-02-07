@@ -53,7 +53,7 @@
     },
     "power": {
       "abbreviation": "POW",
-      "image": "false",
+      "image": "true",
       "devices": ["DDS", "DAC"],
       "params": {
         "on": {
@@ -64,7 +64,7 @@
     },
     "RF_power": {
       "abbreviation": "RPW",
-      "image": "false",
+      "image": "true",
       "devices": ["DDS"],
       "params": {
         "on": {
