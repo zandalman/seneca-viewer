@@ -41,11 +41,11 @@ def update_temp(app, filename):
     if filename:
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         with open(filepath, "r") as readfile:
-            with open(os.path.join(app.root_path, "temp.json"), "w") as writefile:
+            with open(os.path.join(app.root_path, "AOM_optimization.json"), "w") as writefile:
                 for line in readfile:
                     writefile.write(line)
     else:
-        with open(os.path.join(app.root_path, "temp.json"), "r+") as writefile:
+        with open(os.path.join(app.root_path, "AOM_optimization.json"), "r+") as writefile:
             writefile.truncate(0)
 
 

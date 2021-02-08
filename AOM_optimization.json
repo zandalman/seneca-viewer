@@ -1,0 +1,129 @@
+{
+    "description": {
+        "name": "AOM_optimization",
+        "creator": "Sr lab",
+        "control": "Artiq",
+        "version": "5.71"
+    },
+    "exp_param": [
+        {
+            "name": "2D MOT optimization",
+            "2d_detuning_scan": [
+                80,
+                85,
+                90,
+                95,
+                100,
+                105,
+                110
+            ],
+            "3d_detuning_scan": [
+                80,
+                85,
+                90,
+                95,
+                100,
+                105,
+                110
+            ],
+            "push_detuning": 80,
+            "measurements": [
+                "loading_flux1",
+                "2d_optimum",
+                "3d_optimum"
+            ]
+        },
+        {
+            "name": "Push optimization",
+            "2d_detuning": "2d_optimum",
+            "3d_detuning": "3d_optimum",
+            "push_detuning_scan": [
+                75,
+                80,
+                85,
+                90
+            ],
+            "measurements": [
+                "loading_flux2"
+            ]
+        }
+    ],
+    "aliases": {
+	    "gateware": "SimpleUrukul",
+        "aom_2dmot": {
+	        "type": "DDS",
+            "board_id": 1,
+            "channel_id": 1
+        },
+        "aom_3dmot": {
+	        "type": "DDS",
+            "board_id": 1,
+            "channel_id": 2
+        },
+        "aom_push": {
+	        "type": "DDS",
+            "board_id": 1,
+            "channel_id": 3
+        },
+        "aom_zotino": {
+	        "type": "DAC",
+            "board_id": 3,
+	        "channel_id": 2
+        }
+    },
+    "defaults": {
+            "aom_2dmot": {
+                "2d_detuning":[ 80, "MHz"],
+	            "2d_amplitude": [0.8, "ratio"]
+            },
+            "aom_3dmot": {
+                "3d_detuning":[ 100, "MHz"],
+	            "3d_amplitude": [0.8, "ratio"]
+            },
+            "aom_push": {
+                "push_detuning":[ 80, "MHz"],
+	            "3d_amplitude": [0.8, "ratio"]
+            }
+    },
+    "logic": [
+        {
+            "deviceType": "DDS",
+	        "eventType": "initialization",
+            "alias": "aom_2dmot",
+            "frequency": "2d_detuning",
+            "amplitude": "2d_amplitude"
+        },
+        {
+            "deviceType": "DDS",
+	        "eventType": "initialization",
+            "alias": "aom_3dmot",
+            "frequency": "3d_detuning",
+            "amplitude": "3d_amplitude"
+        },
+        {
+            "deviceType": "DDS",
+	        "eventType": "initialization",
+            "alias": "aom_push",
+            "frequency": "push_detuning",
+            "amplitude": "push_amplitude"
+        },
+        {
+            "deviceType": "DDS",
+	        "eventType": "scan_frequency",
+            "alias": "aom_2dmot",
+            "frequency": "2d_detuning_scan"
+        },
+        {
+            "deviceType": "DDS",
+	        "eventType": "scan_frequency",
+            "alias": "aom_3dmot",
+            "frequency": "3d_detuning_scan"
+        },
+        {
+            "deviceType": "DDS",
+	        "eventType": "scan_frequency",
+            "alias": "aom_push",
+            "frequency": "push_detuning_scan"
+        }
+    ]
+}
