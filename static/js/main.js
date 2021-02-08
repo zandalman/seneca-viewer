@@ -111,10 +111,10 @@ var createEventTables = function (eventTableDataList = null) {
     });
     Object.keys(eventTypeDataAll).sort().map(function (eventType, eventTypeIndex) {
         var eventTypeData = eventTypeDataAll[eventType];
-        var eventTableData = eventTableDataList ? eventTableDataList[eventTypeIndex] : null;
+        var eventTableData = eventTableDataList ? eventTableDataList[eventTypeIndex] : {"data": null};
         $("#event-type-filter").append("<option value='" + eventType + "'>" + eventType + "</option>");
         $("#event-tables").append("<div class='table' id='table-" + eventType + "'></div>");
-        eventTables.push(createEventTable(eventType, eventTypeData, eventTableData));
+        eventTables.push(createEventTable(eventType, eventTypeData, eventTableData.data));
         eventTypes.push(eventType);
         if (eventTypeData.image === "true") {
             eventTypesWithImages.push(eventType);
@@ -724,8 +724,7 @@ $("#save-exp").on("click", function () {
             variableData: variableData
         }
     };
-    //var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
-    var fileName = "tfile"
+    var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
     Sijax.request("save_json", [jsonExport, fileName]);
 });
 
