@@ -5,7 +5,9 @@ $( document ).ready(function() {
     experimentTable = createExperimentTable();
     channels = experimentTable.getDataAtCol(0);
     createEventTables();
+    // Add table hooks
     addEventTableHooks();
+    addExperimentTableHooks();
     // Create variable lists
     createVariableLists();
     // Initialize select boxes
@@ -26,7 +28,7 @@ $( document ).ready(function() {
     });
 });
 
-// Initialize empty variables and lists
+// Initialize empty variables, lists, and dictionaries
 var experimentTable;
 var eventTables = [];
 var eventTypes = [];
@@ -54,7 +56,7 @@ COLORS = {
 };
 
 // Define variable types
-VAR_TYPES = ["boolean", "float", "int", "string"].sort();
+PARAM_TYPES = ["boolean", "float", "int", "string"].sort();
 EDIT_SOURCES = ["edit", "Autofill.fill", "CopyPaste.paste", "UndoRedo.redo", "UndoRedo.undo"];
 
 // Define regex expressions
@@ -98,7 +100,7 @@ var range = function (length, start = 0) {
     return Array.apply(null, Array(length)).map(function (_, i) {return i + start;});
 }
 
-// Remove null values from an array
+// Remove null or empty values from an array
 var removeNull = function (arr) {
 	return arr.filter(function (value) {
   	    return Boolean(value);
@@ -123,31 +125,39 @@ var devices = configData.devices;
 
 // Create variable lists
 var createVariableLists = function () {
-    var variableListHTML = VAR_TYPES.map(function (variableType) {
-        var variableListTitle = "<div class='" + variableType + "-variables-title'>" + variableType + " variables</div>\n";
-        var variableList = "<ul class='variable-list' data-type='" + variableType + "'></ul>\n";
+    // Define HTML for variable list
+    var variableListHTML = PARAM_TYPES.map(function (paramType) {
+        var variableListTitle = "<div class='" + paramType + "-variables-title'>" + paramType + " variables</div>\n";
+        var variableList = "<ul class='variable-list' data-type='" + paramType + "'></ul>\n";
         return variableListTitle + variableList;
     }).join("");
+    // Create global variable list
     $("#variables-global").html(variableListHTML);
     variables["global"] = {};
+    // Iterate through channels
     channels.forEach(function (channel) {
+        // Create local variable list for each channel
         var variableContainerID = "variables-" + channel;
         $("#channel-filter").append("<option value='" + channel + "'>" + channel + "</option>");
         $("#variables-local").append("<div class='variables' id=" + variableContainerID + ">");
         $("#" + variableContainerID).append(variableListHTML);
         variables[channel] = {};
     });
-    VAR_TYPES.forEach(function (variableType) {
-        $("." + variableType + "-variables-title").css("background-color", COLORS[variableType]);
+    // Add correct color for each parameter type in variable list
+    PARAM_TYPES.forEach(function (paramType) {
+        $("." + paramType + "-variables-title").css("background-color", COLORS[paramType]);
     });
+    // Hide local variable lists
     $("#variables-local .variables").hide();
 }
 
 // Create event tables
 var createEventTables = function (eventTableDataList = null) {
+    // Add devices to device filter
     devices.sort().forEach(function (device) {
         $("#device-filter").append("<option value='" + device + "'>" + device + "</option>");
     });
+    // Iterate through event types
     Object.keys(eventTypeDataAll).sort().map(function (eventType, eventTypeIndex) {
         var eventTypeData = eventTypeDataAll[eventType];
         var eventTableData = eventTableDataList ? eventTableDataList[eventTypeIndex] : {"data": null};
@@ -169,6 +179,55 @@ var addEventTableHooks = function () {
         addAfterChangeHook(eventTable);
         addAfterCreateRowHook(eventTable);
     });
+}
+
+// Add hooks to experiment table
+var addExperimentTableHooks = function () {
+    // Remove null values from merged cells
+    experimentTable.addHook("afterMergeCells", function (cellRange, mergeParent) {
+        var value = experimentTable.getDataAtCell(mergeParent.row, mergeParent.col);
+        var changes = range(mergeParent.colspan, mergeParent.col).map(function (col) {
+            return [mergeParent.row, col, value];
+        });
+        experimentTable.setDataAtCell(changes);
+    });
+    // Automatically update device filter after cell selection
+    experimentTable.addHook("afterSelection", function (row, column, row2, column2, preventScrolling, selectionLayerLevel) {
+        if (row >= 0) {
+            var device = experimentTable.getDataAtCell(row, 1);
+            var channel = experimentTable.getDataAtCell(row, 0);
+            $("#device-filter").val(device);
+            $("#device-filter").trigger("change");
+            $("#channel-filter").val(channel);
+            $("#channel-filter").trigger("change");
+        }
+    });
+    // IN PROGRESS
+    experimentTable.addHook("afterChange", function (changes, source)) {
+        // If source of change is a form of cell editing...
+        if (EDIT_SOURCES.includes(source)) {
+            var experimentTableData = experimentTable.getData();
+            // Iterate through experiment table changes
+            changes.forEach(function (change) {
+                var row = change[0];
+                var col = change[1];
+                var oldValue = change[2];
+                var newValue = change[3];
+                var channel = experimentTableData[row][0];
+                // If new cell value is not empty...
+                if (newValue) {
+                    var eventType = getEventType(newValue);
+                    var eventTable = eventTables[eventTypes.indexOf(eventType)];
+                    var eventTableRow = eventTable.getDataAtCol(0).indexOf(newValue);
+                    var eventVariables = getEventVariables(eventTable, eventTableRow);
+                }
+                // If old cell value was not empty...
+                if (oldValue) {
+
+                }
+            });
+        }
+    }
 }
 
 // Toggle whether a cell is a variable
@@ -519,25 +578,6 @@ var createExperimentTable = function (experimentTableData = null) {
         autoColumnSize: {useHeaders: true},
         licenseKey: "non-commercial-and-evaluation"
     });
-    // Remove null values from merged cells
-    experimentTable.addHook("afterMergeCells", function (cellRange, mergeParent) {
-        var value = experimentTable.getDataAtCell(mergeParent.row, mergeParent.col);
-        var changes = range(mergeParent.colspan, mergeParent.col).map(function (col) {
-            return [mergeParent.row, col, value];
-        });
-        experimentTable.setDataAtCell(changes);
-    });
-    // Automatically update device filter after cell selection
-    experimentTable.addHook("afterSelection", function (row, column, row2, column2, preventScrolling, selectionLayerLevel) {
-        if (row >= 0) {
-            var device = experimentTable.getDataAtCell(row, 1);
-            var channel = experimentTable.getDataAtCell(row, 0);
-            $("#device-filter").val(device);
-            $("#device-filter").trigger("change");
-            $("#channel-filter").val(channel);
-            $("#channel-filter").trigger("change");
-        }
-    });
     return experimentTable;
 }
 
@@ -650,6 +690,13 @@ var getEventChannels = function (eventID, experimentTableData) {
     }));
 }
 
+// Get all variables associated with an event
+var getEventVariables = function (eventTable, row) {
+    return eventTable.getDataAtRow(row).slice(1).filter(function (paramValue, paramIdx) {
+        return eventTable.getCellMeta(row, paramIdx).comments;
+    });
+}
+
 // Add any new variables after changes in event tables
 var addAfterChangeHook = function (eventTable) {
     eventTable.addHook("afterChange", function (changes, source) {
@@ -700,8 +747,8 @@ var addAfterChangeHook = function (eventTable) {
                     }
                     // If old cell value was not empty...
                     if (oldValue) {
-                        // If event was not associated with old variable
-                        if (!(eventTable.getDataAtRow(row).slice(1).includes(oldValue))) {
+                        // If event was not associated with old variable...
+                        if (!(getEventVariables(eventTable, row).includes(oldValue))) {
                             // Iterate through event channels
                             eventChannels.forEach(function (channel) {
                                 // Remove event ID from old variable dictionary
@@ -810,8 +857,8 @@ $("#save-exp").on("click", function () {
     var experimentTableData = experimentTable.getData();
     var variableData = {};
     $(".variable-list").map(function () {
-        var varType = $(this).data("type");
-        variableData[varType] = $(this).children().map(function () {
+        var paramType = $(this).data("type");
+        variableData[paramType] = $(this).children().map(function () {
             return $(this).data("name");
         }).get();
     });
