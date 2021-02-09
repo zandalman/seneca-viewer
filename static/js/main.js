@@ -26,17 +26,18 @@ $( document ).ready(function() {
     });
 });
 
-// Initialize variables
+// Initialize empty variables and lists
+var experimentTable;
 var eventTables = [];
 var eventTypes = [];
 var eventTypesWithImages = [];
 var channels = [];
-var experimentTable;
+var IDs = [];
+var variables = {};
 
 // Define ID length
 var ID_LENGTH = 5;
 var ABBR_LENGTH = 3;
-var IDs = [];
 
 // Define colors
 COLORS = {
@@ -54,6 +55,7 @@ COLORS = {
 
 // Define variable types
 VAR_TYPES = ["boolean", "float", "int", "string"].sort();
+EDIT_SOURCES = ["edit", "Autofill.fill", "CopyPaste.paste", "UndoRedo.redo", "UndoRedo.undo"];
 
 // Define regex expressions
 REGEX = {
@@ -127,11 +129,13 @@ var createVariableLists = function () {
         return variableListTitle + variableList;
     }).join("");
     $("#variables-global").html(variableListHTML);
+    variables["global"] = {};
     channels.forEach(function (channel) {
         var variableContainerID = "variables-" + channel;
         $("#channel-filter").append("<option value='" + channel + "'>" + channel + "</option>");
         $("#variables-local").append("<div class='variables' id=" + variableContainerID + ">");
         $("#" + variableContainerID).append(variableListHTML);
+        variables[channel] = {};
     });
     VAR_TYPES.forEach(function (variableType) {
         $("." + variableType + "-variables-title").css("background-color", COLORS[variableType]);
@@ -172,7 +176,7 @@ var toggleCellIsVariable = function (eventTable, row, col) {
     var isVariable = isVariableAtCell(eventTable, row, col);
     var paramType = getParamTypeAtCell(eventTable, row, col);
     eventTable.setCellMeta(row, col, "comments", !isVariable);
-    eventTable.setDataAtCell(row, col, null);
+    eventTable.setDataAtCell(row, col, null, "ContextMenu.ToggleVariable");
     eventTable.render();
 }
 
@@ -588,30 +592,6 @@ var addBeforeRemoveRowHook = function (eventTable) {
     });
 }
 
-// Update variable lists based on event table rows
-// IN PROGRESS
-var updateVariables = function () {
-    var experimentTableData = experimentTable.getData();
-    experimentTableData.forEach(function (channelData) {
-        var channelEvents = removeNull(channelData);
-        channelEvents.forEach(function (eventID) {
-            // for each event, check if variable is row
-        });
-    });
-
-    channels.forEach(function (channel) {
-        $(".variable[data-channel='" + channel + "']").map(function () {
-            var variableName = $(this).data("name");
-            var containsVariable = eventTables.filter(function (eventTable) {
-                return eventTable.getData().flat().includes(variableName);
-            }).length > 0;
-            if (!containsVariable.includes(false)) {
-                $(".variable-list li[data-name='" + variableName + "']").remove();
-            }
-        });
-    });
-}
-
 var addAfterRemoveRowHook = function (eventTable) {
     eventTable.addHook("afterRemoveRow", function (index, amount, physicalRows, source) {
         updateVariables();
@@ -623,7 +603,7 @@ var addAfterCreateRowHook = function (eventTable) {
     eventTable.addHook("afterCreateRow", function (index, amount, source) {
         var eventType = eventTable.getSettings().className;
         for (var row = index; row < index + amount; row++) {
-            eventTable.setDataAtCell(row, 0, generateEventID(eventType));
+            eventTable.setDataAtCell(row, 0, generateEventID(eventType), "Misc.InsertEventID");
         }
     });
 }
@@ -647,11 +627,9 @@ var getParamTypeAtCell = function (eventTable, row, col) {
     }
 }
 
-// Get all channels that contain an event with a given ID
-var getEventChannels = function (eventID, experimentTableData) {
-    return removeNull(experimentTableData.map(function (channelData) {
-        return channelData.slice(2).includes(eventID) ? channelData[0] : null;
-    }));
+// Get the variable list element for a given channel and parameter type
+var getVariableList = function (channel, paramType) {
+    return $("#variables-" + channel).find(".variable-list[data-type=" + paramType + "]");
 }
 
 // Sort a list alphabetically in HTML
@@ -665,36 +643,83 @@ var alphabetSort = function (arr) {
     }).remove();
 }
 
-// Add new variables if necessary
+// Get all channels that contain an event with a given event ID
+var getEventChannels = function (eventID, experimentTableData) {
+    return removeNull(experimentTableData.map(function (channelData) {
+        return channelData.slice(2).includes(eventID) ? channelData[0] : null;
+    }));
+}
+
+// Add any new variables after changes in event tables
 var addAfterChangeHook = function (eventTable) {
     eventTable.addHook("afterChange", function (changes, source) {
-        // Don't do hook if loading data
-        if (source === "loadData") {
-            return;
-        }
-        var experimentTableData = experimentTable.getData();
-        changes.forEach(function (change) {
-            var row = change[0];
-            var col = change[1];
-            var value = change[3];
-            if (value && isVariableAtCell(row, col)) {
-                var eventID = eventTable.getDataAtCell(row, 0);
-                var eventChannels = getEventChannels(eventID, experimentTableData);
-                eventChannels.forEach(function (channel) {
-                    var isNewVariable = $(".variable").filter(function (variable) {
-                        return $(this).data("channel") === channel && $(this).data("name") === variable;
-                    }).length === 0;
-                    if (isNewVariable) {
-                        var paramType = getParamTypeAtCell(eventTable, row, col);
-                        var variableList = $("#variables-" + channel).find(".variable-list[data-type=" + paramType + "]");
-                        variableList.append("<li data-name='" + value + "' data-channel='" + channel + "'>" + value + "<li>");
-                        alphabetSort(variableList);
+        // If source of change is a form of cell editing...
+        if (EDIT_SOURCES.includes(source)) {
+            var experimentTableData = experimentTable.getData();
+            // Iterate through event table changes
+            changes.forEach(function (change) {
+                var row = change[0];
+                var col = change[1];
+                var oldValue = change[2];
+                var newValue = change[3];
+                // If change occurs in a variable cell...
+                if (isVariableAtCell(eventTable, row, col)) {
+                    var eventID = eventTable.getDataAtCell(row, 0);
+                    var paramType = getParamTypeAtCell(eventTable, row, col);
+                    var eventChannels = getEventChannels(eventID, experimentTableData);
+                    // If new cell value is not empty...
+                    if (newValue) {
+                        // Iterate through event channels
+                        eventChannels.forEach(function (channel) {
+                            var channelVariables = variables[channel];
+                            // If variable already exists...
+                            if (Object.keys(channelVariables).includes(newValue)) {
+                                // If variable is added to an event parameter of the wrong type, reject the change
+                                if (paramType !== variables[channel][newValue].type) {
+                                    alert("Change rejected: you have assigned an event parameter of type" + paramType + "to a variable of type " + variables[channel][newValue].type + ".");
+                                    eventTable.setDataAtCell(row, col, oldValue, "Misc.RejectChanges");
+                                }
+                                // If event was not associated with variable, add event to variable's event list
+                                if (!channelVariables[newValue].events.includes()) {
+                                    variables[channel][newValue].events.push(eventID);
+                                }
+                            // If variable does not already exist...
+                            } else {
+                                // Add variable to variable dictionary
+                                variables[channel][newValue] = {
+                                    value: "",
+                                    type: paramType,
+                                    events: [eventID]
+                                }
+                                // Add variable to variable list
+                                var variableList = getVariableList(channel, paramType);
+                                variableList.append("<li class='variable' data-name='" + newValue + "' data-channel='" + channel + "'>" + newValue + "<li>");
+                                alphabetSort(variableList);
+                            }
+                        });
                     }
-                });
-            }
-        });
-        updateVariables();
-        experimentTable.render();
+                    // If old cell value was not empty...
+                    if (oldValue) {
+                        // If event was not associated with old variable
+                        if (!(eventTable.getDataAtRow(row).slice(1).includes(oldValue))) {
+                            // Iterate through event channels
+                            eventChannels.forEach(function (channel) {
+                                // Remove event ID from old variable dictionary
+                                variables[channel][oldValue].events = variables[channel][oldValue].events.filter(function (evID) {
+                                    return evID !== eventID;
+                                });
+                                // If old variable has no associated events, remove old variable from variable list
+                                if (variables[channel][oldValue].events.length === 0) {
+                                    delete variables[channel][oldValue];
+                                    $(".variable[data-name='" + oldValue + "'][data-channel='" + channel + "']").remove();
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+            experimentTable.render();
+        }
     });
 }
 
