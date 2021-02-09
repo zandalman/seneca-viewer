@@ -203,7 +203,7 @@ var addExperimentTableHooks = function () {
         }
     });
     // IN PROGRESS
-    experimentTable.addHook("afterChange", function (changes, source)) {
+    experimentTable.addHook("afterChange", function (changes, source) {
         // If source of change is a form of cell editing...
         if (EDIT_SOURCES.includes(source)) {
             var experimentTableData = experimentTable.getData();
@@ -214,20 +214,38 @@ var addExperimentTableHooks = function () {
                 var oldValue = change[2];
                 var newValue = change[3];
                 var channel = experimentTableData[row][0];
+                var channelVariables = variables[channel];
                 // If new cell value is not empty...
                 if (newValue) {
                     var eventType = getEventType(newValue);
                     var eventTable = eventTables[eventTypes.indexOf(eventType)];
                     var eventTableRow = eventTable.getDataAtCol(0).indexOf(newValue);
                     var eventVariables = getEventVariables(eventTable, eventTableRow);
+                    // Iterate through event variables
+                    eventVariables.forEach(function (variable) {
+                        // If variable is not associated with channel...
+                        if (!(channelVariables.includes(variable))) {
+                            // Add variable
+                        }
+                    });
                 }
                 // If old cell value was not empty...
                 if (oldValue) {
-
+                    var oldEventType = getEventType(oldValue);
+                    var oldEventTable = eventTables[eventTypes.indexOf(oldEventType)];
+                    var oldEventTableRow = eventTable.getDataAtCol(0).indexOf(oldValue);
+                    var oldEventVariables = getEventVariables(oldEventTable, oldEventTableRow);
+                    // Iterate through event variables
+                    eventVariables.forEach(function (variable) {
+                        // If variable is associated with channel...
+                        if (!(channelVariables.includes(variable))) {
+                            // Add variable
+                        }
+                    });
                 }
             });
         }
-    }
+    });
 }
 
 // Toggle whether a cell is a variable
