@@ -3,8 +3,11 @@ $( document ).ready(function() {
     $("#tabs").tabs();
     // Create tables
     experimentTable = createExperimentTable();
+    channels = experimentTable.getDataAtCol(0);
     createEventTables();
     addEventTableHooks();
+    // Create variable lists
+    createVariableLists();
     // Initialize select boxes
     $("#event-type-filter").select2({
         allowClear: true,
@@ -16,17 +19,19 @@ $( document ).ready(function() {
         placeholder: "Device Filter",
         width: 200
     });
-    // Color variable list titles
-    $("#float-variables-title").css("background-color", COLORS.float);
-    $("#int-variables-title").css("background-color", COLORS.int);
-    $("#boolean-variables-title").css("background-color", COLORS.boolean);
-    $("#string-variables-title").css("background-color", COLORS.string);
+    $("#channel-filter").select2({
+        allowClear: true,
+        placeholder: "Channel Filter",
+        width: 200
+    });
 });
 
-// Initialize event table and event type list
+// Initialize variables
 var eventTables = [];
 var eventTypes = [];
 var eventTypesWithImages = [];
+var channels = [];
+var experimentTable;
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -46,6 +51,9 @@ COLORS = {
     header: "#EEE",
     event: "#FAFAFA"
 };
+
+// Define variable types
+VAR_TYPES = ["boolean", "float", "int", "string"].sort();
 
 // Define regex expressions
 REGEX = {
@@ -88,6 +96,13 @@ var range = function (length, start = 0) {
     return Array.apply(null, Array(length)).map(function (_, i) {return i + start;});
 }
 
+// Remove null values from an array
+var removeNull = function (arr) {
+	return arr.filter(function (value) {
+  	    return Boolean(value);
+    });
+}
+
 // Define default experiment table data
 var experimentTableDataDefault = [
     ["ch1", "TTL"].concat(createFullArray(12, "")),
@@ -103,6 +118,26 @@ var experimentTableDataDefault = [
 var configData = JSON.parse($("#storage").data("config").replaceAll("'", "\""));
 var eventTypeDataAll = configData.events;
 var devices = configData.devices;
+
+// Create variable lists
+var createVariableLists = function () {
+    var variableListHTML = VAR_TYPES.map(function (variableType) {
+        var variableListTitle = "<div class='" + variableType + "-variables-title'>" + variableType + " variables</div>\n";
+        var variableList = "<ul class='variable-list' data-type='" + variableType + "'></ul>\n";
+        return variableListTitle + variableList;
+    }).join("");
+    $("#variables-global").html(variableListHTML);
+    channels.forEach(function (channel) {
+        var variableContainerID = "variables-" + channel;
+        $("#channel-filter").append("<option value='" + channel + "'>" + channel + "</option>");
+        $("#variables-local").append("<div class='variables' id=" + variableContainerID + ">");
+        $("#" + variableContainerID).append(variableListHTML);
+    });
+    VAR_TYPES.forEach(function (variableType) {
+        $("." + variableType + "-variables-title").css("background-color", COLORS[variableType]);
+    });
+    $("#variables-local .variables").hide();
+}
 
 // Create event tables
 var createEventTables = function (eventTableDataList = null) {
@@ -464,13 +499,11 @@ var createExperimentTable = function (experimentTableData = null) {
                 cellProperties.renderer = headerRenderer;
             } else {
                 cellProperties.type = "autocomplete";
-                cellProperties.source = [""].concat(eventTables.map(function (eventTable, idx) {
+                cellProperties.source = [""].concat(removeNull(eventTables.map(function (eventTable, idx) {
                     var devices = eventTypeDataAll[eventTypes[idx]].devices;
                     var deviceCompatible = devices.includes(experimentTableData[row][1]) || devices[0] === "all";
                     return deviceCompatible ? eventTable.getDataAtCol(0) : null;
-                }).flat().filter(function (eventName) {
-                    return eventName !== null;
-                }).sort());
+                }).flat()).sort());
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
                 cellProperties.renderer = experimentTableRenderer;
@@ -490,13 +523,15 @@ var createExperimentTable = function (experimentTableData = null) {
         });
         experimentTable.setDataAtCell(changes);
     });
+    // Automatically update device filter after cell selection
     experimentTable.addHook("afterSelection", function (row, column, row2, column2, preventScrolling, selectionLayerLevel) {
         if (row >= 0) {
             var device = experimentTable.getDataAtCell(row, 1);
             var channel = experimentTable.getDataAtCell(row, 0);
             $("#device-filter").val(device);
             $("#device-filter").trigger("change");
-            $("#current-channel").html(channel);
+            $("#channel-filter").val(channel);
+            $("#channel-filter").trigger("change");
         }
     });
     return experimentTable;
@@ -554,15 +589,26 @@ var addBeforeRemoveRowHook = function (eventTable) {
 }
 
 // Update variable lists based on event table rows
+// IN PROGRESS
 var updateVariables = function () {
-    $(".variable-list li").map(function () {
-        var variableName = $(this).data("name");
-        var containsVariable = eventTables.map(function (eventTable) {
-            return !(eventTable.getData().flat().includes(variableName));
+    var experimentTableData = experimentTable.getData();
+    experimentTableData.forEach(function (channelData) {
+        var channelEvents = removeNull(channelData);
+        channelEvents.forEach(function (eventID) {
+            // for each event, check if variable is row
         });
-        if (!containsVariable.includes(false)) {
-            $(".variable-list li[data-name='" + variableName + "']").remove();
-        }
+    });
+
+    channels.forEach(function (channel) {
+        $(".variable[data-channel='" + channel + "']").map(function () {
+            var variableName = $(this).data("name");
+            var containsVariable = eventTables.filter(function (eventTable) {
+                return eventTable.getData().flat().includes(variableName);
+            }).length > 0;
+            if (!containsVariable.includes(false)) {
+                $(".variable-list li[data-name='" + variableName + "']").remove();
+            }
+        });
     });
 }
 
@@ -601,31 +647,50 @@ var getParamTypeAtCell = function (eventTable, row, col) {
     }
 }
 
+// Get all channels that contain an event with a given ID
+var getEventChannels = function (eventID, experimentTableData) {
+    return removeNull(experimentTableData.map(function (channelData) {
+        return channelData.slice(2).includes(eventID) ? channelData[0] : null;
+    }));
+}
+
+// Sort a list alphabetically in HTML
+var alphabetSort = function (arr) {
+    arr.html(arr.children().sort(function (a, b) {
+        return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
+    }));
+    // Remove empty list items
+    arr.children().filter(function () {
+        return $(this).text() === "";
+    }).remove();
+}
+
 // Add new variables if necessary
 var addAfterChangeHook = function (eventTable) {
     eventTable.addHook("afterChange", function (changes, source) {
+        // Don't do hook if loading data
         if (source === "loadData") {
-            return; // don't do hook if loading data
+            return;
         }
-        var currentVariables = $(".variable-list li").map(function () {
-            return $(this).data("name");
-        }).get();
+        var experimentTableData = experimentTable.getData();
         changes.forEach(function (change) {
             var row = change[0];
             var col = change[1];
             var value = change[3];
-            if (!currentVariables.includes(value) && value && isVariableAtCell(eventTable, row, col)) {
-                var paramType = getParamTypeAtCell(eventTable, row, col);
-                var variableList = $("#" + paramType + "-variables");
-                variableList.append("<li data-name='" + value + "'>" + value + "<li>");
-                // Sort variables alphabetically
-                variableList.html(variableList.children().sort(function (a, b) {
-                    return ($(a).text().toUpperCase()).localeCompare($(b).text().toUpperCase());
-                }));
-                // Remove empty list items from variable list
-                variableList.children().filter(function () {
-                    return $(this).text() === "";
-                }).remove();
+            if (value && isVariableAtCell(row, col)) {
+                var eventID = eventTable.getDataAtCell(row, 0);
+                var eventChannels = getEventChannels(eventID, experimentTableData);
+                eventChannels.forEach(function (channel) {
+                    var isNewVariable = $(".variable").filter(function (variable) {
+                        return $(this).data("channel") === channel && $(this).data("name") === variable;
+                    }).length === 0;
+                    if (isNewVariable) {
+                        var paramType = getParamTypeAtCell(eventTable, row, col);
+                        var variableList = $("#variables-" + channel).find(".variable-list[data-type=" + paramType + "]");
+                        variableList.append("<li data-name='" + value + "' data-channel='" + channel + "'>" + value + "<li>");
+                        alphabetSort(variableList);
+                    }
+                });
             }
         });
         updateVariables();
@@ -659,6 +724,14 @@ $("#device-filter").on("change", function () {
         });
     } else {
         $("#event-tables .table").show();
+    }
+});
+
+$("#channel-filter").on("change", function () {
+    var channel = $(this).val();
+    $("#variables-local .variables").hide();
+    if (channel) {
+        $("#variables-" + channel).show();
     }
 });
 
@@ -755,23 +828,6 @@ var getEventType = function (value) {
 $("#exp-table-display-mode").on("change", function () {
     experimentTable.render();
 });
-
-// Convert event table data into proper data types
-// Unused function
-var getEventTableData = function (eventTable) {
-    var eventTableData = eventTable.getData();
-    for (i = 0; i < eventTableData.length; i++) {
-        for (j = 1; j < eventTableData[i].length; j++) {
-            var paramType = getParamTypeAtCell(eventTable, i, j);
-            if (paramType === "float" || paramType === "int") {
-                eventTableData[i][j] = decodeNumeric(eventTableData[i][j]);
-            } else if (paramType === "boolean") {
-                eventTableData[i][j] = Boolean(eventTableData[i][j]);
-            }
-        }
-    }
-    return eventTableData;
-}
 
 // Define hot keys
 $(document).on("keydown", function (e) {

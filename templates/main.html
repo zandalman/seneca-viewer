@@ -19,21 +19,16 @@
             </div>
             <div class="row">
                 <div class="column" style="width: 20%; background-color: #eaeaea;">
-                    <b>Variables</b>
-                    <ul id="variables">
-                        <li><i id="boolean-variables-title">Boolean variables</i>
-                            <ul id="boolean-variables" class="variable-list" data-type="boolean"></ul>
-                        </li>
-                        <li><i id="float-variables-title">Float variables</i>
-                            <ul id="float-variables" class="variable-list" data-type="float"></ul>
-                        </li>
-                        <li><i id="int-variables-title">Integer variables</i>
-                            <ul id="int-variables" class="variable-list" data-type="int"></ul>
-                        </li>
-                        <li><i id="string-variables-title">String variables</i>
-                            <ul id="string-variables" class="variable-list" data-type="string"></ul>
-                        </li>
-                    </ul>
+                    <b>Variables</b><br/>
+                    <i class="fa fa-globe"></i>
+                    Global variables
+                    <div class="variables" id="variables-global"></div>
+                    <i class="fa fa-map-marker"></i>
+                    Local variables
+                    <select id="channel-filter">
+                        <option></option>
+                    </select>
+                    <div id="variables-local"></div>
                 </div>
                 <div class="column" style="width: 80%;">
                     <div style="display:inline-block">
@@ -59,7 +54,6 @@
                         <select id="device-filter">
                             <option></option>
                         </select>
-                        <label id="current-channel">No channel selected</label>
                     </div>
                     <div id="event-tables"></div><br/>
                 </div>
