@@ -202,7 +202,6 @@ var addExperimentTableHooks = function () {
             $("#channel-filter").trigger("change");
         }
     });
-    // IN PROGRESS
     experimentTable.addHook("afterChange", function (changes, source) {
         // If source of change is a form of cell editing...
         if (EDIT_SOURCES.includes(source)) {
@@ -211,35 +210,62 @@ var addExperimentTableHooks = function () {
             changes.forEach(function (change) {
                 var row = change[0];
                 var col = change[1];
-                var oldValue = change[2];
-                var newValue = change[3];
+                var oldEventID = change[2];
+                var newEventID = change[3];
                 var channel = experimentTableData[row][0];
                 var channelVariables = variables[channel];
-                // If new cell value is not empty...
-                if (newValue) {
-                    var eventType = getEventType(newValue);
+                var channelEvents = removeNull(experimentTableData[row].slice(2));
+                // If new event ID is not empty and channel does not contain other event instances...
+                if (newEventID && channelEvents.indexOf(newEventID) === channelEvents.lastIndexOf(newEventID)) {
+                    var eventType = getEventType(newEventID);
                     var eventTable = eventTables[eventTypes.indexOf(eventType)];
-                    var eventTableRow = eventTable.getDataAtCol(0).indexOf(newValue);
+                    var eventTableRow = eventTable.getDataAtCol(0).indexOf(newEventID);
                     var eventVariables = getEventVariables(eventTable, eventTableRow);
                     // Iterate through event variables
                     eventVariables.forEach(function (variable) {
+                        // If variable is already associated with channel (i.e. from another event)
+                        // Push new event ID to variable's event list
+                        if (channelVariables.includes(variable)) {
+                            variables[channel][variable].events.push(newEventID);
                         // If variable is not associated with channel...
-                        if (!(channelVariables.includes(variable))) {
-                            // Add variable
+                        } else {
+                            // Determine parameter type
+                            var paramType;
+                            eventTable.getDataAtRow(eventTableRow).slice(1).forEach(function (paramValue, idx) {
+                                var isVariable = eventTable.getCellMeta(eventTableRow, idx + 1).comments;
+                                if (isVariable && paramValue === variable) {
+                                    paramType = getParamTypeAtCell(eventTable, eventTableRow, idx + 1);
+                                }
+                            });
+                            // Add variable to variable dictionary
+                            variables[channel][variable] = {
+                                value: "",
+                                type: paramType,
+                                events: [newEventID]
+                            }
+                            // Add variable to variable list
+                            var variableList = getVariableList(channel, paramType);
+                            variableList.append("<li class='variable' data-name='" + variable + "' data-channel='" + channel + "'>" + variable + "<li>");
+                            alphabetSort(variableList);
                         }
                     });
                 }
-                // If old cell value was not empty...
-                if (oldValue) {
-                    var oldEventType = getEventType(oldValue);
+                // If old cell value was not empty and channel does not contain other event instances...
+                if (oldEventID && !channelEvents.includes(oldEventID)) {
+                    var oldEventType = getEventType(oldEventID);
                     var oldEventTable = eventTables[eventTypes.indexOf(oldEventType)];
-                    var oldEventTableRow = eventTable.getDataAtCol(0).indexOf(oldValue);
+                    var oldEventTableRow = eventTable.getDataAtCol(0).indexOf(oldEventID);
                     var oldEventVariables = getEventVariables(oldEventTable, oldEventTableRow);
                     // Iterate through event variables
-                    eventVariables.forEach(function (variable) {
-                        // If variable is associated with channel...
-                        if (!(channelVariables.includes(variable))) {
-                            // Add variable
+                    oldEventVariables.forEach(function (variable) {
+                        // Remove event ID from old variable dictionary
+                        variables[channel][variable].events = variables[channel][variable].events.filter(function (evID) {
+                            return evID !== oldEventID;
+                        });
+                        // If old variable has no associated events, remove old variable from variable list
+                        if (variables[channel][variable].events.length === 0) {
+                            delete variables[channel][variable];
+                            $(".variable[data-name='" + variable + "'][data-channel='" + channel + "']").remove();
                         }
                     });
                 }
@@ -710,8 +736,8 @@ var getEventChannels = function (eventID, experimentTableData) {
 
 // Get all variables associated with an event
 var getEventVariables = function (eventTable, row) {
-    return eventTable.getDataAtRow(row).slice(1).filter(function (paramValue, paramIdx) {
-        return eventTable.getCellMeta(row, paramIdx).comments;
+    return eventTable.getDataAtRow(row).slice(1).filter(function (paramValue, idx) {
+        return eventTable.getCellMeta(row, idx + 1).comments;
     });
 }
 
