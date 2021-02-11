@@ -124,7 +124,7 @@ var eventTypeDataAll = configData.events;
 var devices = configData.devices;
 
 // Create variable lists
-var createVariableLists = function () {
+var createVariableLists = function (variableDict = null) {
     // Define HTML for variable list
     var variableListHTML = PARAM_TYPES.map(function (paramType) {
         var variableListTitle = "<div class='" + paramType + "-variables-title'>" + paramType + " variables</div>\n";
@@ -910,7 +910,8 @@ $("#save-exp").on("click", function () {
         data: {
             eventData: eventTableDataAll,
             experimentData: experimentTableData,
-            variableData: variableData
+            variableBools: variableData,
+            variableDict: variables
         }
     };
     var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
@@ -958,4 +959,14 @@ $(document).on("keydown", function (e) {
         });
         e.preventDefault();
     }
+});
+
+$(".variable").draggable({
+    revert: true
+});
+$(".variable").droppable({
+    accept: "#glob",
+    drop: function(event, ui) {
+      null;
+  }
 });
