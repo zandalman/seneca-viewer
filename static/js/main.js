@@ -960,13 +960,3 @@ $(document).on("keydown", function (e) {
         e.preventDefault();
     }
 });
-
-$(".variable").draggable({
-    revert: true
-});
-$(".variable").droppable({
-    accept: "#glob",
-    drop: function(event, ui) {
-      null;
-  }
-});

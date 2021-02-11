@@ -1,11 +1,19 @@
 {
   "ordering": "alphabetical",
-  "devices": ["DDS", "DAC", "ADC", "TTL", "SCRIPT"],
+  "devices": [
+    "DDS",
+    "DAC",
+    "ADC",
+    "TTL",
+    "SCRIPT"
+  ],
   "events": {
     "set_frequency": {
       "abbreviation": "FRQ",
       "image": "true",
-      "devices": ["DDS"],
+      "devices": [
+        "DDS"
+      ],
       "params": {
         "frequency": {
           "type": "float",
@@ -16,7 +24,9 @@
     "collect_data": {
       "abbreviation": "CDT",
       "image": "false",
-      "devices": ["SCRIPT"],
+      "devices": [
+        "SCRIPT"
+      ],
       "params": {
         "location_name": {
           "type": "string",
@@ -31,7 +41,9 @@
     "ramp_frequency": {
       "abbreviation": "RFQ",
       "image": "true",
-      "devices": ["DDS"],
+      "devices": [
+        "DDS"
+      ],
       "params": {
         "frequency_per_step": {
           "type": "float",
@@ -54,7 +66,10 @@
     "power": {
       "abbreviation": "POW",
       "image": "true",
-      "devices": ["DDS", "DAC"],
+      "devices": [
+        "DDS",
+        "DAC"
+      ],
       "params": {
         "on": {
           "type": "boolean",
@@ -65,7 +80,9 @@
     "RF_power": {
       "abbreviation": "RPW",
       "image": "true",
-      "devices": ["DDS"],
+      "devices": [
+        "DDS"
+      ],
       "params": {
         "on": {
           "type": "boolean",
@@ -76,7 +93,9 @@
     "set_voltage": {
       "abbreviation": "VLT",
       "image": "true",
-      "devices": ["DAC"],
+      "devices": [
+        "DAC"
+      ],
       "params": {
         "voltage": {
           "type": "float",
@@ -87,7 +106,9 @@
     "ramp": {
       "abbreviation": "RMP",
       "image": "true",
-      "devices": ["DAC"],
+      "devices": [
+        "DAC"
+      ],
       "params": {
         "volts_per_step": {
           "type": "float",
@@ -106,7 +127,9 @@
     "acquire_once": {
       "abbreviation": "AQO",
       "image": "false",
-      "devices": ["ADC"],
+      "devices": [
+        "ADC"
+      ],
       "params": {
         "duration": {
           "type": "float",
@@ -121,7 +144,9 @@
     "acquire_continuous": {
       "abbreviation": "AQC",
       "image": "false",
-      "devices": ["ADC"],
+      "devices": [
+        "ADC"
+      ],
       "params": {
         "steps": {
           "type": "int",
@@ -140,7 +165,9 @@
     "single_pulse": {
       "abbreviation": "SPL",
       "image": "true",
-      "devices": ["TTL"],
+      "devices": [
+        "TTL"
+      ],
       "params": {
         "duration": {
           "type": "float",
@@ -159,7 +186,9 @@
     "logic": {
       "abbreviation": "LOG",
       "image": "true",
-      "devices": ["TTL"],
+      "devices": [
+        "TTL"
+      ],
       "params": {
         "high": {
           "type": "boolean",
@@ -170,7 +199,9 @@
     "pulse_train": {
       "abbreviation": "PLT",
       "image": "true",
-      "devices": ["TTL"],
+      "devices": [
+        "TTL"
+      ],
       "params": {
         "duration": {
           "type": "float",
@@ -183,6 +214,23 @@
         "number_of_pulses": {
           "type": "int",
           "unit": ""
+        }
+      }
+    },
+    "constant_pulse": {
+      "abbreviation": "CPL",
+      "image": "false",
+      "devices": [
+        "DAC"
+      ],
+      "params": {
+        "duration": {
+          "type": "float",
+          "unit": "s"
+        },
+        "voltage": {
+          "type": "float",
+          "unit": "V"
         }
       }
     }
