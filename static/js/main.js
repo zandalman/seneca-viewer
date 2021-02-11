@@ -225,7 +225,7 @@ var addExperimentTableHooks = function () {
                     eventVariables.forEach(function (variable) {
                         // If variable is already associated with channel (i.e. from another event)
                         // Push new event ID to variable's event list
-                        if (channelVariables.includes(variable)) {
+                        if (Object.keys(channelVariables).includes(variable)) {
                             variables[channel][variable].events.push(newEventID);
                         // If variable is not associated with channel...
                         } else {
@@ -254,7 +254,7 @@ var addExperimentTableHooks = function () {
                 if (oldEventID && !channelEvents.includes(oldEventID)) {
                     var oldEventType = getEventType(oldEventID);
                     var oldEventTable = eventTables[eventTypes.indexOf(oldEventType)];
-                    var oldEventTableRow = eventTable.getDataAtCol(0).indexOf(oldEventID);
+                    var oldEventTableRow = oldEventTable.getDataAtCol(0).indexOf(oldEventID);
                     var oldEventVariables = getEventVariables(oldEventTable, oldEventTableRow);
                     // Iterate through event variables
                     oldEventVariables.forEach(function (variable) {
