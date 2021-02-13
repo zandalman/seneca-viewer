@@ -274,13 +274,67 @@ var addExperimentTableHooks = function () {
     });
 }
 
+// Check if a given event table cell is a variable cell
+var isVariableAtCell = function (eventTable, row, col) {
+    return eventTable.getCellMeta(row, col).comments;
+}
+
 // Toggle whether a cell is a variable
 var toggleCellIsVariable = function (eventTable, row, col) {
     var isVariable = isVariableAtCell(eventTable, row, col);
-    var paramType = getParamTypeAtCell(eventTable, row, col);
     eventTable.setCellMeta(row, col, "comments", !isVariable);
     eventTable.setDataAtCell(row, col, null, "ContextMenu.ToggleVariable");
     eventTable.render();
+}
+
+// Toggle whether a variable is global
+var toggleVariableIsGlobal = function(variableName, paramType) {
+    var isGlobal = Object.keys(variables["global"]).includes(variableName);
+    // If variable is global...
+    if (isGlobal) {
+        // Remove variable from global variables
+        delete variables["global"][variableName];
+        $(".variable[data-name='" + variableName + "'][data-channel='global']").remove();
+        // Iterate over event tables
+        eventTables.forEach(function (eventTable) {
+            var eventTableData = eventTable.getData();
+            var numRows = eventTableData.length;
+            var numCols = eventTableData[0].length;
+            // For each variable cell that contains the variable, trigger afterChange hook
+            for (var row = 0; row < numRows; row++) {
+                for (var col = 1; col < numCols; col++) {
+                    var cellValue = eventTableData[row][col];
+                    if (isVariableAtCell(eventTable, row, col) && cellValue === variableName) {
+                        eventTable.setDataAtCell(row, col, variableName, "edit");
+                    }
+                }
+            }
+            // Render event table
+            eventTable.render();
+        });
+    // If variable is local...
+    } else {
+        // If the channel includes the variable, remove the variable from the channel
+        channels.forEach(function (channel) {
+            if (Object.keys(variables[channel]).includes(variableName)) {
+                delete variables[channel][variableName];
+                $(".variable[data-name='" + variableName + "'][data-channel='" + channel + "']").remove();
+            }
+        });
+        // Add the variable to the global variables
+        variables["global"][variableName] = {
+            value: "",
+            type: paramType,
+            events: []
+        }
+        var variableList = getVariableList("global", paramType);
+        variableList.append("<li class='variable' data-name='" + variableName + "' data-channel='global'>" + variableName + "<li>");
+        alphabetSort(variableList);
+        // Render event tables
+        eventTables.forEach(function (eventTable) {
+            eventTable.render();
+        });
+    }
 }
 
 // Toggle whether selected cells are variables
@@ -296,6 +350,31 @@ var toggleSelectedCellsAreVariable = function (eventTable) {
                 toggleCellIsVariable(eventTable, row, col);
             }
         }
+    }
+}
+
+// Toggle whether selected cells are global variables
+var toggleSelectedCellsAreGlobal = function (eventTable) {
+    var selection = eventTable.getSelectedLast();
+    if (selection) {
+        var startRow = Math.min(selection[0], selection[2]);
+        var endRow = Math.max(selection[0], selection[2]);
+        var startCol = Math.min(selection[1], selection[3]);
+        var endCol = Math.max(selection[1], selection[3]);
+        var variableNames = [];
+        var variableParamTypes = [];
+        for (var row = startRow; row <= endRow; row++) {
+            for (var col = Math.max(1, startCol); col <= endCol; col++) {
+                var cellValue = eventTable.getDataAtCell(row, col);
+                if (cellValue && isVariableAtCell(eventTable, row, col) && !variableNames.includes(cellValue)) {
+                    variableNames.push(cellValue);
+                    variableParamTypes.push(getParamTypeAtCell(eventTable, row, col));
+                }
+            }
+        }
+        variableNames.forEach(function (variableName, idx) {
+            toggleVariableIsGlobal(variableName, variableParamTypes[idx]);
+        });
     }
 }
 
@@ -343,6 +422,28 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                     },
                     callback: function () {
                         toggleSelectedCellsAreVariable(this);
+                    }
+                },
+                "global": {
+                    name: "Toggle global <span class='hotkey-text'>ctrl + g</span>",
+                    // Disable toggle global option if no variable cells are selected
+                    disabled: function () {
+                        var selection = this.getSelectedLast();
+                        var startRow = Math.min(selection[0], selection[2]);
+                        var endRow = Math.max(selection[0], selection[2]);
+                        var startCol = Math.min(selection[1], selection[3]);
+                        var endCol = Math.max(selection[1], selection[3]);
+                        for (var row = startRow; row <= endRow; row++) {
+                            for (var col = startCol; col <= endCol; col++) {
+                                if (isVariableAtCell(eventTable, row, col)) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    },
+                    callback: function () {
+                        toggleSelectedCellsAreGlobal(eventTable);
                     }
                 }
             }
@@ -507,9 +608,14 @@ var generateParamRenderer = function (paramType) {
         cellProperties.source = ["true", "false"];
         cellProperties.type = paramType === "boolean" ? "autocomplete" : "text";
         if (isVariable) {
+            var isGlobal = Object.keys(variables["global"]).includes(value);
             cellProperties.className.push("htLeft");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             td.style.backgroundColor = COLORS[paramType + "Var"];
+            if (isGlobal) {
+                td.style.fontWeight = "bold";
+                $(td).append("<i class='fa fa-globe' style='float: right;'></i>");
+            }
         } else {
             if (!stringifiedValue) {
                 cellProperties.className.push("htLeft");
@@ -692,11 +798,6 @@ var addAfterCreateRowHook = function (eventTable) {
     });
 }
 
-// Check if a given event table cell is a variable cell
-var isVariableAtCell = function (eventTable, row, col) {
-    return eventTable.getCellMeta(row, col).comments;
-}
-
 // Get parameter type associated with event table cell
 var getParamTypeAtCell = function (eventTable, row, col) {
     var cellClassName = eventTable.getCellMeta(row, col).className;
@@ -790,7 +891,7 @@ var addAfterChangeHook = function (eventTable) {
                         });
                     }
                     // If old cell value was not empty...
-                    if (oldValue) {
+                    if (oldValue && oldValue !== newValue) {
                         // If event was not associated with old variable...
                         if (!(getEventVariables(eventTable, row).includes(oldValue))) {
                             // Iterate through event channels
@@ -887,7 +988,7 @@ $("#save-exp").on("click", function () {
         var numRows = eventTableData.length;
         var numCols = eventTableData[0].length;
         var eventTableVariableData = JSON.parse(JSON.stringify(eventTableData));
-        for (var row = 0; row <= numRows; row++) {
+        for (var row = 0; row < numRows; row++) {
             eventTableVariableData[row] = eventTable.getCellMetaAtRow(row).map(function (cellMeta) {
                return cellMeta.comments;
             });
@@ -956,6 +1057,12 @@ $(document).on("keydown", function (e) {
     } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "b")) {
         eventTables.forEach(function (eventTable) {
             toggleSelectedCellsAreVariable(eventTable);
+        });
+        e.preventDefault();
+    // ctrl + g = toggle whether selected cells are global variables
+    } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "g")) {
+        eventTables.forEach(function (eventTable) {
+            toggleSelectedCellsAreGlobal(eventTable);
         });
         e.preventDefault();
     }
