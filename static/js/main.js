@@ -35,7 +35,7 @@ var eventTypes = [];
 var eventTypesWithImages = [];
 var channels = [];
 var IDs = [];
-var variables = {};
+var globalVariables = {};
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -133,7 +133,6 @@ var createVariableLists = function (variableDict = null) {
     }).join("");
     // Create global variable list
     $("#variables-global").html(variableListHTML);
-    variables["global"] = {};
     // Iterate through channels
     channels.forEach(function (channel) {
         // Create local variable list for each channel
@@ -141,7 +140,6 @@ var createVariableLists = function (variableDict = null) {
         $("#channel-filter").append("<option value='" + channel + "'>" + channel + "</option>");
         $("#variables-local").append("<div class='variables' id=" + variableContainerID + ">");
         $("#" + variableContainerID).append(variableListHTML);
-        variables[channel] = {};
     });
     // Add correct color for each parameter type in variable list
     PARAM_TYPES.forEach(function (paramType) {
@@ -205,160 +203,26 @@ var addExperimentTableHooks = function () {
     experimentTable.addHook("afterChange", function (changes, source) {
         // If source of change is a form of cell editing...
         if (EDIT_SOURCES.includes(source)) {
-            var experimentTableData = experimentTable.getData();
-            // Iterate through experiment table changes
-            changes.forEach(function (change) {
-                var row = change[0];
-                var col = change[1];
-                var oldEventID = change[2];
-                var newEventID = change[3];
-                var channel = experimentTableData[row][0];
-                var channelVariables = variables[channel];
-                var channelEvents = removeNull(experimentTableData[row].slice(2));
-                // If new event ID is not empty and channel does not contain other event instances...
-                if (newEventID && channelEvents.indexOf(newEventID) === channelEvents.lastIndexOf(newEventID)) {
-                    var eventType = getEventType(newEventID);
-                    var eventTable = eventTables[eventTypes.indexOf(eventType)];
-                    var eventTableRow = eventTable.getDataAtCol(0).indexOf(newEventID);
-                    var eventVariables = getEventVariables(eventTable, eventTableRow);
-                    // Iterate through event variables
-                    eventVariables.forEach(function (variable) {
-                        // If variable is already associated with channel (i.e. from another event)
-                        // Push new event ID to variable's event list
-                        if (Object.keys(channelVariables).includes(variable)) {
-                            variables[channel][variable].events.push(newEventID);
-                        // If variable is not associated with channel...
-                        } else {
-                            // Determine parameter type
-                            var paramType;
-                            eventTable.getDataAtRow(eventTableRow).slice(1).forEach(function (paramValue, idx) {
-                                var isVariable = eventTable.getCellMeta(eventTableRow, idx + 1).comments;
-                                if (isVariable && paramValue === variable) {
-                                    paramType = getParamTypeAtCell(eventTable, eventTableRow, idx + 1);
-                                }
-                            });
-                            // Add variable to variable dictionary
-                            variables[channel][variable] = {
-                                value: "",
-                                type: paramType,
-                                events: [newEventID]
-                            }
-                            // Add variable to variable list
-                            var variableList = getVariableList(channel, paramType);
-                            variableList.append(generateVariableHTML(variable, channel, paramType));
-                            alphabetSort(variableList);
-                        }
-                    });
-                }
-                // If old cell value was not empty and channel does not contain other event instances...
-                if (oldEventID && !channelEvents.includes(oldEventID)) {
-                    var oldEventType = getEventType(oldEventID);
-                    var oldEventTable = eventTables[eventTypes.indexOf(oldEventType)];
-                    var oldEventTableRow = oldEventTable.getDataAtCol(0).indexOf(oldEventID);
-                    var oldEventVariables = getEventVariables(oldEventTable, oldEventTableRow);
-                    // Iterate through event variables
-                    oldEventVariables.forEach(function (variable) {
-                        // Remove event ID from old variable dictionary
-                        variables[channel][variable].events = variables[channel][variable].events.filter(function (evID) {
-                            return evID !== oldEventID;
-                        });
-                        // If old variable has no associated events, remove old variable from variable list
-                        if (variables[channel][variable].events.length === 0) {
-                            delete variables[channel][variable];
-                            $(".variable[data-name='" + variable + "'][data-channel='" + channel + "']").remove();
-                        }
-                    });
-                }
-            });
+            updateVariables();
         }
     });
 }
 
 var generateVariableHTML = function (variableName, channel, paramType) {
-    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "'>\n" +
+    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "' data-type='" + paramType + "' data-value=''>\n" +
         "  <div class='vertical-center'>\n" +
-        "    <span class='variable-name'>" + variableName + "</span>\n" +
+        "    <span class='variable-name'>" + variableName.slice(1) + "</span>\n" +
         "    <input type='text' class='variable-input' data-type='" + paramType + "'>\n" +
         "  </div>\n" +
         "</li>"
 }
 
-// Check if a given event table cell is a variable cell
-var isVariableAtCell = function (eventTable, row, col) {
-    return eventTable.getCellMeta(row, col).comments;
-}
-
-// Toggle whether a cell is a variable
-var toggleCellIsVariable = function (eventTable, row, col) {
-    var isVariable = isVariableAtCell(eventTable, row, col);
-    eventTable.setCellMeta(row, col, "comments", !isVariable);
-    eventTable.setDataAtCell(row, col, null, "ContextMenu.ToggleVariable");
-    eventTable.render();
-}
-
 // Toggle whether a variable is global
 var toggleVariableIsGlobal = function(variableName, paramType) {
-    var isGlobal = Object.keys(variables["global"]).includes(variableName);
-    // If variable is global...
-    if (isGlobal) {
-        // Remove variable from global variables
-        delete variables["global"][variableName];
-        $(".variable[data-name='" + variableName + "'][data-channel='global']").remove();
-        // Iterate over event tables
-        eventTables.forEach(function (eventTable) {
-            var eventTableData = eventTable.getData();
-            var numRows = eventTableData.length;
-            var numCols = eventTableData[0].length;
-            // For each variable cell that contains the variable, trigger afterChange hook
-            for (var row = 0; row < numRows; row++) {
-                for (var col = 1; col < numCols; col++) {
-                    var cellValue = eventTableData[row][col];
-                    if (isVariableAtCell(eventTable, row, col) && cellValue === variableName) {
-                        eventTable.setDataAtCell(row, col, variableName, "edit");
-                    }
-                }
-            }
-            // Render event table
-            eventTable.render();
-        });
-    // If variable is local...
+    if (Object.keys(globalVariables).includes(variableName)) {
+        delete globalVariables[variableName];
     } else {
-        // If the channel includes the variable, remove the variable from the channel
-        channels.forEach(function (channel) {
-            if (Object.keys(variables[channel]).includes(variableName)) {
-                delete variables[channel][variableName];
-                $(".variable[data-name='" + variableName + "'][data-channel='" + channel + "']").remove();
-            }
-        });
-        // Add the variable to the global variables
-        variables["global"][variableName] = {
-            value: "",
-            type: paramType,
-            events: []
-        }
-        var variableList = getVariableList("global", paramType);
-        variableList.append(generateVariableHTML(variableName, "global", paramType));
-        alphabetSort(variableList);
-        // Render event tables
-        eventTables.forEach(function (eventTable) {
-            eventTable.render();
-        });
-    }
-}
-
-// Toggle whether selected cells are variables
-var toggleSelectedCellsAreVariable = function (eventTable) {
-    var selection = eventTable.getSelectedLast();
-    if (selection) {
-        var startRow = Math.min(selection[0], selection[2]);
-        var endRow = Math.max(selection[0], selection[2]);
-        var startCol = Math.min(selection[1], selection[3]);
-        var endCol = Math.max(selection[1], selection[3]);
-        for (var row = startRow; row <= endRow; row++) {
-            for (var col = Math.max(1, startCol); col <= endCol; col++) {
-                toggleCellIsVariable(eventTable, row, col);
-            }
-        }
+        globalVariables[variableName] = paramType;
     }
 }
 
@@ -375,7 +239,7 @@ var toggleSelectedCellsAreGlobal = function (eventTable) {
         for (var row = startRow; row <= endRow; row++) {
             for (var col = Math.max(1, startCol); col <= endCol; col++) {
                 var cellValue = eventTable.getDataAtCell(row, col);
-                if (cellValue && isVariableAtCell(eventTable, row, col) && !variableNames.includes(cellValue)) {
+                if (isVariable(cellValue)) {
                     variableNames.push(cellValue);
                     variableParamTypes.push(getParamTypeAtCell(eventTable, row, col));
                 }
@@ -385,6 +249,8 @@ var toggleSelectedCellsAreGlobal = function (eventTable) {
             toggleVariableIsGlobal(variableName, variableParamTypes[idx]);
         });
     }
+    updateVariables();
+    eventTable.render();
 }
 
 // Create an event table
@@ -424,15 +290,6 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                 "cut": {},
                 "undo": {},
                 "redo": {},
-                "variable": {
-                    name: "Toggle variable <span class='hotkey-text'>ctrl + b</span>",
-                    disabled: function () {
-                        return this.getSelectedLast()[1] === 0;
-                    },
-                    callback: function () {
-                        toggleSelectedCellsAreVariable(this);
-                    }
-                },
                 "global": {
                     name: "Toggle global <span class='hotkey-text'>ctrl + g</span>",
                     // Disable toggle global option if no variable cells are selected
@@ -444,7 +301,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
                         var endCol = Math.max(selection[1], selection[3]);
                         for (var row = startRow; row <= endRow; row++) {
                             for (var col = startCol; col <= endCol; col++) {
-                                if (isVariableAtCell(eventTable, row, col)) {
+                                if (isVariable(eventTable.getDataAtCell(row, col))) {
                                     return false;
                                 }
                             }
@@ -581,23 +438,22 @@ var decodeNumeric = function (value) {
 
 // Generate custom validator for event tables
 var generateParamValidator = function (paramType) {
-    var paramValidator = function (value, callback) {
-        var stringifiedValue = Handsontable.helper.stringify(value);
-        var isVariable = isVariableAtCell(this.instance, this.row, this.col);
+    return function (value, callback) {
+        var isVariable = Boolean(value) && value[0] === "$";
         if (isVariable) {
-            callback(REGEX.variable.test(stringifiedValue) || !stringifiedValue);
+            callback(REGEX.variable.test(value.slice(1)));
         } else {
-            var isNum = REGEX.number.test(stringifiedValue);
-            var isBool = REGEX.boolean.test(stringifiedValue);
+            var isNum = REGEX.number.test(value);
+            var isBool = REGEX.boolean.test(value);
             switch (paramType) {
                 case "float":
-                    callback(Boolean(isNum || !stringifiedValue));
+                    callback(Boolean(isNum || !value));
                     break;
                 case "int":
-                    callback(Boolean((isNum && decodeNumeric(stringifiedValue) % 1 === 0) || !stringifiedValue));
+                    callback(Boolean((isNum && decodeNumeric(value) % 1 === 0) || !value));
                     break;
                 case "boolean":
-                    callback(Boolean(isBool || !stringifiedValue));
+                    callback(Boolean(isBool || !value));
                     break;
                 case "string":
                     callback(true);
@@ -605,28 +461,25 @@ var generateParamValidator = function (paramType) {
             }
         }
     };
-    return paramValidator;
 }
 
 // Generate custom renderer for event tables
 var generateParamRenderer = function (paramType) {
     var paramRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-        var stringifiedValue = Handsontable.helper.stringify(value);
-        var isVariable = cellProperties.comments;
+        var isVariable = Boolean(value) && value[0] === "$";
         // Set default cell properties
         cellProperties.source = ["true", "false"];
         cellProperties.type = paramType === "boolean" ? "autocomplete" : "text";
         if (isVariable) {
-            var isGlobal = Object.keys(variables["global"]).includes(value);
             cellProperties.className.push("htLeft");
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             td.style.backgroundColor = COLORS[paramType + "Var"];
-            if (isGlobal) {
+            if (Object.keys(globalVariables).includes(value)) {
                 td.style.fontWeight = "bold";
                 $(td).append("<i class='fa fa-globe' style='float: right;'></i>");
             }
         } else {
-            if (!stringifiedValue) {
+            if (!value) {
                 cellProperties.className.push("htLeft");
                 Handsontable.renderers.TextRenderer.apply(this, arguments);
             } else {
@@ -837,17 +690,54 @@ var alphabetSort = function (arr) {
     }).remove();
 }
 
-// Get all channels that contain an event with a given event ID
-var getEventChannels = function (eventID, experimentTableData) {
-    return removeNull(experimentTableData.map(function (channelData) {
-        return channelData.slice(2).includes(eventID) ? channelData[0] : null;
-    }));
+var isVariable = function (value) {
+    return Boolean(value) && value[0] === "$";
 }
 
-// Get all variables associated with an event
-var getEventVariables = function (eventTable, row) {
-    return eventTable.getDataAtRow(row).slice(1).filter(function (paramValue, idx) {
-        return eventTable.getCellMeta(row, idx + 1).comments;
+// Get the variables associated with an event
+var getEventVariables = function (eventID) {
+    var eventType = getEventType(eventID);
+    var eventTable = eventTables[eventTypes.indexOf(eventType)];
+    var row = eventTable.getDataAtCol(0).indexOf(eventID);
+    var eventVariables = {};
+    eventTable.getDataAtRow(row).slice(1).map(function (value, idx) {
+        var col = idx + 1;
+        if (isVariable(value)) {
+            eventVariables[value] = getParamTypeAtCell(eventTable, row, col);
+        }
+    });
+    return eventVariables;
+}
+
+var updateVariables = function () {
+    $(".variable-list").empty();
+    var experimentTableData = experimentTable.getData();
+    Object.keys(globalVariables).forEach(function (globalVariableName) {
+        var variableExists = eventTables.filter(function (eventTable) {
+            return eventTable.getData().flat().includes(globalVariableName);
+        }).length > 0;
+        if (variableExists) {
+            var paramType = globalVariables[globalVariableName];
+            var variableList = getVariableList("global", paramType);
+            variableList.append(generateVariableHTML(globalVariableName, "global", paramType));
+        } else {
+            delete globalVariables[globalVariableName];
+        }
+    });
+    experimentTableData.forEach(function (rowData) {
+        var channel = rowData[0];
+        var channelVariables = {};
+        var channelEventIDs = [...new Set(removeNull(rowData.slice(2)))];
+        channelEventIDs.forEach(function (eventID) {
+            channelVariables = Object.assign({}, channelVariables, getEventVariables(eventID));
+        });
+        Object.keys(channelVariables).sort().forEach(function (variableName) {
+            if (!Object.keys(globalVariables).includes(variableName)) {
+                var paramType = channelVariables[variableName];
+                var variableList = getVariableList(channel, paramType);
+                variableList.append(generateVariableHTML(variableName, channel, paramType));
+            }
+        });
     });
 }
 
@@ -856,70 +746,7 @@ var addAfterChangeHook = function (eventTable) {
     eventTable.addHook("afterChange", function (changes, source) {
         // If source of change is a form of cell editing...
         if (EDIT_SOURCES.includes(source)) {
-            var experimentTableData = experimentTable.getData();
-            // Iterate through event table changes
-            changes.forEach(function (change) {
-                var row = change[0];
-                var col = change[1];
-                var oldValue = change[2];
-                var newValue = change[3];
-                // If change occurs in a variable cell...
-                if (isVariableAtCell(eventTable, row, col)) {
-                    var eventID = eventTable.getDataAtCell(row, 0);
-                    var paramType = getParamTypeAtCell(eventTable, row, col);
-                    var eventChannels = getEventChannels(eventID, experimentTableData);
-                    // If new cell value is not empty...
-                    if (newValue) {
-                        // Iterate through event channels
-                        eventChannels.forEach(function (channel) {
-                            var channelVariables = variables[channel];
-                            // If variable already exists...
-                            if (Object.keys(channelVariables).includes(newValue)) {
-                                // If variable is added to an event parameter of the wrong type, reject the change
-                                if (paramType !== variables[channel][newValue].type) {
-                                    alert("Change rejected: you have assigned an event parameter of type" + paramType + "to a variable of type " + variables[channel][newValue].type + ".");
-                                    eventTable.setDataAtCell(row, col, oldValue, "Misc.RejectChanges");
-                                }
-                                // If event was not associated with variable, add event to variable's event list
-                                if (!channelVariables[newValue].events.includes()) {
-                                    variables[channel][newValue].events.push(eventID);
-                                }
-                            // If variable does not already exist...
-                            } else {
-                                // Add variable to variable dictionary
-                                variables[channel][newValue] = {
-                                    value: "",
-                                    type: paramType,
-                                    events: [eventID]
-                                }
-                                // Add variable to variable list
-                                var variableList = getVariableList(channel, paramType);
-                                variableList.append(generateVariableHTML(newValue, channel, paramType));
-                                alphabetSort(variableList);
-                            }
-                        });
-                    }
-                    // If old cell value was not empty...
-                    if (oldValue && oldValue !== newValue) {
-                        // If event was not associated with old variable...
-                        if (!(getEventVariables(eventTable, row).includes(oldValue))) {
-                            // Iterate through event channels
-                            eventChannels.forEach(function (channel) {
-                                // Remove event ID from old variable dictionary
-                                variables[channel][oldValue].events = variables[channel][oldValue].events.filter(function (evID) {
-                                    return evID !== eventID;
-                                });
-                                // If old variable has no associated events, remove old variable from variable list
-                                if (variables[channel][oldValue].events.length === 0) {
-                                    delete variables[channel][oldValue];
-                                    $(".variable[data-name='" + oldValue + "'][data-channel='" + channel + "']").remove();
-                                }
-                            });
-                        }
-                    }
-                }
-            });
-            experimentTable.render();
+            updateVariables();
         }
     });
 }
@@ -1045,10 +872,9 @@ var generateEventID = function (eventType) {
 // Return the event type based on the abbreviation
 var getEventType = function (value) {
     var abbr = value.substr(0, ABBR_LENGTH);
-    var eventType = Object.keys(eventTypeDataAll).filter(function (eventType) {
+    return Object.keys(eventTypeDataAll).filter(function (eventType) {
         return eventTypeDataAll[eventType].abbreviation === abbr;
     })[0];
-    return eventType;
 }
 
 // Update experiment table renderer on display mode change
@@ -1061,12 +887,6 @@ $(document).on("keydown", function (e) {
     // ctrl + s = save experiment
     if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "s")) {
         $("#save-exp").trigger("click");
-        e.preventDefault();
-    // ctrl + b = toggle whether selected cells are variables
-    } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "b")) {
-        eventTables.forEach(function (eventTable) {
-            toggleSelectedCellsAreVariable(eventTable);
-        });
         e.preventDefault();
     // ctrl + g = toggle whether selected cells are global variables
     } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "g")) {
