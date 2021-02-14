@@ -245,7 +245,7 @@ var addExperimentTableHooks = function () {
                             }
                             // Add variable to variable list
                             var variableList = getVariableList(channel, paramType);
-                            variableList.append(generateVariableHTML(variable, channel));
+                            variableList.append(generateVariableHTML(variable, channel, paramType));
                             alphabetSort(variableList);
                         }
                     });
@@ -274,11 +274,11 @@ var addExperimentTableHooks = function () {
     });
 }
 
-var generateVariableHTML = function (variableName, channel) {
+var generateVariableHTML = function (variableName, channel, paramType) {
     return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "'>\n" +
         "  <div class='vertical-center'>\n" +
         "    <span class='variable-name'>" + variableName + "</span>\n" +
-        "    <input type='text' class='variable-input'>\n" +
+        "    <input type='text' class='variable-input' data-type='" + paramType + "'>\n" +
         "  </div>\n" +
         "</li>"
 }
@@ -337,7 +337,7 @@ var toggleVariableIsGlobal = function(variableName, paramType) {
             events: []
         }
         var variableList = getVariableList("global", paramType);
-        variableList.append(generateVariableHTML(variableName, "global"));
+        variableList.append(generateVariableHTML(variableName, "global", paramType));
         alphabetSort(variableList);
         // Render event tables
         eventTables.forEach(function (eventTable) {
@@ -894,7 +894,7 @@ var addAfterChangeHook = function (eventTable) {
                                 }
                                 // Add variable to variable list
                                 var variableList = getVariableList(channel, paramType);
-                                variableList.append(generateVariableHTML(newValue, channel));
+                                variableList.append(generateVariableHTML(newValue, channel, paramType));
                                 alphabetSort(variableList);
                             }
                         });
