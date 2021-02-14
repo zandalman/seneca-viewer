@@ -75,3 +75,27 @@ td {
     float: right;
     font-size: 0.8em;
 }
+.variable {
+    min-height: 2em;
+    width: 90%;
+    background: #EEEEEE;
+    position: relative;
+    border: 1px solid grey;
+    border-radius: 5px;
+}
+.variable-name {
+    margin-left: 10px;
+}
+.variable-input {
+    margin-right: 10px;
+    width: 50%;
+    outline: none;
+    float: right;
+}
+.vertical-center {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}

@@ -245,7 +245,7 @@ var addExperimentTableHooks = function () {
                             }
                             // Add variable to variable list
                             var variableList = getVariableList(channel, paramType);
-                            variableList.append("<li class='variable' data-name='" + variable + "' data-channel='" + channel + "'>" + variable + "<li>");
+                            variableList.append(generateVariableHTML(variable, channel));
                             alphabetSort(variableList);
                         }
                     });
@@ -272,6 +272,15 @@ var addExperimentTableHooks = function () {
             });
         }
     });
+}
+
+var generateVariableHTML = function (variableName, channel) {
+    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "'>\n" +
+        "  <div class='vertical-center'>\n" +
+        "    <span class='variable-name'>" + variableName + "</span>\n" +
+        "    <input type='text' class='variable-input'>\n" +
+        "  </div>\n" +
+        "</li>"
 }
 
 // Check if a given event table cell is a variable cell
@@ -328,7 +337,7 @@ var toggleVariableIsGlobal = function(variableName, paramType) {
             events: []
         }
         var variableList = getVariableList("global", paramType);
-        variableList.append("<li class='variable' data-name='" + variableName + "' data-channel='global'>" + variableName + "<li>");
+        variableList.append(generateVariableHTML(variableName, "global"));
         alphabetSort(variableList);
         // Render event tables
         eventTables.forEach(function (eventTable) {
@@ -885,7 +894,7 @@ var addAfterChangeHook = function (eventTable) {
                                 }
                                 // Add variable to variable list
                                 var variableList = getVariableList(channel, paramType);
-                                variableList.append("<li class='variable' data-name='" + newValue + "' data-channel='" + channel + "'>" + newValue + "<li>");
+                                variableList.append(generateVariableHTML(newValue, channel));
                                 alphabetSort(variableList);
                             }
                         });
