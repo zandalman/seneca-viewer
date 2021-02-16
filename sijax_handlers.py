@@ -1,6 +1,8 @@
 import time
 import os
 import json
+import copy
+import numpy as np
 from werkzeug.utils import secure_filename
 from functions import gen_id
 
@@ -96,6 +98,7 @@ def raw_to_json(config_file, raw_data_obj):
     data = raw_data_obj["data"]
     event_data = data["eventData"]
     experiment_data = data["logic"]
+    exp_data_tp = np.transpose(experiment_data)
     event_config = json.load(config_file)
     sorted_events = sorted(event_config["events"])
     data["eventData"] = {}
@@ -112,20 +115,14 @@ def raw_to_json(config_file, raw_data_obj):
             data["eventData"][event_ID] = event_dict
 
     # Processing the experiment section
-    experiment_json = {}
-    for channel in experiment_data:
-        channel_events = []
-        for event in channel[2:]:
-            if not event:
-                channel_events.append("")
-            else:
-                logic_ev_dict  = data["eventData"][event]
-                logic_ev_dict["ID"] = event
-                logic_ev_dict["alias"] = channel[0]
-                logic_ev_dict["deviceType"] = channel[1]
-                channel_events.append(logic_ev_dict)
-        experiment_json[channel[0]] = channel_events
-    data["logic"] = experiment_json
+    exp_data_tp = exp_data_tp.astype("object")
+    for time_block in exp_data_tp[2:]:
+        for index, event in enumerate(time_block):
+            if event:
+                time_block[index] = data["eventData"][event]
+                time_block[index]["ID"] = event
+                time_block[index]["alias"] = exp_data_tp[0][index]
+    data["logic"] = exp_data_tp.tolist()[2:]
     return {"description": "placeholder", "data": data }
 
 class SijaxHandlers(object):
@@ -162,6 +159,5 @@ class SijaxHandlers(object):
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
                 config = open(self.app.config["EVENT_CONFIG"])
                 json_output = raw_to_json(config, json_string)
-                print (json_output)
                 json.dump(json_output, f, indent=2)
             obj_response.html("#loaded-experiment-name", filename)
