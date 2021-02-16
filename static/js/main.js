@@ -841,8 +841,8 @@ $("#save-exp").on("click", function () {
     var jsonExport = {
         data: {
             eventData: eventTableDataAll,
-            logic: experimentTableData,
-            defaults: variableDefaults
+            defaults: variableDefaults,
+            logic: experimentTableData
         }
     };
     var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
