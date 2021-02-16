@@ -1,6 +1,8 @@
 import time
 import os
 import json
+import copy
+import numpy as np
 from werkzeug.utils import secure_filename
 from functions import gen_id
 
@@ -60,9 +62,7 @@ def json_to_raw(json_obj):
     """
     data = json_obj["data"]
     event_data = data["eventData"]
-    experiment_data = data["experimentData"]
-    #variable_data = data["variableData"]
-    #data_raw_converted = {"data":{"eventData": [], "experimentData": []}}
+    experiment_data = data["logic"]
     channels = experiment_data.keys()
     exp_data_list = []
     for channel in channels:
@@ -71,17 +71,16 @@ def json_to_raw(json_obj):
         for event in experiment_data[channel]:
             ch_list.append(event["ID"])
     #print (data_raw_converted)
-    data["experimentData"] = exp_data_list
+    data["logic"] = exp_data_list
     event_data_list = []
     for event_type in event_data:
-        ev_type_dict = {"data": [], "variableData":[]}
+        ev_type_dict = {"data": []}
         event_data_list.append(ev_type_dict)
         for event in event_data[event_type]["data"]:
             ev_vals = []
             ev_type_dict["data"].append(ev_vals)
             for value in event.values():
                 ev_vals.append(value)
-        ev_type_dict["variableData"] = data["eventData"][event_type]["variableData"]
     data["eventData"] = event_data_list
     return {"data": data}
 
@@ -97,35 +96,38 @@ def raw_to_json(config_file, raw_data_obj):
         Human-readable sequence JSON.
     """
     data = raw_data_obj["data"]
-    event_data = data["eventData"]
-    experiment_data = data["experimentData"]
-    # Processing the experiment section first
-    experiment_json = {}
-    for channel in experiment_data:
-        channel_events = []
-        for event in channel[1:]:
-            channel_events.append({"ID": event})
-        experiment_json[channel[0]] = channel_events
-    data["experimentData"] = experiment_json
+    event_data = data.pop("eventData")
+    experiment_data = data["logic"]
+    exp_data_tp = np.transpose(experiment_data)
     event_config = json.load(config_file)
     sorted_events = sorted(event_config["events"])
-
-    event_type_json = {}
+    eventLibrary = {}
     # iterate through the events, alphabetically sorted
     for event_type_list, event_type in zip(event_data, sorted_events):
         parameters = event_config["events"][event_type]["params"]
-        converted_event_list = {"data":[], "variableData": []}
+        converted_event_list = {"data":[]}
         for event in event_type_list["data"]:
-            event_dict = {}
-            event_dict["ID"] = event[0]
+            event_ID = event[0]
+            event_dict = {"eventType": event_type}
             # iterate through the parameters
             for value, parameter in zip(event[1:], parameters):
                 event_dict[parameter] = value
-            converted_event_list["data"].append(event_dict)
-            converted_event_list["variableData"] = event_type_list["variableData"]
-        event_type_json[event_type] = converted_event_list
-    data["eventData"] = event_type_json
-    return {"data": data }
+            eventLibrary[event_ID] = event_dict
+
+    # Processing the experiment section
+    logic = exp_data_tp.astype("object")
+    for time_block in logic[2:]:
+        for index, event in enumerate(time_block):
+            if event:
+                time_block[index] = eventLibrary[event]
+                time_block[index]["ID"] = event
+                time_block[index]["alias"] = logic[0][index]
+    logic = logic[2:].tolist()
+    for (index, time_block) in enumerate(logic):
+        time_block = [event for event in time_block if event]
+        logic[index] = time_block
+    data["logic"] = logic
+    return {"description": "placeholder", "data": data }
 
 class SijaxHandlers(object):
     """
