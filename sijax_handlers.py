@@ -96,12 +96,12 @@ def raw_to_json(config_file, raw_data_obj):
         Human-readable sequence JSON.
     """
     data = raw_data_obj["data"]
-    event_data = data["eventData"]
+    event_data = data.pop("eventData")
     experiment_data = data["logic"]
     exp_data_tp = np.transpose(experiment_data)
     event_config = json.load(config_file)
     sorted_events = sorted(event_config["events"])
-    data["eventData"] = {}
+    eventLibrary = {}
     # iterate through the events, alphabetically sorted
     for event_type_list, event_type in zip(event_data, sorted_events):
         parameters = event_config["events"][event_type]["params"]
@@ -112,17 +112,21 @@ def raw_to_json(config_file, raw_data_obj):
             # iterate through the parameters
             for value, parameter in zip(event[1:], parameters):
                 event_dict[parameter] = value
-            data["eventData"][event_ID] = event_dict
+            eventLibrary[event_ID] = event_dict
 
     # Processing the experiment section
-    exp_data_tp = exp_data_tp.astype("object")
-    for time_block in exp_data_tp[2:]:
+    logic = exp_data_tp.astype("object")
+    for time_block in logic[2:]:
         for index, event in enumerate(time_block):
             if event:
-                time_block[index] = data["eventData"][event]
+                time_block[index] = eventLibrary[event]
                 time_block[index]["ID"] = event
-                time_block[index]["alias"] = exp_data_tp[0][index]
-    data["logic"] = exp_data_tp.tolist()[2:]
+                time_block[index]["alias"] = logic[0][index]
+    logic = logic[2:].tolist()
+    for (index, time_block) in enumerate(logic):
+        time_block = [event for event in time_block if event]
+        logic[index] = time_block
+    data["logic"] = logic
     return {"description": "placeholder", "data": data }
 
 class SijaxHandlers(object):
