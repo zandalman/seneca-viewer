@@ -26,7 +26,6 @@ $( document ).ready(function() {
         placeholder: "Channel Filter",
         width: 200
     });
-    $(".variable-list").selectable();
 });
 
 // Initialize empty variables, lists, and dictionaries
@@ -133,14 +132,13 @@ var createVariableLists = function (variableDict = null) {
         return variableListTitle + variableList;
     }).join("");
     // Create global variable list
-    $("#variables-global").html(variableListHTML);
+    $(".variables[data-channel='global']").html(variableListHTML);
     // Iterate through channels
     channels.forEach(function (channel) {
         // Create local variable list for each channel
-        var variableContainerID = "variables-" + channel;
         $("#channel-filter").append("<option value='" + channel + "'>" + channel + "</option>");
-        $("#variables-local").append("<div class='variables' id=" + variableContainerID + ">");
-        $("#" + variableContainerID).append(variableListHTML);
+        $("#variables-local").append("<div class='variables' data-channel=" + channel + ">");
+        $(".variables[data-channel='" + channel + "']").append(variableListHTML);
     });
     // Add correct color for each parameter type in variable list
     PARAM_TYPES.forEach(function (paramType) {
@@ -209,11 +207,11 @@ var addExperimentTableHooks = function () {
     });
 }
 
-var generateVariableHTML = function (variableName, channel, paramType) {
-    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "' data-type='" + paramType + "' data-value=''>\n" +
+var generateVariableHTML = function (variableName, channel, paramType, value) {
+    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "' data-type='" + paramType + "' data-value='" + value + "'>\n" +
         "  <div class='vertical-center'>\n" +
         "    <span class='variable-name'>" + variableName.slice(1) + "</span>\n" +
-        "    <input type='text' class='variable-input' data-type='" + paramType + "'>\n" +
+        "    <input type='text' class='variable-input' value='" + value + "'>\n" +
         "  </div>\n" +
         "</li>"
 }
@@ -440,8 +438,7 @@ var decodeNumeric = function (value) {
 // Generate custom validator for event tables
 var generateParamValidator = function (paramType) {
     return function (value, callback) {
-        var isVariable = Boolean(value) && value[0] === "$";
-        if (isVariable) {
+        if (isVariable(value)) {
             callback(REGEX.variable.test(value.slice(1)));
         } else {
             var isNum = REGEX.number.test(value);
@@ -677,7 +674,7 @@ var getParamTypeAtCell = function (eventTable, row, col) {
 
 // Get the variable list element for a given channel and parameter type
 var getVariableList = function (channel, paramType) {
-    return $("#variables-" + channel).find(".variable-list[data-type=" + paramType + "]");
+    return $(".variables[data-channel='" + channel + "']").find(".variable-list[data-type=" + paramType + "]");
 }
 
 // Sort a list alphabetically in HTML
@@ -710,7 +707,24 @@ var getEventVariables = function (eventID) {
     return eventVariables;
 }
 
+var getVariableData = function () {
+    var variableData = {"global": {}};
+    channels.forEach(function (channel) {
+        variableData[channel] = {};
+    });
+    $(".variable").each(function () {
+        var channel = $(this).data("channel");
+        var variableName = $(this).data("name");
+        var value = $(this).data("value");
+        if (value) {
+            variableData[channel][variableName] = value;
+        }
+    });
+    return variableData;
+}
+
 var updateVariables = function () {
+    var variableData = getVariableData();
     $(".variable-list").empty();
     var experimentTableData = experimentTable.getData();
     Object.keys(globalVariables).forEach(function (globalVariableName) {
@@ -720,7 +734,8 @@ var updateVariables = function () {
         if (variableExists) {
             var paramType = globalVariables[globalVariableName];
             var variableList = getVariableList("global", paramType);
-            variableList.append(generateVariableHTML(globalVariableName, "global", paramType));
+            var value = Object.keys(variableData["global"]).includes(globalVariableName) ? variableData["global"][globalVariableName] : "";
+            variableList.append(generateVariableHTML(globalVariableName, "global", paramType, value));
         } else {
             delete globalVariables[globalVariableName];
         }
@@ -736,7 +751,8 @@ var updateVariables = function () {
             if (!Object.keys(globalVariables).includes(variableName)) {
                 var paramType = channelVariables[variableName];
                 var variableList = getVariableList(channel, paramType);
-                variableList.append(generateVariableHTML(variableName, channel, paramType));
+                var value = Object.keys(variableData[channel]).includes(variableName) ? variableData[channel][variableName] : "";
+                variableList.append(generateVariableHTML(variableName, channel, paramType, value));
             }
         });
     });
@@ -785,7 +801,7 @@ $("#channel-filter").on("change", function () {
     var channel = $(this).val();
     $("#variables-local .variables").hide();
     if (channel) {
-        $("#variables-" + channel).show();
+        $(".variables[data-channel='" + channel + "']").show();
     }
 });
 
@@ -843,11 +859,27 @@ $("#save-exp").on("click", function () {
         data: {
             eventData: eventTableDataAll,
             defaults: variableDefaults,
-            logic: experimentTableData
+            logic: experimentTableData,
+            variableData: getVariableData()
         }
     };
     var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
     Sijax.request("save_json", [jsonExport, fileName]);
+});
+
+$(document).on("change", ".variable-input", function () {
+    var variableInputElement = $(this);
+    var variableElement = $(this).parent().parent();
+    var value = variableInputElement.val();
+    var paramType = variableElement.data("type");
+    generateParamValidator(paramType)(value, function (valid) {
+        if (valid) {
+            variableInputElement.css("border-color", "black");
+            variableElement.data("value", value);
+        } else {
+            variableInputElement.css("border-color", "red");
+        }
+    });
 });
 
 // Generate a random event ID
