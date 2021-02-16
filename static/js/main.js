@@ -26,6 +26,7 @@ $( document ).ready(function() {
         placeholder: "Channel Filter",
         width: 200
     });
+    $(".variable-list").selectable();
 });
 
 // Initialize empty variables, lists, and dictionaries
