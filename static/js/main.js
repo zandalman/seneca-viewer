@@ -823,32 +823,26 @@ $("#save-exp").on("click", function () {
         var eventTableData = eventTable.getData();
         var numRows = eventTableData.length;
         var numCols = eventTableData[0].length;
-        var eventTableVariableData = JSON.parse(JSON.stringify(eventTableData));
-        for (var row = 0; row < numRows; row++) {
-            eventTableVariableData[row] = eventTable.getCellMetaAtRow(row).map(function (cellMeta) {
-               return cellMeta.comments;
-            });
-        }
         eventTableDataAll.push({
             eventType: eventTypes[idx],
-            data: eventTableData,
-            variableData: eventTableVariableData
+            data: eventTableData
         });
     });
     var experimentTableData = experimentTable.getData();
-    var variableData = {};
-    $(".variable-list").map(function () {
-        var paramType = $(this).data("type");
-        variableData[paramType] = $(this).children().map(function () {
-            return $(this).data("name");
-        }).get();
+    var variableDefaults = {};
+    $( ".variable" ).each(function( index ) {
+      var varName =  $( this ).find(".variable-name").text();
+      var varValue = $( this ).find(".variable-input").val()
+      var varChannel = $(this).attr("data-channel");
+      variableDefaults[varChannel] = {}
+      variableDefaults[varChannel]["$" + varName] = [varValue];
     });
+
     var jsonExport = {
         data: {
             eventData: eventTableDataAll,
-            experimentData: experimentTableData,
-            variableBools: variableData,
-            variableDict: variables
+            logic: experimentTableData,
+            defaults: variableDefaults
         }
     };
     var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();

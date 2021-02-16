@@ -60,9 +60,7 @@ def json_to_raw(json_obj):
     """
     data = json_obj["data"]
     event_data = data["eventData"]
-    experiment_data = data["experimentData"]
-    #variable_data = data["variableData"]
-    #data_raw_converted = {"data":{"eventData": [], "experimentData": []}}
+    experiment_data = data["logic"]
     channels = experiment_data.keys()
     exp_data_list = []
     for channel in channels:
@@ -71,17 +69,16 @@ def json_to_raw(json_obj):
         for event in experiment_data[channel]:
             ch_list.append(event["ID"])
     #print (data_raw_converted)
-    data["experimentData"] = exp_data_list
+    data["logic"] = exp_data_list
     event_data_list = []
     for event_type in event_data:
-        ev_type_dict = {"data": [], "variableData":[]}
+        ev_type_dict = {"data": []}
         event_data_list.append(ev_type_dict)
         for event in event_data[event_type]["data"]:
             ev_vals = []
             ev_type_dict["data"].append(ev_vals)
             for value in event.values():
                 ev_vals.append(value)
-        ev_type_dict["variableData"] = data["eventData"][event_type]["variableData"]
     data["eventData"] = event_data_list
     return {"data": data}
 
@@ -98,34 +95,38 @@ def raw_to_json(config_file, raw_data_obj):
     """
     data = raw_data_obj["data"]
     event_data = data["eventData"]
-    experiment_data = data["experimentData"]
-    # Processing the experiment section first
-    experiment_json = {}
-    for channel in experiment_data:
-        channel_events = []
-        for event in channel[1:]:
-            channel_events.append({"ID": event})
-        experiment_json[channel[0]] = channel_events
-    data["experimentData"] = experiment_json
+    experiment_data = data["logic"]
     event_config = json.load(config_file)
     sorted_events = sorted(event_config["events"])
-
-    event_type_json = {}
+    data["eventData"] = {}
     # iterate through the events, alphabetically sorted
     for event_type_list, event_type in zip(event_data, sorted_events):
         parameters = event_config["events"][event_type]["params"]
-        converted_event_list = {"data":[], "variableData": []}
+        converted_event_list = {"data":[]}
         for event in event_type_list["data"]:
-            event_dict = {}
-            event_dict["ID"] = event[0]
+            event_ID = event[0]
+            event_dict = {"eventType": event_type}
             # iterate through the parameters
             for value, parameter in zip(event[1:], parameters):
                 event_dict[parameter] = value
-            converted_event_list["data"].append(event_dict)
-            converted_event_list["variableData"] = event_type_list["variableData"]
-        event_type_json[event_type] = converted_event_list
-    data["eventData"] = event_type_json
-    return {"data": data }
+            data["eventData"][event_ID] = event_dict
+
+    # Processing the experiment section
+    experiment_json = {}
+    for channel in experiment_data:
+        channel_events = []
+        for event in channel[2:]:
+            if not event:
+                channel_events.append("")
+            else:
+                logic_ev_dict  = data["eventData"][event]
+                logic_ev_dict["ID"] = event
+                logic_ev_dict["alias"] = channel[0]
+                logic_ev_dict["deviceType"] = channel[1]
+                channel_events.append(logic_ev_dict)
+        experiment_json[channel[0]] = channel_events
+    data["logic"] = experiment_json
+    return {"description": "placeholder", "data": data }
 
 class SijaxHandlers(object):
     """
@@ -161,5 +162,6 @@ class SijaxHandlers(object):
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
                 config = open(self.app.config["EVENT_CONFIG"])
                 json_output = raw_to_json(config, json_string)
+                print (json_output)
                 json.dump(json_output, f, indent=2)
             obj_response.html("#loaded-experiment-name", filename)
