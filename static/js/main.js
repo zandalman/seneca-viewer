@@ -36,6 +36,7 @@ var eventTypesWithImages = [];
 var channels = [];
 var IDs = [];
 var globalVariables = {};
+var selectedVariable = "";
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -52,7 +53,8 @@ COLORS = {
     booleanVar: "#ffd966",
     stringVar: "#e06666",
     header: "#EEE",
-    event: "#FAFAFA"
+    event: "#FAFAFA",
+    highlight: "#FFFF00"
 };
 
 // Define variable types
@@ -252,6 +254,12 @@ var toggleSelectedCellsAreGlobal = function (eventTable) {
     eventTable.render();
 }
 
+var renderEventTables = function () {
+    eventTables.forEach(function (eventTable) {
+        eventTable.render();
+    });
+}
+
 // Create an event table
 var createEventTable = function (eventType, eventTypeData, eventTableData) {
     var numParams = Object.keys(eventTypeData.params).length;
@@ -351,7 +359,11 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
 // Define renderer to disguise table cells as table headers
 function headerRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
-    td.style.backgroundColor = COLORS.header;
+    if (selectedVariable && instance.getDataAtRow(row).includes(selectedVariable)) {
+        td.style.backgroundColor = COLORS.highlight;
+    } else {
+        td.style.backgroundColor = COLORS.header;
+    }
     td.style.color = "black";
 }
 
@@ -921,5 +933,21 @@ $(document).on("keydown", function (e) {
             toggleSelectedCellsAreGlobal(eventTable);
         });
         e.preventDefault();
+    // escape = unselect variable
+    } else if (e.which === 27) {
+        if (selectedVariable) {
+            selectedVariable = "";
+            $(".variable").removeClass("selected");
+            experimentTable.render();
+            renderEventTables();
+        }
     }
+});
+
+$(document).on("click", ".variable", function () {
+    $(".variable").removeClass("selected");
+    $(this).addClass("selected");
+    selectedVariable = $(this).data("name");
+    experimentTable.render();
+    renderEventTables();
 });
