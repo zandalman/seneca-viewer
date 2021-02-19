@@ -748,7 +748,7 @@ var createExperimentTable = function (experimentTableData = null) {
                 cellProperties.readOnly = true;
                 cellProperties.renderer = experimentTableHeaderRenderer;
             } else {
-                cellProperties.type = "autocomplete";
+                cellProperties.type = "dropdown";
                 cellProperties.source = [""].concat(removeNull(eventTables.map(function (eventTable, idx) {
                     var devices = eventTypeDataAll[eventTypes[idx]].devices;
                     var deviceCompatible = devices.includes(experimentTableData[row][1]) || devices[0] === "all";
