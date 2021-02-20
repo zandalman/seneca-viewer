@@ -379,55 +379,56 @@ function experimentTableHeaderRenderer(instance, td, row, col, prop, value, cell
     td.style.color = "black";
 }
 
-class selectEditor extends Handsontable.editors.BaseEditor {
+class menuEditor extends Handsontable.editors.BaseEditor {
     // Initialize editor instance
     init() {
-        // Create detached node, add CSS class and make sure its not visible
-        this.select = this.hot.rootDocument.createElement("SELECT");
-        Handsontable.dom.addClass(this.select, "htSelectEditor");
-        this.select.style.display = "none";
-        // Attach node to DOM by appending it to the container holding the table
-        this.hot.rootElement.appendChild(this.select);
+        this.menu = this.hot.rootDocument.createElement("DIV");
+        Handsontable.dom.addClass(this.menu, "menu");
+        $(this.menu).data("value", "");
+        this.menu.style.display = "none";
+        this.hot.rootElement.appendChild(this.menu);
     }
-    // Create options
+    // Create menu
     prepare(row, col, prop, td, originalValue, cellProperties) {
         super.prepare(row, col, prop, td, originalValue, cellProperties);
-        const selectOptions = this.cellProperties.selectOptions;
-        let options;
-        if (typeof selectOptions === 'function') {
-            options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
-            } else {
-            options = this.prepareOptions(selectOptions);
+        const menuItemsInput = this.cellProperties.menuItems;
+        let menuItems;
+        if (typeof menuItemsInput === "function") {
+            menuItems = menuItemsInput(this.row, this.col, this.prop);
+        } else {
+            menuItems = menuItemsInput;
         }
-        Handsontable.dom.empty(this.select);
-        Handsontable.helper.objectEach(options, (value, key) => {
-            const optionElement = this.hot.rootDocument.createElement('OPTION');
-            optionElement.value = key;
-            Handsontable.dom.fastInnerHTML(optionElement, value);
-            this.select.appendChild(optionElement);
+        Handsontable.dom.empty(this.menu);
+        Handsontable.helper.objectEach(menuItems, (menuItem, submenu) => {
+            const menuItemElement = this.hot.rootDocument.createElement("DIV");
+            menuItemElement.classList.add("menu-item");
+            const menuItemTitleElement = this.hot.rootDocument.createElement("DIV");
+            menuItemTitleElement.classList.add("menu-item-title");
+            const submenuElement = this.hot.rootDocument.createElement("DIV");
+            submenuElement.classList.add("submenu");
+            this.menu.appendChild(menuItemElement);
+            menuItemElement.appendChild(menuItemTitleElement);
+            menuItemElement.appendChild(submenuElement);
+            Handsontable.dom.fastInnerHTML(menuItemTitleElement, menuItem);
+            submenu.forEach(function (submenuItem) {
+                const submenuItemElement = this.hot.rootDocument.createElement("DIV");
+                submenuItemElement.classList.add("submenu-item");
+                submenuItemElement.value = submenuItem;
+                submenuElement.append(submenuItemElement);
+                Handsontable.dom.fastInnerHTML(submenuItemElement, submenuItem);
+            });
         });
     }
-    prepareOptions(optionsToPrepare) {
-        let preparedOptions = {};
-        if (Array.isArray(optionsToPrepare)) {
-            for (let i = 0, len = optionsToPrepare.length; i < len; i++) {
-                preparedOptions[optionsToPrepare[i]]=optionsToPrepare[i];
-            }
-        } else if (typeof optionsToPrepare==='object' ) {
-            preparedOptions=optionsToPrepare;
-        }
-        return preparedOptions;
-    }
     getValue() {
-        return this.select.value;
+        return $(this.menu).data("value");
     }
     setValue(value) {
-        this.select.value = value;
+        $(this.menu).data("value", value);
     }
     open() {
         this._opened = true;
         this.refreshDimensions();
-        this.select.style.display = '';
+        this.menu.style.display = '';
     }
     refreshDimensions() {
         this.TD = this.getEditedCell();
@@ -471,11 +472,11 @@ class selectEditor extends Handsontable.editors.BaseEditor {
         if (this.hot.getSelectedLast()[1] === 0) {
             editLeft += 1;
         }
-        const selectStyle = this.select.style;
+        const menuStyle = this.menu.style;
         if (cssTransformOffset && cssTransformOffset !== -1) {
-            selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+            menuStyle[cssTransformOffset[0]] = cssTransformOffset[1];
         } else {
-            Handsontable.dom.resetCssTransform(this.select);
+            Handsontable.dom.resetCssTransform(this.menu);
         }
         const cellComputedStyle = Handsontable.dom.getComputedStyle(this.TD, this.hot.rootWindow);
         if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
@@ -484,11 +485,11 @@ class selectEditor extends Handsontable.editors.BaseEditor {
         if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
             width -= 1;
         }
-        selectStyle.height = `${height}px`;
-        selectStyle.minWidth = `${width}px`;
-        selectStyle.top = `${editTop}px`;
-        selectStyle.left = `${editLeft}px`;
-        selectStyle.margin = '0px';
+        menuStyle.height = `${height}px`;
+        menuStyle.minWidth = `${width}px`;
+        menuStyle.top = `${editTop}px`;
+        menuStyle.left = `${editLeft}px`;
+        menuStyle.margin = '0px';
     }
     getEditedCell() {
         const { wtOverlays } = this.hot.view.wt;
@@ -500,35 +501,35 @@ class selectEditor extends Handsontable.editors.BaseEditor {
                 row: this.row,
                 col: this.col
             });
-            this.select.style.zIndex = 101;
+            this.menu.style.zIndex = 101;
             break;
         case 'corner':
             editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
                 row: this.row,
                 col: this.col
             });
-            this.select.style.zIndex = 103;
+            this.menu.style.zIndex = 103;
             break;
         case 'left':
             editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell({
                 row: this.row,
                 col: this.col
             });
-            this.select.style.zIndex = 102;
+            this.menu.style.zIndex = 102;
             break;
         default:
             editedCell = this.hot.getCell(this.row, this.col);
-            this.select.style.zIndex = '';
+            this.menu.style.zIndex = '';
             break;
         }
         return editedCell < 0 ? void 0 : editedCell;
     }
     focus() {
-        this.select.focus();
+        this.menu.focus();
     }
     close() {
         this._opened = false;
-        this.select.style.display = 'none';
+        this.menu.style.display = 'none';
     }
 }
 
@@ -1120,4 +1121,8 @@ $(document).on("click", ".variable", function () {
     selectedVariable = $(this).data("name");
     experimentTable.render();
     renderEventTables();
+});
+
+$(document).on("click", ".submenu-item", function () {
+   $(this).parent().parent().parent().data("value", $(this).val());
 });

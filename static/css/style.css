@@ -102,8 +102,27 @@ td {
 .variable.selected {
     border: 2px solid blue;
 }
-.htSelectEditor {
-  -webkit-appearance: menulist-button !important;
-  position: absolute;
-  width: auto;
+.menu {
+    border: 1px solid #ddd;
+    display: inline-block;
+}
+.menu-item {
+    position: relative;
+    padding: 3px 5px;
+}
+.submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    border: 1px solid #ddd;
+}
+.submenu .submenu-item {
+    padding: 3px 5px;
+}
+.menu-item:hover, .submenu-item:hover {
+    background-color: #ddd;
+}
+.menu-item:hover .submenu {
+    display: block;
 }
