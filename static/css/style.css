@@ -105,10 +105,14 @@ td {
 .menu {
     border: 1px solid #ddd;
     display: inline-block;
+    position: absolute;
+    z-index: 1000;
 }
 .menu-item {
     position: relative;
-    padding: 3px 5px;
+    padding: 0 5px;
+    height: 20px;
+    background-color: white;
 }
 .submenu {
     display: none;
@@ -116,13 +120,16 @@ td {
     left: 100%;
     top: 0;
     border: 1px solid #ddd;
+    width: 100%;
 }
-.submenu .submenu-item {
-    padding: 3px 5px;
+.submenu-item {
+    padding: 0 5px;
+    height: 20px;
+    background-color: white;
 }
-.menu-item:hover, .submenu-item:hover {
+.menu-item.selected, .submenu-item.selected {
     background-color: #ddd;
 }
-.menu-item:hover .submenu {
+.menu-item.selected .submenu {
     display: block;
 }

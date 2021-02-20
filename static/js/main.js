@@ -387,43 +387,51 @@ class menuEditor extends Handsontable.editors.BaseEditor {
         $(this.menu).data("value", "");
         this.menu.style.display = "none";
         this.hot.rootElement.appendChild(this.menu);
+        var editor = this;
+        $(document).on("click", ".submenu-item", function () {
+            var value = $(this).data("value");
+            experimentTable.setDataAtCell(editor.row, editor.col, value);
+            editor.close();
+        });
     }
     // Create menu
     prepare(row, col, prop, td, originalValue, cellProperties) {
         super.prepare(row, col, prop, td, originalValue, cellProperties);
-        const menuItemsInput = this.cellProperties.menuItems;
+        var editor = this;
+        const menuItemsInput = editor.cellProperties.menuItems;
         let menuItems;
         if (typeof menuItemsInput === "function") {
-            menuItems = menuItemsInput(this.row, this.col, this.prop);
+            menuItems = menuItemsInput(editor.row, editor.col, editor.prop);
         } else {
             menuItems = menuItemsInput;
         }
-        Handsontable.dom.empty(this.menu);
-        Handsontable.helper.objectEach(menuItems, (menuItem, submenu) => {
-            const menuItemElement = this.hot.rootDocument.createElement("DIV");
+        Handsontable.dom.empty(editor.menu);
+        Object.keys(menuItems).forEach(function (menuItem) {
+            var submenu = menuItems[menuItem];
+            const menuItemElement = editor.hot.rootDocument.createElement("DIV");
             menuItemElement.classList.add("menu-item");
-            const menuItemTitleElement = this.hot.rootDocument.createElement("DIV");
+            const menuItemTitleElement = editor.hot.rootDocument.createElement("DIV");
             menuItemTitleElement.classList.add("menu-item-title");
-            const submenuElement = this.hot.rootDocument.createElement("DIV");
+            const submenuElement = editor.hot.rootDocument.createElement("DIV");
             submenuElement.classList.add("submenu");
-            this.menu.appendChild(menuItemElement);
+            editor.menu.appendChild(menuItemElement);
             menuItemElement.appendChild(menuItemTitleElement);
             menuItemElement.appendChild(submenuElement);
             Handsontable.dom.fastInnerHTML(menuItemTitleElement, menuItem);
             submenu.forEach(function (submenuItem) {
-                const submenuItemElement = this.hot.rootDocument.createElement("DIV");
+                const submenuItemElement = editor.hot.rootDocument.createElement("DIV");
                 submenuItemElement.classList.add("submenu-item");
-                submenuItemElement.value = submenuItem;
+                submenuItemElement.setAttribute("data-value", submenuItem);
                 submenuElement.append(submenuItemElement);
                 Handsontable.dom.fastInnerHTML(submenuItemElement, submenuItem);
             });
         });
     }
     getValue() {
-        return $(this.menu).data("value");
+        return this.menu.getAttribute("data-value");
     }
     setValue(value) {
-        $(this.menu).data("value", value);
+        this.menu.setAttribute("data-value", value);
     }
     open() {
         this._opened = true;
@@ -432,7 +440,7 @@ class menuEditor extends Handsontable.editors.BaseEditor {
     }
     refreshDimensions() {
         this.TD = this.getEditedCell();
-        // TD is outside of the viewport.
+        // If TD is outside viewport, close the editor
         if (!this.TD) {
             this.close();
             return;
@@ -443,24 +451,24 @@ class menuEditor extends Handsontable.editors.BaseEditor {
         const scrollableContainer = wtOverlays.scrollableElement;
         const editorSection = this.checkEditorSection();
         let width = Handsontable.dom.outerWidth(this.TD) + 1;
-        let height = Handsontable.dom.outerHeight(this.TD) + 1;
-        let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
+        let height = this.cellProperties.menuItems.length * Handsontable.dom.outerHeight(this.TD) + 1;
+        let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0) + Handsontable.dom.outerHeight(this.TD);
         let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
         let cssTransformOffset;
         switch (editorSection) {
-            case 'top':
+            case "top":
                 cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
                 break;
-            case 'left':
+            case "left":
                 cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
                 break;
-            case 'top-left-corner':
+            case "top-left-corner":
                 cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
                 break;
-            case 'bottom-left-corner':
+            case "bottom-left-corner":
                 cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
                 break;
-            case 'bottom':
+            case "bottom":
                 cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
                 break;
             default:
@@ -749,12 +757,16 @@ var createExperimentTable = function (experimentTableData = null) {
                 cellProperties.readOnly = true;
                 cellProperties.renderer = experimentTableHeaderRenderer;
             } else {
-                cellProperties.type = "dropdown";
-                cellProperties.source = [""].concat(removeNull(eventTables.map(function (eventTable, idx) {
-                    var devices = eventTypeDataAll[eventTypes[idx]].devices;
-                    var deviceCompatible = devices.includes(experimentTableData[row][1]) || devices[0] === "all";
-                    return deviceCompatible ? eventTable.getDataAtCol(0) : null;
-                }).flat()).sort());
+                cellProperties.editor = menuEditor;
+                var menuItems = {};
+                eventTypes.forEach(function (eventType, idx) {
+                    var eventTypeDevices = eventTypeDataAll[eventType].devices;
+                    var deviceCompatible = eventTypeDevices.includes(experimentTableData[row][1]) || devices[0] === "all";
+                    if (deviceCompatible) {
+                        menuItems[eventType] = eventTables[idx].getDataAtCol(0);
+                    }
+                });
+                cellProperties.menuItems = menuItems;
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
                 cellProperties.renderer = experimentTableRenderer;
@@ -1123,6 +1135,10 @@ $(document).on("click", ".variable", function () {
     renderEventTables();
 });
 
-$(document).on("click", ".submenu-item", function () {
-   $(this).parent().parent().parent().data("value", $(this).val());
+$(document).on("mouseenter", ".menu-item, .submenu-item", function () {
+    $(this).addClass("selected");
+});
+
+$(document).on("mouseleave", ".menu-item, .submenu-item", function () {
+    $(this).removeClass("selected");
 });
