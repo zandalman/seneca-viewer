@@ -133,3 +133,14 @@ td {
 .menu-item.selected .submenu {
     display: block;
 }
+#experiment-name {
+    outline: none;
+    font-size: 32px;
+    margin: 5px 0;
+}
+#experiment-name[disabled] {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+    color: black;
+}

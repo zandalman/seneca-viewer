@@ -26,6 +26,7 @@ $( document ).ready(function() {
         placeholder: "Channel Filter",
         width: 200
     });
+    $("#experiment-name").attr("disabled", "disabled");
 });
 
 // Initialize empty variables, lists, and dictionaries
@@ -37,6 +38,7 @@ var channels = [];
 var IDs = [];
 var globalVariables = {};
 var selectedVariable = "";
+var editorOpen = false;
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -427,16 +429,19 @@ class menuEditor extends Handsontable.editors.BaseEditor {
             });
         });
     }
+    // Unused but required function
     getValue() {
-        return this.menu.getAttribute("data-value");
+        null;
     }
+    // Unused but required function
     setValue(value) {
-        this.menu.setAttribute("data-value", value);
+        null;
     }
     open() {
         this._opened = true;
         this.refreshDimensions();
         this.menu.style.display = '';
+        editorOpen = true;
     }
     refreshDimensions() {
         this.TD = this.getEditedCell();
@@ -538,6 +543,7 @@ class menuEditor extends Handsontable.editors.BaseEditor {
     close() {
         this._opened = false;
         this.menu.style.display = 'none';
+        editorOpen = false;
     }
 }
 
@@ -1049,7 +1055,6 @@ $("#save-exp").on("click", function () {
       variableDefaults[varChannel] = {}
       variableDefaults[varChannel]["$" + varName] = [varValue];
     });
-
     var jsonExport = {
         data: {
             eventData: eventTableDataAll,
@@ -1058,7 +1063,7 @@ $("#save-exp").on("click", function () {
             variableData: getVariableData()
         }
     };
-    var fileName = $("#loaded-experiment-name").html() === "No Experiment Loaded" ? prompt("Input file name") : $("#loaded-experiment-name").html();
+    var fileName = $("#experiment-name").val() === "untitled" ? prompt("Experiment name") : $("#experiment-name").val();
     Sijax.request("save_json", [jsonExport, fileName]);
 });
 
@@ -1141,4 +1146,18 @@ $(document).on("mouseenter", ".menu-item, .submenu-item", function () {
 
 $(document).on("mouseleave", ".menu-item, .submenu-item", function () {
     $(this).removeClass("selected");
+});
+
+var fixExperimentName = function (e) {
+    if (e.key === "Enter") {
+        $("#experiment-name").attr("disabled", "disabled");
+        $("#experiment-name").unbind("change", fixExperimentName);
+    }
+}
+
+$("#edit-experiment-name").on("click", function () {
+    var currentExperimentName = $("#experiment-name").val();
+    $("#experiment-name").removeAttr("disabled");
+    $("#experiment-name").focus();
+    $("#experiment-name").bind("keydown", fixExperimentName);
 });
