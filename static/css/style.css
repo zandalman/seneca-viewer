@@ -142,5 +142,11 @@ td {
     background: transparent;
     border: none;
     pointer-events: none;
-    color: black;
+    color: red;
+}
+#experiment-name[disabled].saved {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+    color: green;
 }

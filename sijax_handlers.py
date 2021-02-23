@@ -37,8 +37,9 @@ class SijaxUploadHandlers(object):
         elif filename != secure_filename(filename):
             obj_response.alert("File name '%s' is not secure." % filename)
         else:
-            obj_response.call("loadJson", [json_to_raw(json.loads(file_data.read().decode("utf-8")))])
-            obj_response.html("#loaded-experiment-name", filename)
+            experiment_name = os.path.splitext(filename)[0]
+            experiment_data = json.loads(file_data.read().decode("utf-8"))
+            obj_response.call("loadJson", [experiment_name, experiment_data])
 
 
 class SijaxCometHandlers(object):
@@ -164,4 +165,4 @@ class SijaxHandlers(object):
                 config = open(self.app.config["EVENT_CONFIG"])
                 json_output = raw_to_json(config, json_string)
                 json.dump(json_output, f, indent=2)
-            obj_response.html("#loaded-experiment-name", filename)
+        obj_response.call("afterSuccessfulSave")

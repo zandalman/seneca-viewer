@@ -208,6 +208,7 @@ var addExperimentTableHooks = function () {
         if (EDIT_SOURCES.includes(source)) {
             updateVariables();
         }
+        $("#experiment-name").removeClass("saved");
     });
 }
 
@@ -966,6 +967,7 @@ var addAfterChangeHook = function (eventTable) {
         if (EDIT_SOURCES.includes(source)) {
             updateVariables();
         }
+        $("#experiment-name").removeClass("saved");
     });
 }
 
@@ -1023,8 +1025,9 @@ var resetTables = function (loadedData) {
     $("#event-type-filter").trigger("change");
 }
 
-var loadJson = function (loadedData) {
+var loadJson = function (experimentName, loadedData) {
     resetTables(loadedData);
+    $("#experiment-name").val(experimentName);
 }
 
 $("#load-exp").on("click", function () {
@@ -1063,9 +1066,18 @@ $("#save-exp").on("click", function () {
             variableData: getVariableData()
         }
     };
-    var fileName = $("#experiment-name").val() === "untitled" ? prompt("Experiment name") : $("#experiment-name").val();
+    if ($("#experiment-name").val() === "untitled") {
+        var fileName = prompt("Experiment name");
+        $("#experiment-name").val(fileName);
+    } else {
+        var fileName = $("#experiment-name").val();
+    }
     Sijax.request("save_json", [jsonExport, fileName]);
 });
+
+var afterSuccessfulSave = function () {
+    $("#experiment-name").addClass("saved");
+}
 
 $(document).on("change", ".variable-input", function () {
     var variableInputElement = $(this);
@@ -1148,7 +1160,7 @@ $(document).on("mouseleave", ".menu-item, .submenu-item", function () {
     $(this).removeClass("selected");
 });
 
-var fixExperimentName = function (e) {
+var disableExperimentName = function (e) {
     if (e.key === "Enter") {
         $("#experiment-name").attr("disabled", "disabled");
         $("#experiment-name").unbind("change", fixExperimentName);
@@ -1159,5 +1171,5 @@ $("#edit-experiment-name").on("click", function () {
     var currentExperimentName = $("#experiment-name").val();
     $("#experiment-name").removeAttr("disabled");
     $("#experiment-name").focus();
-    $("#experiment-name").bind("keydown", fixExperimentName);
+    $("#experiment-name").bind("keydown", disableExperimentName);
 });
