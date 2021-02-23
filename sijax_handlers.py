@@ -3,6 +3,7 @@ import json
 import numpy as np
 from werkzeug.utils import secure_filename
 from translator import Parser
+import copy
 
 
 class SijaxUploadHandlers(object):
@@ -120,7 +121,7 @@ def raw_to_json(config_file, raw_data_obj, filename):
     for time_block in logic[2:]:
         for idx, event in enumerate(time_block):
             if event:
-                time_block[idx] = eventLibrary[event]
+                time_block[idx] = copy.deepcopy(eventLibrary[event])
                 time_block[idx]["ID"] = event
                 time_block[idx]["alias"] = logic[0][idx]
     logic = logic[2:].tolist()
