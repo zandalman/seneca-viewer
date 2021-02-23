@@ -1065,7 +1065,7 @@ $("#save-experiment").on("click", function () {
             variableData: getVariableData()
         }
     };
-    if ($("#experiment-name").val() === "untitled") {
+    if ($("#experiment-name").val() === "") {
         var fileName = prompt("Experiment name");
         $("#experiment-name").val(fileName);
     } else {
@@ -1168,18 +1168,12 @@ $(document).on("mouseleave", ".menu-item, .submenu-item", function () {
 
 var disableExperimentName = function (e) {
     if (e.key === "Enter") {
-        if ($("#experiment-name").val() === "") {
-            $("#experiment-name").val("untitled");
-        }
         $("#experiment-name").attr("disabled", "disabled");
         $("#experiment-name").unbind("change", disableExperimentName);
     }
 }
 
 $("#edit-experiment-name").on("click", function () {
-    if ($("#experiment-name").val() === "untitled") {
-        $("#experiment-name").val("");
-    }
     $("#experiment-name").removeAttr("disabled");
     $("#experiment-name").focus();
     $("#experiment-name").bind("keydown", disableExperimentName);

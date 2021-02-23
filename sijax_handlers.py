@@ -126,7 +126,7 @@ def raw_to_json(config_file, raw_data_obj):
         time_block = [event for event in time_block if event]
         logic[index] = time_block
     data["logic"] = logic
-    return {"description": "placeholder", "data": data }
+    return dict(**data, description={"placeholder": "placeholder"})
 
 class SijaxHandlers(object):
     """
