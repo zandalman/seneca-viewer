@@ -404,10 +404,3 @@ class Parser():
             this_experiment.add(new_event)
         
         return this_experiment
-
-
-#test_parser = Parser("first_sequencev3.json")
-#experiment = test_parser.create_experiment()
-#print(experiment.translate())
-
-
