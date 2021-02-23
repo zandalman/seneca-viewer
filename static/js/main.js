@@ -1072,8 +1072,14 @@ $("#save-exp").on("click", function () {
     } else {
         var fileName = $("#experiment-name").val();
     }
-    Sijax.request("save_json", [jsonExport, fileName]);
+    Sijax.request("save_json", [jsonExport, fileName, false]);
 });
+
+var confirmOverrideExperiment = function (jsonExport, fileName) {
+    if (confirm("An experiment with the name '" + fileName + ".json' already exists. Do you want to replace it?")) {
+        Sijax.request("save_json", [jsonExport, fileName, true]);
+    }
+}
 
 var afterSuccessfulSave = function () {
     $("#experiment-name").addClass("saved");
@@ -1162,13 +1168,18 @@ $(document).on("mouseleave", ".menu-item, .submenu-item", function () {
 
 var disableExperimentName = function (e) {
     if (e.key === "Enter") {
+        if ($("#experiment-name").val() === "") {
+            $("#experiment-name").val("untitled");
+        }
         $("#experiment-name").attr("disabled", "disabled");
-        $("#experiment-name").unbind("change", fixExperimentName);
+        $("#experiment-name").unbind("change", disableExperimentName);
     }
 }
 
 $("#edit-experiment-name").on("click", function () {
-    var currentExperimentName = $("#experiment-name").val();
+    if ($("#experiment-name").val() === "untitled") {
+        $("#experiment-name").val("");
+    }
     $("#experiment-name").removeAttr("disabled");
     $("#experiment-name").focus();
     $("#experiment-name").bind("keydown", disableExperimentName);

@@ -143,7 +143,7 @@ class SijaxHandlers(object):
     def __init__(self, app):
         self.app = app
 
-    def save_json(self, obj_response, json_string, filename):
+    def save_json(self, obj_response, json_string, filename, override):
         """
         Save an experiment as a JSON experiment file.
 
@@ -156,19 +156,19 @@ class SijaxHandlers(object):
             obj_response.alert("No file name entered.")
         elif filename != secure_filename(filename):
             obj_response.alert("File name '%s' is not secure." % filename)
-        #elif filename in os.listdir(self.app.config["UPLOAD_FOLDER"]):
-        #    obj_response.alert("A json file '%s.json' already exists." % filename)
+        elif not override and filename + ".json" in os.listdir(self.app.config["UPLOAD_FOLDER"]):
+            obj_response.call("confirmOverrideExperiment", [json_string, filename])
         else:
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
                 config = open(self.app.config["EVENT_CONFIG"])
                 json_output = raw_to_json(config, json_string)
                 json.dump(json_output, f, indent=2)
-        obj_response.call("afterSuccessfulSave")
+            obj_response.call("afterSuccessfulSave")
 
     def translate_experiment(self, obj_response, experiment_name):
         experiment_file_path = os.path.join(self.app.config["UPLOAD_FOLDER"], experiment_name + ".json")
         script_file_path = os.path.join(self.app.config["SCRIPT_FOLDER"], experiment_name + ".json")
         parser = Parser(experiment_file_path)
-        script = parser.create_experiment()
+        script = parser.create_experiment().translate()
         with open(script_file_path, "w") as script_file:
             script_file.write(script)
