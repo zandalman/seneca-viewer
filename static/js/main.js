@@ -1192,3 +1192,13 @@ $("#translate").on("click", function () {
     }
     Sijax.request("translate_experiment", [experimentName]);
 });
+
+var displayScript = function (script) {
+    var codeEditor = CodeMirror(document.getElementById("script"), {
+        value: script,
+        mode:  "python",
+        lineNumbers: true,
+        readOnly: true
+    });
+    codeEditor.refresh();
+}
