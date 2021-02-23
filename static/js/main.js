@@ -38,7 +38,7 @@ var channels = [];
 var IDs = [];
 var globalVariables = {};
 var selectedVariable = "";
-var editorOpen = false;
+var override = false; // whether to replace experiments with the same name
 
 // Define ID length
 var ID_LENGTH = 5;
@@ -442,7 +442,6 @@ class menuEditor extends Handsontable.editors.BaseEditor {
         this._opened = true;
         this.refreshDimensions();
         this.menu.style.display = '';
-        editorOpen = true;
     }
     refreshDimensions() {
         this.TD = this.getEditedCell();
@@ -544,7 +543,6 @@ class menuEditor extends Handsontable.editors.BaseEditor {
     close() {
         this._opened = false;
         this.menu.style.display = 'none';
-        editorOpen = false;
     }
 }
 
@@ -1028,9 +1026,10 @@ var resetTables = function (loadedData) {
 var loadJson = function (experimentName, loadedData) {
     resetTables(loadedData);
     $("#experiment-name").val(experimentName);
+    override = true;
 }
 
-$("#load-exp").on("click", function () {
+$("#load-experiment").on("click", function () {
     $("#upload-json-input").val("");
     $("#upload-json-input").click();
     $("#upload-json-input").on("change", function () {
@@ -1038,7 +1037,7 @@ $("#load-exp").on("click", function () {
     });
 });
 
-$("#save-exp").on("click", function () {
+$("#save-experiment").on("click", function () {
     var eventTableDataAll = [];
     eventTables.forEach(function (eventTable, idx) {
         var eventTableData = eventTable.getData();
@@ -1072,7 +1071,7 @@ $("#save-exp").on("click", function () {
     } else {
         var fileName = $("#experiment-name").val();
     }
-    Sijax.request("save_json", [jsonExport, fileName, false]);
+    Sijax.request("save_json", [jsonExport, fileName, override]);
 });
 
 var confirmOverrideExperiment = function (jsonExport, fileName) {
@@ -1083,6 +1082,7 @@ var confirmOverrideExperiment = function (jsonExport, fileName) {
 
 var afterSuccessfulSave = function () {
     $("#experiment-name").addClass("saved");
+    override = true;
 }
 
 $(document).on("change", ".variable-input", function () {
@@ -1131,7 +1131,7 @@ $("#exp-table-display-mode").on("change", function () {
 $(document).on("keydown", function (e) {
     // ctrl + s = save experiment
     if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "s")) {
-        $("#save-exp").trigger("click");
+        $("#save-experiment").trigger("click");
         e.preventDefault();
     // ctrl + g = toggle whether selected cells are global variables
     } else if ((e.metaKey || e.ctrlKey) && (String.fromCharCode(e.which).toLowerCase() === "g")) {
@@ -1187,6 +1187,7 @@ $("#edit-experiment-name").on("click", function () {
 
 $("#experiment-name").on("change", function () {
     $(this).removeClass("saved");
+    override = false;
 });
 
 $("#translate").on("click", function () {
@@ -1195,7 +1196,7 @@ $("#translate").on("click", function () {
         if (confirm("Save '" + experimentName + ".json' before translating?")) {
             return;
         } else {
-            $("#save-exp").trigger("click");
+            $("#save-experiment").trigger("click");
         }
     }
     Sijax.request("translate_experiment", [experimentName]);
