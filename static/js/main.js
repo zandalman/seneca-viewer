@@ -113,12 +113,12 @@ var removeNull = function (arr) {
 
 // Define default experiment table data
 var experimentTableDataDefault = [
-    ["ch1", "TTL"].concat(createFullArray(12, "")),
+    ["ch1", "DDS"].concat(createFullArray(12, "")),
     ["ch2", "DDS"].concat(createFullArray(12, "")),
     ["ch3", "DDS"].concat(createFullArray(12, "")),
     ["ch4", "DDS"].concat(createFullArray(12, "")),
-    ["ch5", "ADC"].concat(createFullArray(12, "")),
-    ["ch6", "ADC"].concat(createFullArray(12, "")),
+    ["ch5", "DAC"].concat(createFullArray(12, "")),
+    ["ch6", "DAC"].concat(createFullArray(12, "")),
     ["ch7", "DAC"].concat(createFullArray(12, ""))
 ];
 

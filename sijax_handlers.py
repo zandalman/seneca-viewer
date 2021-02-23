@@ -84,7 +84,7 @@ def json_to_raw(json_obj):
     return {"data": data}
 
 
-def raw_to_json(config_file, raw_data_obj):
+def raw_to_json(config_file, raw_data_obj, filename):
     """
     Converts a JSON containing the raw table format to a JSON sequence file.
 
@@ -104,7 +104,6 @@ def raw_to_json(config_file, raw_data_obj):
     # iterate through the events, alphabetically sorted
     for event_type_list, event_type in zip(event_data, sorted_events):
         parameters = event_config["events"][event_type]["params"]
-        converted_event_list = {"data":[]}
         for event in event_type_list["data"]:
             event_ID = event[0]
             event_dict = {"eventType": event_type}
@@ -115,18 +114,30 @@ def raw_to_json(config_file, raw_data_obj):
 
     # Processing the experiment section
     logic = exp_data_tp.astype("object")
+    aliases = {"gateware": "SimpleUrukul"}
+    for idx, (channel, device) in enumerate(zip(logic[0], logic[1])):
+        aliases[channel] = dict(type=device, board_id=idx, channel_id=idx)
     for time_block in logic[2:]:
-        for index, event in enumerate(time_block):
+        for idx, event in enumerate(time_block):
             if event:
-                time_block[index] = eventLibrary[event]
-                time_block[index]["ID"] = event
-                time_block[index]["alias"] = logic[0][index]
+                time_block[idx] = eventLibrary[event]
+                time_block[idx]["ID"] = event
+                time_block[idx]["alias"] = logic[0][idx]
     logic = logic[2:].tolist()
     for (index, time_block) in enumerate(logic):
         time_block = [event for event in time_block if event]
         logic[index] = time_block
     data["logic"] = logic
-    return dict(**data, description={"placeholder": "placeholder"})
+
+    # hardcoded experiment description
+    description = {
+        "name": filename,
+        "creator": "Seneca",
+        "control": "Artiq",
+        "version": "5.71"
+    }
+
+    return dict(**data, description=description, aliases=aliases)
 
 class SijaxHandlers(object):
     """
@@ -161,7 +172,7 @@ class SijaxHandlers(object):
         else:
             with open(os.path.join(self.app.config["UPLOAD_FOLDER"], filename + ".json"), 'w') as f:
                 config = open(self.app.config["EVENT_CONFIG"])
-                json_output = raw_to_json(config, json_string)
+                json_output = raw_to_json(config, json_string, filename)
                 json.dump(json_output, f, indent=2)
             obj_response.call("afterSuccessfulSave")
 
