@@ -1173,3 +1173,19 @@ $("#edit-experiment-name").on("click", function () {
     $("#experiment-name").focus();
     $("#experiment-name").bind("keydown", disableExperimentName);
 });
+
+$("#experiment-name").on("change", function () {
+    $(this).removeClass("saved");
+});
+
+$("#translate").on("click", function () {
+    var experimentName = $("#experiment-name").val();
+    if (!$("#experiment-name").hasClass("saved")) {
+        if (confirm("Save '" + experimentName + ".json' before translating?")) {
+            return;
+        } else {
+            $("#save-exp").trigger("click");
+        }
+    }
+    Sijax.request("translate_experiment", [experimentName]);
+});

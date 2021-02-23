@@ -4,4 +4,4 @@ Atomic physics experiments require the repetition of parameterized, hardware-tim
 
 Seneca is named for Lucius Annaeus Seneca the Elder, a Roman writer and orator.
 
-<img src="seneca.jpg" alt="seneca" width="200"/>
+<img src="static/documentation/seneca.jpg" alt="seneca" width="200"/>

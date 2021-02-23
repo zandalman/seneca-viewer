@@ -1,10 +1,8 @@
-import time
 import os
 import json
-import copy
 import numpy as np
 from werkzeug.utils import secure_filename
-from functions import gen_id
+from translator import Parser
 
 
 class SijaxUploadHandlers(object):
@@ -166,3 +164,11 @@ class SijaxHandlers(object):
                 json_output = raw_to_json(config, json_string)
                 json.dump(json_output, f, indent=2)
         obj_response.call("afterSuccessfulSave")
+
+    def translate_experiment(self, obj_response, experiment_name):
+        experiment_file_path = os.path.join(self.app.config["UPLOAD_FOLDER"], experiment_name + ".json")
+        script_file_path = os.path.join(self.app.config["SCRIPT_FOLDER"], experiment_name + ".json")
+        parser = Parser(experiment_file_path)
+        script = parser.create_experiment()
+        with open(script_file_path, "w") as script_file:
+            script_file.write(script)
