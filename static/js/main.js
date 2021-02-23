@@ -113,13 +113,10 @@ var removeNull = function (arr) {
 
 // Define default experiment table data
 var experimentTableDataDefault = [
-    ["ch1", "DDS"].concat(createFullArray(12, "")),
-    ["ch2", "DDS"].concat(createFullArray(12, "")),
-    ["ch3", "DDS"].concat(createFullArray(12, "")),
-    ["ch4", "DDS"].concat(createFullArray(12, "")),
-    ["ch5", "DAC"].concat(createFullArray(12, "")),
-    ["ch6", "DAC"].concat(createFullArray(12, "")),
-    ["ch7", "DAC"].concat(createFullArray(12, ""))
+    ["aom_2dmot", "DDS"].concat(createFullArray(12, "")),
+    ["aom_3dmot", "DDS"].concat(createFullArray(12, "")),
+    ["aom_push", "DDS"].concat(createFullArray(12, "")),
+    ["aom_zotino", "DAC"].concat(createFullArray(12, ""))
 ];
 
 // Retrieve data from HTML storage
@@ -1188,9 +1185,9 @@ $("#translate").on("click", function () {
     var experimentName = $("#experiment-name").val();
     if (!$("#experiment-name").hasClass("saved")) {
         if (confirm("Save '" + experimentName + ".json' before translating?")) {
-            return;
-        } else {
             $("#save-experiment").trigger("click");
+        } else {
+            return;
         }
     }
     Sijax.request("translate_experiment", [experimentName]);

@@ -18,6 +18,10 @@
         "frequency": {
           "type": "float",
           "unit": "Hz"
+        },
+        "amplitude": {
+          "type": "float",
+          "unit": "V"
         }
       }
     },

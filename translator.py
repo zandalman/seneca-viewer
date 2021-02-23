@@ -99,9 +99,10 @@ class DDSEvent(Event):
 class ArtiqEvent(Event):
     def __init__(self, device_name, event_type, event_id, aliases, **kwargs):
         super().__init__(device_name, aliases[device_name]["type"], event_id)
+        parallel = kwargs.pop("parallel", False)
         self.board = aliases[device_name]["board_id"]
         self.channel = aliases[device_name]["channel_id"]
-        self.base_translation = ArtiqEventBlock(event_id)
+        self.base_translation = ArtiqEventBlock(event_id, parallel=parallel)
         
         if isinstance(artiq_templates[self.device_type][event_type], list):
             lines = artiq_templates[self.device_type][event_type]
@@ -112,10 +113,7 @@ class ArtiqEvent(Event):
             ]
         
         for line in lines:
-            print("1")
-            self.base_translation.add(line.format(board_id = self.board, 
-                                                  channel_id = self.channel,
-                                                  **kwargs))
+            self.base_translation.add(line.format(board_id = self.board, channel_id = self.channel, **kwargs))
             
         self.translation = self.base_translation
         self.base_output = str(self.base_translation)
@@ -385,22 +383,23 @@ class Parser():
                                      self.control, 
                                      self.aliases)
         
-        for event in self.logic:
-            generic = ["eventType", "deviceType", "alias", "ID"]
-            event_args = {}
+        for timestep in self.logic:
+            for event in timestep:
+                generic = ["eventType", "deviceType", "alias", "ID"]
+                event_args = {}
 
-            for argument in event:
-                if argument not in generic:
-                    event_args[argument] = event[argument]
-            
-            event_name = self.control + "Event"
-            EventObject = globals()[event_name]
-            new_event = EventObject(
-                                event["alias"],
-                                event["eventType"],
-                                event["ID"],
-                                self.aliases,  
-                                **event_args)
-            this_experiment.add(new_event)
+                for argument in event:
+                    if argument not in generic:
+                        event_args[argument] = event[argument]
+
+                event_name = self.control + "Event"
+                EventObject = globals()[event_name]
+                new_event = EventObject(
+                                    event["alias"],
+                                    event["eventType"],
+                                    event["ID"],
+                                    self.aliases,
+                                    **event_args)
+                this_experiment.add(new_event)
         
         return this_experiment
