@@ -34,6 +34,7 @@ var experimentTable;
 var eventTables = [];
 var eventTypes = [];
 var eventTypesWithImages = [];
+var eventTypesThatPersist = [];
 var channels = [];
 var IDs = [];
 var globalVariables = {};
@@ -166,6 +167,9 @@ var createEventTables = function (eventTableDataList = null) {
         if (eventTypeData.image === "true") {
             eventTypesWithImages.push(eventType);
         }
+        if (eventTypeData.persists === "true") {
+            eventTypesThatPersist.push(eventType);
+        }
     });
 }
 
@@ -203,6 +207,33 @@ var addExperimentTableHooks = function () {
     experimentTable.addHook("afterChange", function (changes, source) {
         // If source of change is a form of cell editing...
         if (EDIT_SOURCES.includes(source)) {
+            experimentTableData = experimentTable.getData();
+            var numCols = experimentTableData[0].length;
+            changes.forEach(function (change) {
+               var row = change[0];
+               var col = change[1];
+               var oldValue = change[2]
+               var newValue = change[3];
+               var colIdx;
+               if (oldValue && eventTypesThatPersist.includes(getEventType(oldValue))) {
+                   for (colIdx = col + 1; colIdx < numCols; colIdx++) {
+                       if (experimentTableData[row][colIdx] === oldValue) {
+                           experimentTable.setDataAtCell(row, colIdx, "", "persistSystem");
+                       } else {
+                           break;
+                       }
+                   }
+               }
+               if (newValue && eventTypesThatPersist.includes(getEventType(newValue))) {
+                   for (colIdx = col + 1; colIdx < numCols; colIdx++) {
+                       if (!experimentTableData[row][colIdx]) {
+                           experimentTable.setDataAtCell(row, colIdx, newValue, "persistSystem");
+                       } else {
+                           break;
+                       }
+                   }
+               }
+            });
             updateVariables();
         }
         $("#experiment-name").removeClass("saved");
@@ -585,6 +616,25 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
     }
 }
 
+var experimentTableValidator = function (value, callback) {
+    if (value) {
+        var device = this.instance.getDataAtCell(this.row, 1);
+        eventTypes.forEach(function (eventType, idx) {
+            var eventTypeDevices = eventTypeDataAll[eventType].devices;
+            var deviceCompatible = eventTypeDevices.includes(device) || devices[0] === "all";
+            if (deviceCompatible) {
+                if (eventTables[idx].getDataAtCol(0).includes(value)) {
+                    callback(true);
+                    return;
+                }
+            }
+        });
+        callback(false);
+    } else {
+        callback(true);
+    }
+}
+
 // Render experiment table when toggling comments
 $("#comments").on("click", function () {
     experimentTable.render();
@@ -772,6 +822,7 @@ var createExperimentTable = function (experimentTableData = null) {
                 cellProperties.strict = true;
                 cellProperties.allowInvalid = false;
                 cellProperties.renderer = experimentTableRenderer;
+                cellProperties.validator = experimentTableValidator;
             }
             return cellProperties;
         },
@@ -1193,12 +1244,14 @@ $("#translate").on("click", function () {
     Sijax.request("translate_experiment", [experimentName]);
 });
 
+var codeEditor = CodeMirror(document.getElementById("script"), {
+    value: "\n\n\n",
+    mode:  "python",
+    lineNumbers: true,
+    readOnly: true
+});
+codeEditor.setSize(null, "100%");
+
 var displayScript = function (script) {
-    var codeEditor = CodeMirror(document.getElementById("script"), {
-        value: script,
-        mode:  "python",
-        lineNumbers: true,
-        readOnly: true
-    });
-    codeEditor.refresh();
+    codeEditor.setValue(script);
 }

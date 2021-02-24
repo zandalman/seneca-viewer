@@ -4,9 +4,6 @@
     -ms-user-select: none;
     user-select: none;
 }
-#exp-edit {
-    font-family: ubuntu;
-}
 .row {
     width: 100%;
     display: flex;

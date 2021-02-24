@@ -11,6 +11,7 @@
     "set_frequency": {
       "abbreviation": "FRQ",
       "image": "true",
+      "persists": "true",
       "devices": [
         "DDS"
       ],
@@ -28,6 +29,7 @@
     "collect_data": {
       "abbreviation": "CDT",
       "image": "false",
+      "persists": "false",
       "devices": [
         "SCRIPT"
       ],
@@ -45,6 +47,7 @@
     "ramp_frequency": {
       "abbreviation": "RFQ",
       "image": "true",
+      "persists": "false",
       "devices": [
         "DDS"
       ],
@@ -70,6 +73,7 @@
     "power": {
       "abbreviation": "POW",
       "image": "true",
+      "persists": "false",
       "devices": [
         "DDS",
         "DAC"
@@ -84,6 +88,7 @@
     "RF_power": {
       "abbreviation": "RPW",
       "image": "true",
+      "persists": "false",
       "devices": [
         "DDS"
       ],
@@ -97,6 +102,7 @@
     "set_voltage": {
       "abbreviation": "VLT",
       "image": "true",
+      "persists": "false",
       "devices": [
         "DAC"
       ],
@@ -110,6 +116,7 @@
     "ramp": {
       "abbreviation": "RMP",
       "image": "true",
+      "persists": "false",
       "devices": [
         "DAC"
       ],
@@ -131,6 +138,7 @@
     "acquire_once": {
       "abbreviation": "AQO",
       "image": "false",
+      "persists": "false",
       "devices": [
         "ADC"
       ],
@@ -148,6 +156,7 @@
     "acquire_continuous": {
       "abbreviation": "AQC",
       "image": "false",
+      "persists": "false",
       "devices": [
         "ADC"
       ],
@@ -169,6 +178,7 @@
     "single_pulse": {
       "abbreviation": "SPL",
       "image": "true",
+      "persists": "false",
       "devices": [
         "TTL"
       ],
@@ -190,6 +200,7 @@
     "logic": {
       "abbreviation": "LOG",
       "image": "true",
+      "persists": "true",
       "devices": [
         "TTL"
       ],
@@ -203,6 +214,7 @@
     "pulse_train": {
       "abbreviation": "PLT",
       "image": "true",
+      "persists": "true",
       "devices": [
         "TTL"
       ],
@@ -224,6 +236,7 @@
     "constant_pulse": {
       "abbreviation": "CPL",
       "image": "false",
+      "persists": "false",
       "devices": [
         "DAC"
       ],
