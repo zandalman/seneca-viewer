@@ -10,6 +10,7 @@ class Experiment():
         self.aliases = aliases
         
         self.sequence = []
+        self.variables = {}
         self.events = {}
         self.devices = {}
         self.translation = ""
@@ -71,7 +72,7 @@ class Experiment():
         del self.sequence[index]
         
     def translate(self):  
-        translation = [str(self.startup)]
+        translation = ["seneca_variables = " + json.dumps(self.variables, indent=4) + "\n", str(self.startup)]
         for event_id in self.sequence:
             translation.append(str(self.events[event_id]))
         return '\n'.join(translation)
@@ -383,23 +384,34 @@ class Parser():
                                      self.control, 
                                      self.aliases)
         
+        variables = {}
+
         for timestep in self.logic:
             for event in timestep:
                 generic = ["eventType", "deviceType", "alias", "ID"]
+                alias = event["alias"]
                 event_args = {}
 
                 for argument in event:
                     if argument not in generic:
-                        event_args[argument] = event[argument]
+                        if event[argument] and event[argument][0] == "$":
+                            if alias not in variables.keys():
+                                variables[alias] = {}
+                            variables[alias][event[argument]] = self.defaults[alias][event[argument]][0]
+                            event_args[argument] = "seneca_variables['{alias}']['{variable_name}']".format(alias=alias, variable_name=event[argument])
+                        else:
+                            event_args[argument] = event[argument]
 
                 event_name = self.control + "Event"
                 EventObject = globals()[event_name]
                 new_event = EventObject(
-                                    event["alias"],
+                                    alias,
                                     event["eventType"],
                                     event["ID"],
                                     self.aliases,
                                     **event_args)
                 this_experiment.add(new_event)
+
+        this_experiment.variables = variables
         
         return this_experiment
