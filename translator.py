@@ -2,6 +2,17 @@ from script_templates import artiq_templates
 import json 
 import random
 
+type_translation = dict(int="int", boolean="bool", string="str", float="float")
+
+class Variable():
+    def __init__(self, name, alias, default, type):
+        self.name = name
+        self.alias = alias
+        self.default = default
+        self.type = type
+
+    def get_translation(self):
+        return "parser.add_argument('--%s_%s', default=%s, type=%s)" % (self.alias, self.name, self.default, self.type)
 
 class Experiment():
     def __init__(self, experiment_name, control_software, aliases):
@@ -10,7 +21,7 @@ class Experiment():
         self.aliases = aliases
         
         self.sequence = []
-        self.variables = {}
+        self.variables = []
         self.events = {}
         self.devices = {}
         self.translation = ""
@@ -72,7 +83,14 @@ class Experiment():
         del self.sequence[index]
         
     def translate(self):  
-        translation = ["seneca_variables = " + json.dumps(self.variables, indent=4) + "\n", str(self.startup)]
+        translation = [
+            "import argparse\n",
+            "parser = argparse.ArgumentParser()"
+        ]
+        for variable in self.variables:
+            translation.append(variable.get_translation())
+        translation.append("variables = parser.parse_args()\n")
+        translation.append(str(self.startup))
         for event_id in self.sequence:
             translation.append(str(self.events[event_id]))
         return '\n'.join(translation)
@@ -384,7 +402,8 @@ class Parser():
                                      self.control, 
                                      self.aliases)
         
-        variables = {}
+        variables = []
+        variable_names = []
 
         for timestep in self.logic:
             for event in timestep:
@@ -395,10 +414,15 @@ class Parser():
                 for argument in event:
                     if argument not in generic:
                         if event[argument] and event[argument][0] == "$":
-                            if alias not in variables.keys():
-                                variables[alias] = {}
-                            variables[alias][event[argument]] = self.defaults[alias][event[argument]][0]
-                            event_args[argument] = "seneca_variables['{alias}']['{variable_name}']".format(alias=alias, variable_name=event[argument])
+                            variable_name = event[argument]
+                            variable_default = self.defaults[alias][variable_name]["value"]
+                            variable_type = type_translation[self.defaults[alias][variable_name]["type"]]
+                            if variable_type == "str":
+                                variable_default = "'%s'" % variable_default
+                            if (alias, variable_name) not in variable_names:
+                                variables.append(Variable(variable_name[1:], alias, variable_default, variable_type))
+                                variable_names.append((alias, variable_name))
+                            event_args[argument] = "variables.%s_%s" % (alias, variable_name[1:])
                         else:
                             event_args[argument] = event[argument]
 

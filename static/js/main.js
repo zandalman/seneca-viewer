@@ -57,7 +57,8 @@ COLORS = {
     stringVar: "#e06666",
     header: "#EEE",
     event: "#FAFAFA",
-    highlight: "#FFFF00"
+    highlight: "#FFFF00",
+    persist: "#BBB"
 };
 
 // Define variable types
@@ -207,33 +208,6 @@ var addExperimentTableHooks = function () {
     experimentTable.addHook("afterChange", function (changes, source) {
         // If source of change is a form of cell editing...
         if (EDIT_SOURCES.includes(source)) {
-            experimentTableData = experimentTable.getData();
-            var numCols = experimentTableData[0].length;
-            changes.forEach(function (change) {
-               var row = change[0];
-               var col = change[1];
-               var oldValue = change[2]
-               var newValue = change[3];
-               var colIdx;
-               if (oldValue && eventTypesThatPersist.includes(getEventType(oldValue))) {
-                   for (colIdx = col + 1; colIdx < numCols; colIdx++) {
-                       if (experimentTableData[row][colIdx] === oldValue) {
-                           experimentTable.setDataAtCell(row, colIdx, "", "persistSystem");
-                       } else {
-                           break;
-                       }
-                   }
-               }
-               if (newValue && eventTypesThatPersist.includes(getEventType(newValue))) {
-                   for (colIdx = col + 1; colIdx < numCols; colIdx++) {
-                       if (!experimentTableData[row][colIdx]) {
-                           experimentTable.setDataAtCell(row, colIdx, newValue, "persistSystem");
-                       } else {
-                           break;
-                       }
-                   }
-               }
-            });
             updateVariables();
         }
         $("#experiment-name").removeClass("saved");
@@ -592,6 +566,14 @@ function experimentTableRenderer(instance, td, row, col, prop, value, cellProper
         cellProperties.comment = {value: null, readOnly: true};
     }
     var newArguments = [];
+    if (!value) {
+        var lastEvent = instance.getDataAtRow(row).slice(0, col).filter(item => item).pop(-1);
+        if (lastEvent && eventTypesThatPersist.includes(getEventType(lastEvent))) {
+            value = lastEvent;
+            eventType = getEventType(lastEvent);
+            td.style.color = COLORS.persist;
+        }
+    }
     switch (displayMode) {
         case "event-type":
             newArguments = [instance, td, row, col, prop, eventType, cellProperties];
@@ -959,14 +941,19 @@ var getVariableData = function () {
         var channel = $(this).data("channel");
         var variableName = $(this).data("name");
         var value = $(this).data("value");
-        if (value) {
-            variableData[channel][variableName] = value;
-        }
+        var paramType = $(this).data("type");
+        variableData[channel][variableName] = {
+            "value": value,
+            "type": paramType
+        };
     });
     return variableData;
 }
 
 var updateVariables = function () {
+    // Unselect variables
+    $(".variable").removeClass("selected");
+    selectedVariable = "";
     var variableData = getVariableData();
     $(".variable-list").empty();
     var experimentTableData = experimentTable.getData();
@@ -977,7 +964,7 @@ var updateVariables = function () {
         if (variableExists) {
             var paramType = globalVariables[globalVariableName];
             var variableList = getVariableList("global", paramType);
-            var value = Object.keys(variableData["global"]).includes(globalVariableName) ? variableData["global"][globalVariableName] : "";
+            var value = Object.keys(variableData["global"]).includes(globalVariableName) ? variableData["global"][globalVariableName]["value"] : "";
             variableList.append(generateVariableHTML(globalVariableName, "global", paramType, value));
         } else {
             delete globalVariables[globalVariableName];
@@ -990,7 +977,7 @@ var updateVariables = function () {
             if (!Object.keys(globalVariables).includes(variableName)) {
                 var paramType = channelVariables[variableName];
                 var variableList = getVariableList(channel, paramType);
-                var value = Object.keys(variableData[channel]).includes(variableName) ? variableData[channel][variableName] : "";
+                var value = Object.keys(variableData[channel]).includes(variableName) ? variableData[channel][variableName]["value"] : "";
                 variableList.append(generateVariableHTML(variableName, channel, paramType, value));
             }
         });
@@ -1097,20 +1084,11 @@ $("#save-experiment").on("click", function () {
         });
     });
     var experimentTableData = experimentTable.getData();
-    var variableDefaults = {};
-    $( ".variable" ).each(function( index ) {
-      var varName =  $( this ).find(".variable-name").text();
-      var varValue = $( this ).find(".variable-input").val()
-      var varChannel = $(this).attr("data-channel");
-      variableDefaults[varChannel] = {}
-      variableDefaults[varChannel]["$" + varName] = [varValue];
-    });
     var jsonExport = {
         data: {
             eventData: eventTableDataAll,
-            defaults: variableDefaults,
-            logic: experimentTableData,
-            variableData: getVariableData()
+            defaults: getVariableData(),
+            logic: experimentTableData
         }
     };
     if ($("#experiment-name").val() === "") {
