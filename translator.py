@@ -395,15 +395,21 @@ class Parser():
                         ids.append(rand_id)
                         event["ID"] = rand_id
                         break
-            
-        
+
+    def generate_variables(self):
+        variable_objects = []
+        for alias, alias_variables in self.defaults.items():
+            for variable_name, variable_data in alias_variables.items():
+                variable_value = variable_data["value"]
+                variable_type = type_translation[variable_data["type"]]
+                if variable_type == "str":
+                    variable_value = "'%s'" % variable_value
+                variable_objects.append(Variable(variable_name[1:], alias, variable_value, variable_type))
+        return variable_objects
+
     def create_experiment(self):
-        this_experiment = Experiment(self.title, 
-                                     self.control, 
-                                     self.aliases)
-        
-        variables = []
-        variable_names = []
+        this_experiment = Experiment(self.title, self.control, self.aliases)
+        global_variables = self.defaults["global"].keys()
 
         for timestep in self.logic:
             for event in timestep:
@@ -415,14 +421,10 @@ class Parser():
                     if argument not in generic:
                         if event[argument] and event[argument][0] == "$":
                             variable_name = event[argument]
-                            variable_default = self.defaults[alias][variable_name]["value"]
-                            variable_type = type_translation[self.defaults[alias][variable_name]["type"]]
-                            if variable_type == "str":
-                                variable_default = "'%s'" % variable_default
-                            if (alias, variable_name) not in variable_names:
-                                variables.append(Variable(variable_name[1:], alias, variable_default, variable_type))
-                                variable_names.append((alias, variable_name))
-                            event_args[argument] = "variables.%s_%s" % (alias, variable_name[1:])
+                            if variable_name in global_variables:
+                                event_args[argument] = "variables.%s_%s" % ("global", variable_name[1:])
+                            else:
+                                event_args[argument] = "variables.%s_%s" % (alias, variable_name[1:])
                         else:
                             event_args[argument] = event[argument]
 
@@ -436,6 +438,6 @@ class Parser():
                                     **event_args)
                 this_experiment.add(new_event)
 
-        this_experiment.variables = variables
+        this_experiment.variables = self.generate_variables()
         
         return this_experiment

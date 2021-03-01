@@ -29,7 +29,7 @@
     "collect_data": {
       "abbreviation": "CDT",
       "image": "false",
-      "persists": "false",
+      "persists": "true",
       "devices": [
         "SCRIPT"
       ],
