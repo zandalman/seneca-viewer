@@ -119,17 +119,17 @@ class ArtiqEvent(Event):
     def __init__(self, device_name, event_type, event_id, aliases, **kwargs):
         super().__init__(device_name, aliases[device_name]["type"], event_id)
         parallel = kwargs.pop("parallel", False)
+        first = kwargs.pop("first", False)
         self.board = aliases[device_name]["board_id"]
         self.channel = aliases[device_name]["channel_id"]
-        self.base_translation = ArtiqEventBlock(event_id, parallel=parallel)
+        self.base_translation = ArtiqEventBlock(event_id, parallel=parallel, first=first)
         
         if isinstance(artiq_templates[self.device_type][event_type], list):
             lines = artiq_templates[self.device_type][event_type]
         else:
             event_dictionary = artiq_templates[self.device_type][event_type]
             self.base_translation.add_control(event_dictionary["control"].format(**kwargs))
-            lines = artiq_templates[self.device_type][event_type]["block"
-            ]
+            lines = artiq_templates[self.device_type][event_type]["block"]
         
         for line in lines:
             self.base_translation.add(line.format(board_id = self.board, channel_id = self.channel, **kwargs))
@@ -344,12 +344,14 @@ class ArtiqKernel(Block):
 
 
 class ArtiqEventBlock(Block):
-    def __init__(self, event_id, parallel = False):
+    def __init__(self, event_id, parallel=False, first=False):
         if parallel is False:
-            super().__init__(event_id, indents = 2)        
-        else:
+            super().__init__(event_id, indents=2)
+        elif first:
             contr = "in parallel:"
-            super().__init__("build", control = contr, indents = 2)
+            super().__init__("build", control=contr, indents=2)
+        else:
+            super().__init__("build", control="", indents=2)
             
         
 class ArtiqRPC(Block):
@@ -412,6 +414,7 @@ class Parser():
         global_variables = self.defaults["global"].keys()
 
         for timestep in self.logic:
+            first = True
             for event in timestep:
                 generic = ["eventType", "deviceType", "alias", "ID"]
                 alias = event["alias"]
@@ -435,8 +438,11 @@ class Parser():
                                     event["eventType"],
                                     event["ID"],
                                     self.aliases,
+                                    first=first,
+                                    parallel=False,
                                     **event_args)
                 this_experiment.add(new_event)
+                first = False
 
         this_experiment.variables = self.generate_variables()
         
