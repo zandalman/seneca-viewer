@@ -419,6 +419,7 @@ class Parser():
                 generic = ["eventType", "deviceType", "alias", "ID"]
                 alias = event["alias"]
                 event_args = {}
+                print(event)
 
                 for argument in event:
                     if argument not in generic:
