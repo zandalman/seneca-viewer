@@ -4,30 +4,40 @@ import random
 
 type_translation = dict(int="int", boolean="bool", string="str", float="float")
 
-class Variable():
-    def __init__(self, name, alias, default, type):
+
+class Variable:
+    def __init__(self, name, alias, default, type, unit="", scale=1):
         self.name = name
         self.alias = alias
         self.default = default
         self.type = type
+        self.unit = unit
+        self.scale = scale
 
     def get_translation(self):
-        return "parser.add_argument('--%s_%s', default=%s, type=%s)" % (self.alias, self.name, self.default, self.type)
+        id = "%s_%s" % (self.alias, self.name)
+        base = "self.setattr_argument('" + id + "', %s)"
+        if self.type == "string":
+            return base % "StringValue(default='%s')" % self.default
+        elif self.type == "boolean":
+            return base % "BooleanValue(default=%s)" % str(self.default == "true")
+        elif self.type in ["float", "int"]:
+            return base % "NumberValue(default=%s, unit='%s', scale=%s, type='%s')" % (self.default, self.unit, self.scale, self.type)
 
 class Experiment():
-    def __init__(self, experiment_name, control_software, aliases):
+    def __init__(self, experiment_name, control_software, aliases, variables):
         self.name = experiment_name
         self.control = control_software
         self.aliases = aliases
         
         self.sequence = []
-        self.variables = []
+        self.variables = variables
         self.events = {}
         self.devices = {}
         self.translation = ""
         
         startup = globals()[self.control + "Startup"]
-        self.startup = startup(self.devices, self.aliases)
+        self.startup = startup(self.devices, self.aliases, self.variables)
     
     def add(self, event):
         self.check_device(event)
@@ -82,15 +92,8 @@ class Experiment():
         del self.events[event_id]
         del self.sequence[index]
         
-    def translate(self):  
-        translation = [
-            "import argparse\n",
-            "parser = argparse.ArgumentParser()"
-        ]
-        for variable in self.variables:
-            translation.append(variable.get_translation())
-        translation.append("variables = parser.parse_args()\n")
-        translation.append(str(self.startup))
+    def translate(self):
+        translation = [str(self.startup)]
         for event_id in self.sequence:
             translation.append(str(self.events[event_id]))
         return '\n'.join(translation)
@@ -151,11 +154,11 @@ class Startup():
 
 
 class ArtiqStartup(Startup):
-    def __init__(self, devices, aliases):
+    def __init__(self, devices, aliases, variables):
         super().__init__(devices, aliases)
         self.imports = ArtiqImports()
         self.env = ArtiqEnv(aliases["gateware"])
-        self.build = ArtiqBuild(aliases)
+        self.build = ArtiqBuild(aliases, variables)
         self.kernel = ArtiqKernel(aliases)
         self.translation = [self.imports, self.env, self.build, self.kernel]
         
@@ -315,9 +318,9 @@ class ArtiqEnv(Block):
 
 
 class ArtiqBuild(Block):
-    def __init__(self, aliases):
+    def __init__(self, aliases, variables):
         contr = "def build(self):"
-        super().__init__("build", control = contr, indents = 1)
+        super().__init__("build", control=contr, indents=1)
         self.add("self.setattr_device('core')")
         
         for alias in aliases:
@@ -326,6 +329,9 @@ class ArtiqBuild(Block):
                 device = parameters["type"]
                 line = artiq_templates[device]["build"].format(**parameters)
                 self.add(line)
+
+        for variable in variables:
+            self.add(variable.get_translation())
         
 class ArtiqKernel(Block):
     def __init__(self, aliases):
@@ -382,6 +388,7 @@ class Parser():
         self.control = self.experiment["description"]["control"]
         self.version = self.experiment["description"]["version"]
         self.title = self.experiment["description"]["name"]
+        self.variables = self.generate_variables()
     
     def assign_id(self):
         """ Assigns each event with a unique random ID. 
@@ -403,32 +410,28 @@ class Parser():
         for alias, alias_variables in self.defaults.items():
             for variable_name, variable_data in alias_variables.items():
                 variable_value = variable_data["value"]
-                variable_type = type_translation[variable_data["type"]]
-                if variable_type == "str":
-                    variable_value = "'%s'" % variable_value
+                variable_type = variable_data["type"]
                 variable_objects.append(Variable(variable_name[1:], alias, variable_value, variable_type))
         return variable_objects
 
     def create_experiment(self):
-        this_experiment = Experiment(self.title, self.control, self.aliases)
+        this_experiment = Experiment(self.title, self.control, self.aliases, self.variables)
         global_variables = self.defaults["global"].keys()
 
         for timestep in self.logic:
-            first = True
             for event in timestep:
                 generic = ["eventType", "deviceType", "alias", "ID"]
                 alias = event["alias"]
                 event_args = {}
-                print(event)
 
                 for argument in event:
                     if argument not in generic:
                         if event[argument] and event[argument][0] == "$":
                             variable_name = event[argument]
                             if variable_name in global_variables:
-                                event_args[argument] = "variables.%s_%s" % ("global", variable_name[1:])
+                                event_args[argument] = "self.%s_%s" % ("global", variable_name[1:])
                             else:
-                                event_args[argument] = "variables.%s_%s" % (alias, variable_name[1:])
+                                event_args[argument] = "self.%s_%s" % (alias, variable_name[1:])
                         else:
                             event_args[argument] = event[argument]
 
@@ -439,11 +442,9 @@ class Parser():
                                     event["eventType"],
                                     event["ID"],
                                     self.aliases,
-                                    first=first,
                                     parallel=False,
                                     **event_args)
                 this_experiment.add(new_event)
-                first = False
 
         this_experiment.variables = self.generate_variables()
         

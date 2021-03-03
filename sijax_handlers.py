@@ -117,50 +117,62 @@ def raw_to_json(config_file, raw_data_obj, filename):
     Returns:
         Human-readable sequence JSON.
     """
+    # read data
     data = raw_data_obj["data"]
-    event_data = data.pop("eventData")
-    experiment_data = data["logic"]
-    exp_data_tp = np.transpose(experiment_data)
-    event_config = json.load(config_file)
-    sorted_events = sorted(event_config["events"])
-    eventLibrary = {}
-    # iterate through the events, alphabetically sorted
-    for event_type_list, event_type in zip(event_data, sorted_events):
-        parameters = event_config["events"][event_type]["params"]
-        for event in event_type_list["data"]:
-            event_ID = event[0]
-            event_dict = {"eventType": event_type}
-            # iterate through the parameters
-            for value, (parameter, parameter_data) in zip(event[1:], parameters.items()):
-                if parameter_data["type"] in ["float", "int"]:
-                    if value and value[-1] in UNITS.keys():
-                        event_dict[parameter] = value[:-1]
-                        event_dict[parameter + "_unit"] = str(UNITS[value[-1]])
-                    else:
-                        event_dict[parameter] = value
-                        event_dict[parameter + "_unit"] = "1"
-                elif parameter_data["type"] == "boolean":
-                    event_dict[parameter] = str(value == "true")
-                else:
-                    event_dict[parameter] = value
-            eventLibrary[event_ID] = event_dict
+    event_table_data_all = data["eventData"]
+    experiment_table_data = np.transpose(data["experimentData"])
+    variable_data = data["variableData"]
+    event_type_data_all = json.load(config_file)["events"]
 
-    # Processing the experiment section
-    logic = exp_data_tp.astype("object")
+    # experiment variables
+    defaults = {}
+    for channel, channel_variables in variable_data.items():
+        defaults[channel] = {}
+        for variable, variable_data in channel_variables.items():
+            defaults[channel][variable] = variable_data
+
+    # experiment events
+    event_library = {}
+    for event_table in event_table_data_all:
+        event_type = event_table["eventType"]
+        event_params = event_type_data_all[event_type]["params"]
+        event_param_names = sorted(event_params)
+        event_table_data = event_table["data"]
+        for event in event_table_data:
+            event_data = dict(eventType=event_type, ID=event[0])
+            for idx, param_value in enumerate(event[1:]):
+                param_name = event_param_names[idx]
+                param_data = event_params[param_name]
+                if param_value and param_data["type"] in ["float", "int"]:
+                    if param_value[-1] in UNITS.keys():
+                        event_data[param_name + "_units"] = param_value[-1] + param_data["unit"]
+                        event_data[param_name + "_scale"] = str(UNITS[param_value[-1]])
+                        event_data[param_name] = param_value[:-1]
+                    else:
+                        event_data[param_name + "_units"] = param_data["unit"]
+                        event_data[param_name + "_scale"] = "1"
+                        event_data[param_name] = param_value
+                else:
+                    event_data[param_name] = param_value
+            event_library[event[0]] = event_data
+
+    # experiment logic
+    logic = []
+    channels = experiment_table_data[0]
+    channel_devices = experiment_table_data[1]
+    for timestep in experiment_table_data[2:]:
+        if len([event for event in timestep if event]) > 0:
+            events = []
+            for idx, event in enumerate(timestep):
+                if event:
+                    events.append(dict(alias=channels[idx], deviceType=channel_devices[idx], **event_library[event]))
+            logic.append(events)
+
+    # experiment aliases
     aliases = {"gateware": "SimpleUrukul"}
-    for idx, (channel, device) in enumerate(zip(logic[0], logic[1])):
-        aliases[channel] = dict(type=device, board_id=idx, channel_id=idx)
-    for time_block in logic[2:]:
-        for idx, event in enumerate(time_block):
-            if event:
-                time_block[idx] = copy.deepcopy(eventLibrary[event])
-                time_block[idx]["ID"] = event
-                time_block[idx]["alias"] = logic[0][idx]
-    logic = logic[2:].tolist()
-    for (index, time_block) in enumerate(logic):
-        time_block = [event for event in time_block if event]
-        logic[index] = time_block
-    data["logic"] = logic
+    for idx, channel in enumerate(channels):
+        if len([event for event in experiment_table_data[2:, idx] if event]) > 0:
+            aliases[channel] = dict(type=channel_devices[idx], board_id=idx, channel_id=idx)
 
     # hardcoded experiment description
     description = {
@@ -170,7 +182,7 @@ def raw_to_json(config_file, raw_data_obj, filename):
         "version": "5.71"
     }
 
-    return dict(**data, description=description, aliases=aliases)
+    return dict(logic=logic, defaults=defaults, description=description, aliases=aliases)
 
 class SijaxHandlers(object):
     """

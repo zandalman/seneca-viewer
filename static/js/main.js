@@ -944,7 +944,8 @@ var getVariableData = function () {
         var paramType = $(this).data("type");
         variableData[channel][variableName] = {
             "value": value,
-            "type": paramType
+            "type": paramType,
+            "unit": ""
         };
     });
     return variableData;
@@ -1076,26 +1077,31 @@ $("#save-experiment").on("click", function () {
     var eventTableDataAll = [];
     eventTables.forEach(function (eventTable, idx) {
         var eventTableData = eventTable.getData();
-        var numRows = eventTableData.length;
-        var numCols = eventTableData[0].length;
+        var eventType = eventTypes[idx];
+        var eventTypeParams = eventTypeDataAll[eventType]["params"];
+        var eventTypeParamUnits = Object.keys(eventTypeParams).sort().map(function (paramName) {
+            return eventTypeParams[paramName]["units"];
+        });
         eventTableDataAll.push({
-            eventType: eventTypes[idx],
-            data: eventTableData
+            eventType: eventType,
+            data: eventTableData,
+            paramUnits: eventTypeParamUnits
         });
     });
     var experimentTableData = experimentTable.getData();
     var jsonExport = {
         data: {
             eventData: eventTableDataAll,
-            defaults: getVariableData(),
-            logic: experimentTableData
+            variableData: getVariableData(),
+            experimentData: experimentTableData
         }
     };
+    var fileName;
     if ($("#experiment-name").val() === "") {
-        var fileName = prompt("Experiment name");
+        fileName = prompt("Experiment name");
         $("#experiment-name").val(fileName);
     } else {
-        var fileName = $("#experiment-name").val();
+        fileName = $("#experiment-name").val();
     }
     Sijax.request("save_json", [jsonExport, fileName, override]);
 });
@@ -1233,3 +1239,8 @@ codeEditor.setSize(null, "100%");
 var displayScript = function (script) {
     codeEditor.setValue(script);
 }
+
+$("#script-list").on("click", ".script", function () {
+    var scriptName = $(this).data("name");
+    Sijax.request("display_script", [scriptName]);
+});

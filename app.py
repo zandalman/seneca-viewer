@@ -28,6 +28,8 @@ def create_app():
     with open(event_type_data_path, "r") as f:
         event_type_data = json.load(f)
 
+    script_list = [os.path.splitext(script)[0] for script in os.listdir(app.config["SCRIPT_FOLDER"]) if os.path.splitext(script)[1] == ".py"]
+
     @flask_sijax.route(app, '/')
     def main():
         """
@@ -42,7 +44,8 @@ def create_app():
             return g.sijax.process_request()
         return render_template("main.html",
                                form_init_js=form_init_js,
-                               event_type_data=event_type_data)
+                               event_type_data=event_type_data,
+                               script_list=script_list)
     return app
 
 

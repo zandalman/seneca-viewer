@@ -3,11 +3,11 @@
     <div id="storage" data-config="{{ event_type_data }}"></div>
     <div id="tabs">
         <ul>
-            <li><a href="#exp-edit">Experiment Editor</a></li>
+            <li><a href="#experiment-editor">Experiment Editor</a></li>
             <li><a href="#script-viewer">Script Viewer</a></li>
-            <li><a href="#run-man">Run Manager</a></li>
+            <li><a href="#run-manager">Run Manager</a></li>
         </ul>
-        <div id="exp-edit" class="tab">
+        <div id="experiment-editor" class="tab">
             <div id="top-bar">
                 <i class="fa fa-edit active" id="edit-experiment-name"></i>
                 <input type="text" style="display: inline-block;" id="experiment-name" placeholder="untitled" value="">
@@ -73,6 +73,19 @@
         <div id="script-viewer" class="tab">
             <div id="script"></div>
         </div>
-        <div id="run-man" class="tab"></div>
+        <div id="run-manager" class="tab">
+            <div class="row">
+                <div class="column" style="width: 20%; background-color: #eaeaea;">
+                    <b>Scripts</b><br/>
+                    <ul id="script-list">
+                        {% for script in script_list %}
+                            <li class="script" data-name="{{ script }}">{{ script }}.py</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="column" style="width: 80%;">
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
