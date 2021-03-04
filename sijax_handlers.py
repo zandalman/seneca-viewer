@@ -117,21 +117,21 @@ def raw_to_json(config_file, raw_data_obj, filename):
     Returns:
         Human-readable sequence JSON.
     """
-    # read data
+    # collect raw data
     data = raw_data_obj["data"]
     event_table_data_all = data["eventData"]
     experiment_table_data = np.transpose(data["experimentData"])
     variable_data = data["variableData"]
     event_type_data_all = json.load(config_file)["events"]
 
-    # experiment variables
+    # create experiment variables
     defaults = {}
     for channel, channel_variables in variable_data.items():
         defaults[channel] = {}
         for variable, variable_data in channel_variables.items():
             defaults[channel][variable] = variable_data
 
-    # experiment events
+    # create a library of events
     event_library = {}
     for event_table in event_table_data_all:
         event_type = event_table["eventType"]
@@ -143,20 +143,14 @@ def raw_to_json(config_file, raw_data_obj, filename):
             for idx, param_value in enumerate(event[1:]):
                 param_name = event_param_names[idx]
                 param_data = event_params[param_name]
-                if param_value and param_data["type"] in ["float", "int"]:
-                    if param_value[-1] in UNITS.keys():
-                        event_data[param_name + "_units"] = param_value[-1] + param_data["unit"]
-                        event_data[param_name + "_scale"] = str(UNITS[param_value[-1]])
-                        event_data[param_name] = param_value[:-1]
-                    else:
-                        event_data[param_name + "_units"] = param_data["unit"]
-                        event_data[param_name + "_scale"] = "1"
-                        event_data[param_name] = param_value
+                # if parameter is a fixed int or float, scale by unit
+                if param_value and param_data["type"] in ["float", "int"] and param_value[1] != "$" and param_value[-1] in UNITS.keys():
+                    event_data[param_name] = str(float(param_value[:-1]) * UNITS[param_value[-1]])
                 else:
                     event_data[param_name] = param_value
             event_library[event[0]] = event_data
 
-    # experiment logic
+    # create experiment logic
     logic = []
     channels = experiment_table_data[0]
     channel_devices = experiment_table_data[1]
@@ -168,7 +162,7 @@ def raw_to_json(config_file, raw_data_obj, filename):
                     events.append(dict(alias=channels[idx], deviceType=channel_devices[idx], **event_library[event]))
             logic.append(events)
 
-    # experiment aliases
+    # create experiment aliases
     aliases = {"gateware": "SimpleUrukul"}
     for idx, channel in enumerate(channels):
         if len([event for event in experiment_table_data[2:, idx] if event]) > 0:

@@ -2,17 +2,33 @@ from script_templates import artiq_templates
 import json 
 import random
 
-type_translation = dict(int="int", boolean="bool", string="str", float="float")
-
+UNITS = {
+    "y": 1e-24,
+    "z": 1e-21,
+    "a": 1e-18,
+    "f": 1e-15,
+    "p": 1e-12,
+    "n": 1e-9,
+    "u": 1e-6,
+    "m": 1e-3,
+    "": 1,
+    "k": 1e3,
+    "M": 1e6,
+    "G": 1e9,
+    "T": 1e12,
+    "P": 1e15,
+    "E": 1e18,
+    "Z": 1e21,
+    "Y": 1e24
+}
 
 class Variable:
-    def __init__(self, name, alias, default, type, unit="", scale=1):
+    def __init__(self, name, alias, default, type, unit):
         self.name = name
         self.alias = alias
         self.default = default
         self.type = type
         self.unit = unit
-        self.scale = scale
 
     def get_translation(self):
         id = "%s_%s" % (self.alias, self.name)
@@ -22,7 +38,13 @@ class Variable:
         elif self.type == "boolean":
             return base % "BooleanValue(default=%s)" % str(self.default == "true")
         elif self.type in ["float", "int"]:
-            return base % "NumberValue(default=%s, unit='%s', scale=%s, type='%s')" % (self.default, self.unit, self.scale, self.type)
+            if self.default:
+                if self.default[-1] in UNITS.keys():
+                    return base % "NumberValue(default=%s, unit='%s%s', scale=%s, type='%s')" % (self.default[:-1], self.unit, self.default[-1], UNITS[self.default[-1]], self.type)
+                else:
+                    return base % "NumberValue(default=%s, unit='%s', scale=%s, type='%s')" % (self.default, self.unit, 1, self.type)
+            else:
+                return base % "NumberValue(unit='%s', type='%s')" % (self.unit, self.type)
 
 class Experiment():
     def __init__(self, experiment_name, control_software, aliases, variables):
@@ -409,9 +431,10 @@ class Parser():
         variable_objects = []
         for alias, alias_variables in self.defaults.items():
             for variable_name, variable_data in alias_variables.items():
-                variable_value = variable_data["value"]
                 variable_type = variable_data["type"]
-                variable_objects.append(Variable(variable_name[1:], alias, variable_value, variable_type))
+                default = variable_data["value"]
+                variable_unit = variable_data["unit"]
+                variable_objects.append(Variable(variable_name[1:], alias, default, variable_type, variable_unit))
         return variable_objects
 
     def create_experiment(self):
@@ -445,7 +468,5 @@ class Parser():
                                     parallel=False,
                                     **event_args)
                 this_experiment.add(new_event)
-
-        this_experiment.variables = self.generate_variables()
         
         return this_experiment

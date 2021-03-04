@@ -214,21 +214,22 @@ var addExperimentTableHooks = function () {
     });
 }
 
-var generateVariableHTML = function (variableName, channel, paramType, value) {
-    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "' data-type='" + paramType + "' data-value='" + value + "'>\n" +
+var generateVariableHTML = function (variableName, channel, paramType, value, unit) {
+    return "<li class='variable' data-name='" + variableName + "' data-channel='" + channel + "' data-type='" + paramType + "' data-value='" + value + "' data-unit='" + unit + "'>\n" +
         "  <div class='vertical-center'>\n" +
         "    <span class='variable-name'>" + variableName.slice(1) + "</span>\n" +
         "    <input type='text' class='variable-input' value='" + value + "'>\n" +
+        "(" + unit + ")\n" +
         "  </div>\n" +
         "</li>"
 }
 
 // Toggle whether a variable is global
-var toggleVariableIsGlobal = function(variableName, paramType) {
+var toggleVariableIsGlobal = function(variableName, paramType, unit) {
     if (Object.keys(globalVariables).includes(variableName)) {
         delete globalVariables[variableName];
     } else {
-        globalVariables[variableName] = paramType;
+        globalVariables[variableName] = {type: paramType, unit: unit};
     }
 }
 
@@ -242,17 +243,19 @@ var toggleSelectedCellsAreGlobal = function (eventTable) {
         var endCol = Math.max(selection[1], selection[3]);
         var variableNames = [];
         var variableParamTypes = [];
+        var variableUnits = [];
         for (var row = startRow; row <= endRow; row++) {
             for (var col = Math.max(1, startCol); col <= endCol; col++) {
                 var cellValue = eventTable.getDataAtCell(row, col);
                 if (isVariable(cellValue)) {
                     variableNames.push(cellValue);
                     variableParamTypes.push(getParamTypeAtCell(eventTable, row, col));
+                    variableUnits.push(getUnitFromHeader(eventTable.getColHeader(col)));
                 }
             }
         }
         variableNames.forEach(function (variableName, idx) {
-            toggleVariableIsGlobal(variableName, variableParamTypes[idx]);
+            toggleVariableIsGlobal(variableName, variableParamTypes[idx], variableUnits[idx]);
         });
     }
     updateVariables();
@@ -362,6 +365,7 @@ var createEventTable = function (eventType, eventTypeData, eventTableData) {
 }
 
 // Define renderer to disguise table cells as table headers
+// DEBUG
 function eventTableHeaderRenderer(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
     if (selectedVariable && Object.keys(getEventVariables(value)).includes(selectedVariable)) {
@@ -917,6 +921,14 @@ var isVariable = function (value) {
     return Boolean(value) && value[0] === "$";
 }
 
+var getUnitFromHeader = function (header) {
+    if (header.split(" ").length === 0) {
+  	    return "";
+    } else {
+  	    return header.split(" ")[1].slice(1, -1);
+    }
+}
+
 // Get the variables associated with an event
 var getEventVariables = function (eventID) {
     var eventType = getEventType(eventID);
@@ -925,8 +937,12 @@ var getEventVariables = function (eventID) {
     var eventVariables = {};
     eventTable.getDataAtRow(row).slice(1).map(function (value, idx) {
         var col = idx + 1;
+        var unit = getUnitFromHeader(eventTable.getColHeader(col));
         if (isVariable(value)) {
-            eventVariables[value] = getParamTypeAtCell(eventTable, row, col);
+            eventVariables[value] = {
+                "type": getParamTypeAtCell(eventTable, row, col),
+                "unit": unit
+            }
         }
     });
     return eventVariables;
@@ -942,10 +958,11 @@ var getVariableData = function () {
         var variableName = $(this).data("name");
         var value = $(this).data("value");
         var paramType = $(this).data("type");
+        var unit = $(this).data("unit");
         variableData[channel][variableName] = {
             "value": value,
             "type": paramType,
-            "unit": ""
+            "unit": unit
         };
     });
     return variableData;
@@ -963,10 +980,11 @@ var updateVariables = function () {
             return eventTable.getData().flat().includes(globalVariableName);
         }).length > 0;
         if (variableExists) {
-            var paramType = globalVariables[globalVariableName];
+            var paramType = globalVariables[globalVariableName]["type"];
             var variableList = getVariableList("global", paramType);
             var value = Object.keys(variableData["global"]).includes(globalVariableName) ? variableData["global"][globalVariableName]["value"] : "";
-            variableList.append(generateVariableHTML(globalVariableName, "global", paramType, value));
+            var unit = globalVariables[globalVariableName]["unit"];
+            variableList.append(generateVariableHTML(globalVariableName, "global", paramType, value, unit));
         } else {
             delete globalVariables[globalVariableName];
         }
@@ -976,10 +994,11 @@ var updateVariables = function () {
         var channelVariables = getChannelVariables(rowData);
         Object.keys(channelVariables).sort().forEach(function (variableName) {
             if (!Object.keys(globalVariables).includes(variableName)) {
-                var paramType = channelVariables[variableName];
+                var paramType = channelVariables[variableName]["type"];
                 var variableList = getVariableList(channel, paramType);
                 var value = Object.keys(variableData[channel]).includes(variableName) ? variableData[channel][variableName]["value"] : "";
-                variableList.append(generateVariableHTML(variableName, channel, paramType, value));
+                var unit = channelVariables[variableName]["unit"];
+                variableList.append(generateVariableHTML(variableName, channel, paramType, value, unit));
             }
         });
     });
@@ -1079,13 +1098,9 @@ $("#save-experiment").on("click", function () {
         var eventTableData = eventTable.getData();
         var eventType = eventTypes[idx];
         var eventTypeParams = eventTypeDataAll[eventType]["params"];
-        var eventTypeParamUnits = Object.keys(eventTypeParams).sort().map(function (paramName) {
-            return eventTypeParams[paramName]["units"];
-        });
         eventTableDataAll.push({
             eventType: eventType,
-            data: eventTableData,
-            paramUnits: eventTypeParamUnits
+            data: eventTableData
         });
     });
     var experimentTableData = experimentTable.getData();
@@ -1130,6 +1145,7 @@ $(document).on("change", ".variable-input", function () {
             variableInputElement.css("border-color", "red");
         }
     });
+    $("#experiment-name").removeClass("saved");
 });
 
 // Generate a random event ID
